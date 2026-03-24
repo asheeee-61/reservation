@@ -3,12 +3,13 @@ import {
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, MenuItem, Select, FormControl,
   IconButton, Tooltip, Stack, TextField, InputAdornment, 
-  Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, CircularProgress
+  Fab, CircularProgress
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
 const STATUS_COLORS = {
@@ -20,15 +21,11 @@ const STATUS_COLORS = {
 };
 
 export default function Reservations() {
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [openDialog, setOpenDialog] = useState(false);
-  
-  const [newBooking, setNewBooking] = useState({
-    name: '', phone: '', date: '', time: '', guests: 2, notes: ''
-  });
 
   useEffect(() => {
     fetchReservations();
@@ -60,37 +57,6 @@ export default function Reservations() {
     } catch (e) {
       alert('Failed to update status');
       setReservations(previous);
-    }
-  };
-
-  const handleAddBooking = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/reservations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          date: newBooking.date,
-          slot: { time: newBooking.time },
-          guests: newBooking.guests,
-          user: {
-            name: newBooking.name,
-            phone: newBooking.phone,
-            email: '',
-            specialRequests: newBooking.notes
-          }
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        fetchReservations();
-        setOpenDialog(false);
-        setNewBooking({ name: '', phone: '', date: '', time: '', guests: 2, notes: '' });
-      }
-    } catch (e) {
-      alert('Error saving booking');
     }
   };
 
@@ -227,62 +193,10 @@ export default function Reservations() {
         color="primary" 
         aria-label="add" 
         sx={{ position: 'fixed', bottom: 24, right: 24 }}
-        onClick={() => setOpenDialog(true)}
+        onClick={() => navigate('/reservations/new')}
       >
         <AddIcon />
       </Fab>
-
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>New Manual Booking</DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField 
-                fullWidth label="Customer Name" size="small" required
-                value={newBooking.name} onChange={e => setNewBooking({...newBooking, name: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField 
-                fullWidth label="Date" type="date" size="small" required
-                InputLabelProps={{ shrink: true }}
-                value={newBooking.date} onChange={e => setNewBooking({...newBooking, date: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField 
-                fullWidth label="Time" type="time" size="small" required
-                InputLabelProps={{ shrink: true }}
-                value={newBooking.time} onChange={e => setNewBooking({...newBooking, time: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField 
-                fullWidth label="Guests" type="number" size="small" required
-                value={newBooking.guests} onChange={e => setNewBooking({...newBooking, guests: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField 
-                fullWidth label="Phone (WhatsApp)" size="small"
-                value={newBooking.phone} onChange={e => setNewBooking({...newBooking, phone: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField 
-                fullWidth label="Notes / Special Requests" size="small" multiline rows={2}
-                value={newBooking.notes} onChange={e => setNewBooking({...newBooking, notes: e.target.value})}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleAddBooking} disabled={!newBooking.name || !newBooking.date || !newBooking.time}>
-            Save Booking
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

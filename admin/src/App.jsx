@@ -3,6 +3,7 @@ import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Reservations from './pages/Reservations';
+import NewBooking from './pages/NewBooking';
 import Customers from './pages/Customers';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
@@ -35,6 +36,7 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="reservations" element={<Reservations />} />
+            <Route path="reservations/new" element={<NewBooking />} />
             <Route path="customers" element={<Customers />} />
             <Route path="settings" element={<Settings />} />
           </Route>
