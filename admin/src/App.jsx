@@ -8,6 +8,7 @@ import NewBooking from './pages/NewBooking';
 import EditBooking from './pages/EditBooking';
 import Customers from './pages/Customers';
 import Settings from './pages/Settings';
+import CalendarPanel from './pages/CalendarPanel';
 import Login from './pages/Login';
 import { useAuthStore } from './store/useAuthStore';
 
@@ -126,6 +127,7 @@ function App() {
             <Route path="reservations/edit/:id" element={<EditBooking />} />
             <Route path="customers" element={<Customers />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="calendar" element={<CalendarPanel />} />
           </Route>
         </Routes>
       </BrowserRouter>

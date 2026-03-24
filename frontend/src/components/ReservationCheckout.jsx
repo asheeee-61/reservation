@@ -44,14 +44,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: { xs: 2, md: 6 } }}>
       <Container maxWidth="md">
-        <Button 
-          startIcon={<span className="material-icons">arrow_back</span>} 
-          onClick={onBack} 
-          sx={{ mb: 4 }}
-          disabled={submitting}
-        >
-          Back to availability
-        </Button>
+
 
         <Paper sx={{ overflow: 'hidden' }}>
           <Box sx={{ p: { xs: 4, md: 6 }, bgcolor: '#FFFFFF' }}>
@@ -59,28 +52,30 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               Complete your reservation
             </Typography>
             
-            <Box sx={{ mt: 4, mb: 6, p: 4, bgcolor: '#F1F3F4', borderRadius: '4px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
-                <span className="material-icons" style={{ marginRight: 16, marginTop: 4, color: '#70757A', fontSize: 24 }}>restaurant</span>
-                <Box>
-                  <Typography variant="body1" fontWeight={500}>
-                    Group of {guests} · Standard Table
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {store.config?.restaurant?.name}{store.config?.restaurant?.address ? ` · ${store.config.restaurant.address}` : ''}
-                  </Typography>
-                </Box>
+            <Box sx={{ mt: 4, mb: 6, p: 2, bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>calendar_today</span>
+                <Typography variant="body1" sx={{ color: '#202124', textTransform: 'capitalize' }}>
+                  {date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : ''}
+                </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                <span className="material-icons" style={{ marginRight: 16, marginTop: 4, color: '#70757A', fontSize: 24 }}>calendar_today</span>
-                <Box>
-                  <Typography variant="body1" fontWeight={500} sx={{ textTransform: 'capitalize' }}>
-                    {date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : ''}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {selectedSlot?.time}
-                  </Typography>
-                </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>schedule</span>
+                <Typography variant="body1" sx={{ color: '#202124' }}>
+                  {selectedSlot?.time}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>group</span>
+                <Typography variant="body1" sx={{ color: '#202124' }}>
+                  {guests} personas
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>restaurant</span>
+                <Typography variant="body1" sx={{ color: '#202124' }}>
+                  Mesa estándar
+                </Typography>
               </Box>
             </Box>
 
@@ -137,26 +132,37 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
 
             <Divider sx={{ my: 3 }} />
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', maxWidth: 400 }}>
-                By continuing, you agree to the{' '}
-                <Box 
-                  component="span" 
-                  sx={{ color: 'primary.main', cursor: 'pointer', textDecoration: 'underline' }}
-                  onClick={() => store.setShowTerms(true)}
-                >
-                  Terms of Service
-                </Box>.
-              </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
+              <Button 
+                variant="outlined" 
+                onClick={onBack}
+                disabled={submitting}
+                sx={{ 
+                  borderRadius: '4px', 
+                  height: 48, 
+                  color: '#1A73E8', 
+                  borderColor: '#1A73E8',
+                  minWidth: 120
+                }}
+              >
+                Editar
+              </Button>
               <Button 
                 variant="contained" 
-                size="large"
                 onClick={handleConfirm} 
                 disabled={!isValid || submitting}
                 startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : null}
-                sx={{ minWidth: 200, height: 48 }}
+                sx={{ 
+                  borderRadius: '4px', 
+                  height: 48, 
+                  bgcolor: '#1A73E8', 
+                  color: '#FFFFFF',
+                  minWidth: 180,
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+                }}
               >
-                {submitting ? 'Confirming...' : 'Reserve Table'}
+                {submitting ? 'Confirmando...' : 'Confirmar reserva'}
               </Button>
             </Box>
           </Box>

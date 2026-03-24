@@ -10,11 +10,15 @@ export const useReservationStore = create((set) => ({
     phone: '',
     specialRequests: ''
   },
+  step: 'selection', // 'selection' | 'confirmation' | 'success'
+  reservationId: null,
   config: null,
   showTerms: false,
   loading: false,
   error: null,
   
+  setStep: (step) => set({ step }),
+  setReservationId: (reservationId) => set({ reservationId }),
   setDate: (date) => set({ date, selectedSlot: null }),
   setGuests: (guests) => set({ guests, selectedSlot: null }),
   setSelectedSlot: (selectedSlot) => set({ selectedSlot }),
@@ -24,6 +28,8 @@ export const useReservationStore = create((set) => ({
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   reset: () => set((state) => ({
+    step: 'selection',
+    reservationId: null,
     date: new Date().toISOString().split('T')[0],
     guests: state.config?.minGuests || 1,
     selectedSlot: null,

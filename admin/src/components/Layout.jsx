@@ -13,6 +13,7 @@ export default function Layout() {
     { text: 'Dashboard', icon: 'dashboard', path: '/' },
     { text: 'Reservations', icon: 'event', path: '/reservations' },
     { text: 'Customers', icon: 'group', path: '/customers' },
+    { text: 'Calendar', icon: 'calendar_month', path: '/calendar' },
     { text: 'Settings', icon: 'settings', path: '/settings' }
   ];
 

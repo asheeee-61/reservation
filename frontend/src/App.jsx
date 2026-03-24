@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress, Fade } from '@mui/material';
 import { LeftPanel, RightPanelMap, ReservationCheckout, SuccessPage, TermsOfService } from './components';
 import { useReservationStore } from './store/useReservationStore';
 import { getConfig } from './services/reservationService';
@@ -63,9 +63,8 @@ const theme = createTheme({
 });
 
 function App() {
-  const { config, setConfig, reservationId, showTerms } = useReservationStore();
+  const { config, setConfig, showTerms, step, setStep } = useReservationStore();
   const [initLoading, setInitLoading] = useState(true);
-  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     getConfig().then((cfg) => {
@@ -83,7 +82,7 @@ function App() {
   }
 
   const handleSuccess = () => {
-    setShowCheckout(false);
+    setStep('success');
   };
 
   if (showTerms) {
@@ -95,37 +94,35 @@ function App() {
     );
   }
 
-  if (reservationId) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <SuccessPage />
-      </ThemeProvider>
-    );
-  }
-
-  if (showCheckout) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <ReservationCheckout 
-          onBack={() => setShowCheckout(false)} 
-          onSuccess={handleSuccess} 
-        />
-      </ThemeProvider>
-    );
-  }
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh', width: '100%' }}>
-        <Box sx={{ flex: { xs: '1 1 auto', md: '0 0 40%', lg: '0 0 35%' }, height: { md: '100vh' } }}>
-          <LeftPanel onContinue={() => setShowCheckout(true)} />
-        </Box>
-        <Box sx={{ flex: '1 1 auto', height: { xs: '300px', md: '100vh' } }}>
-          <RightPanelMap />
-        </Box>
+      <Box sx={{ position: 'relative', width: '100%', minHeight: '100vh', overflowX: 'hidden' }}>
+        <Fade in={step === 'selection'} timeout={200} unmountOnExit>
+          <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
+            <Box sx={{ flex: { xs: '1 1 auto', md: '0 0 40%', lg: '0 0 35%' }, height: { md: '100vh' } }}>
+              <LeftPanel onContinue={() => setStep('confirmation')} />
+            </Box>
+            <Box sx={{ flex: '1 1 auto', height: { xs: '300px', md: '100vh' } }}>
+              <RightPanelMap />
+            </Box>
+          </Box>
+        </Fade>
+
+        <Fade in={step === 'confirmation'} timeout={200} unmountOnExit>
+          <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', minHeight: '100vh', bgcolor: 'grey.50' }}>
+            <ReservationCheckout 
+              onBack={() => setStep('selection')} 
+              onSuccess={handleSuccess} 
+            />
+          </Box>
+        </Fade>
+
+        <Fade in={step === 'success'} timeout={200} unmountOnExit>
+          <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', bgcolor: '#FFFFFF' }}>
+            <SuccessPage />
+          </Box>
+        </Fade>
       </Box>
     </ThemeProvider>
   );

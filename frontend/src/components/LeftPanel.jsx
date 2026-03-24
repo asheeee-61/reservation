@@ -173,66 +173,104 @@ export default function LeftPanel({ onContinue }) {
               {new Date(date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase()}
             </Typography>
           )}
-        
-        {loading ? (
-          <Box sx={{ mt: 2 }}>
-            <Grid container spacing={1.5}>
-              {[1,2,3,4,5,6].map(i => <Grid item xs={4} sm={3} md={4} lg={3} key={i}>
-                <Skeleton variant="rectangular" height={42} sx={{ borderRadius: 2 }} />
-              </Grid>)}
-            </Grid>
-          </Box>
-        ) : slots.length === 0 ? (
-          <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">No slots available for this date.</Typography>
-        ) : (
-          <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
-            {slots.map((slot, sIdx) => {
-              const isSelected = selectedSlot?.time === slot.time;
-              return (
-                <Grid item xs={4} sm={3} md={4} lg={3} key={sIdx}>
-                  <Button
-                    fullWidth
-                    variant={isSelected ? "contained" : "outlined"}
-                    color={isSelected ? "primary" : "inherit"}
-                    disabled={!slot.available}
-                    onClick={() => setSelectedSlot({ time: slot.time })}
-                    sx={{ 
-                      height: 36,
-                      minWidth: 72,
-                      borderRadius: '4px',
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      p: 0,
-                      ...(isSelected ? {
-                        border: '2px solid #1A73E8',
-                        bgcolor: '#E8F0FE',
-                        color: '#1A73E8',
-                        '&:hover': { bgcolor: '#E8F0FE', border: '2px solid #1A73E8' }
-                      } : slot.available ? {
-                        border: '1px solid #1A73E8',
-                        bgcolor: '#FFFFFF',
-                        color: '#1A73E8',
-                        '&:hover': { bgcolor: '#E8F0FE', border: '1px solid #1A73E8' }
-                      } : {
-                        border: '1px solid #E0E0E0',
-                        bgcolor: '#F1F3F4',
-                        color: '#BDBDBD',
-                      }),
-                      '&.Mui-disabled': {
-                        border: '1px solid #E0E0E0',
-                        bgcolor: '#F1F3F4',
-                        color: '#BDBDBD',
-                      }
-                    }}
-                  >
-                    {slot.time}
-                  </Button>
+
+        {(() => {
+          if (loading) {
+            return (
+              <Box sx={{ mt: 2 }}>
+                <Grid container spacing={1.5}>
+                  {[1,2,3,4,5,6].map(i => <Grid item xs={4} sm={3} md={4} lg={3} key={i}>
+                    <Skeleton variant="rectangular" height={42} sx={{ borderRadius: 2 }} />
+                  </Grid>)}
                 </Grid>
-              );
-            })}
-          </Grid>
-        )}
+              </Box>
+            );
+          }
+
+          const isBlocked = config.blockedDays && config.blockedDays.includes(date);
+          
+          if (isBlocked) {
+             return (
+               <Box sx={{ p: 2, bgcolor: '#FDECEA', color: '#D93025', display: 'flex', alignItems: 'center', borderRadius: '4px', mt: 2 }}>
+                 <span className="material-icons" style={{ marginRight: 8 }}>error</span>
+                 <Typography variant="body2" fontWeight={500}>No disponible este día</Typography>
+               </Box>
+             );
+          }
+
+          const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const dayName = days[new Date(date).getDay()];
+          const dayConfig = config.schedule?.[dayName] || { open: true, slots: {} };
+          
+          if (!dayConfig.open) {
+             return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">Restaurant is closed on this day.</Typography>;
+          }
+
+          // Filter out slots that admin specifically closed
+          const visibleSlots = slots.filter(slot => dayConfig.slots[slot.time] !== false);
+
+          if (visibleSlots.length === 0) {
+            return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">No slots available for this date.</Typography>;
+          }
+
+          return (
+            <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
+              {visibleSlots.map((slot, sIdx) => {
+                const isSelected = selectedSlot?.time === slot.time;
+                const isFull = !slot.available;
+                return (
+                  <Grid item xs={4} sm={3} md={4} lg={3} key={sIdx}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Button
+                        fullWidth
+                        variant={isSelected ? "contained" : "outlined"}
+                        color={isSelected ? "primary" : "inherit"}
+                        disabled={isFull}
+                        onClick={() => setSelectedSlot({ time: slot.time })}
+                        sx={{ 
+                          height: 36,
+                          minWidth: 72,
+                          borderRadius: '4px',
+                          textTransform: 'none',
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          p: 0,
+                          ...(isSelected ? {
+                            border: '2px solid #1A73E8',
+                            bgcolor: '#E8F0FE',
+                            color: '#1A73E8',
+                            '&:hover': { bgcolor: '#E8F0FE', border: '2px solid #1A73E8' }
+                          } : !isFull ? {
+                            border: '1px solid #1A73E8',
+                            bgcolor: '#FFFFFF',
+                            color: '#1A73E8',
+                            '&:hover': { bgcolor: '#E8F0FE', border: '1px solid #1A73E8' }
+                          } : {
+                            border: '1px solid #E0E0E0',
+                            bgcolor: '#F1F3F4',
+                            color: '#BDBDBD',
+                          }),
+                          '&.Mui-disabled': {
+                            border: '1px solid #E0E0E0',
+                            bgcolor: '#F1F3F4',
+                            color: '#BDBDBD',
+                          }
+                        }}
+                      >
+                        {slot.time}
+                      </Button>
+                      {isFull && (
+                        <Typography variant="caption" sx={{ color: '#BDBDBD', mt: 0.5, fontSize: '11px', fontWeight: 500 }}>
+                          Completo
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          );
+        })()}
         </Box>
 
         <Box sx={{ mt: 'auto', pt: 4 }}>
