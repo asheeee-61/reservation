@@ -63,21 +63,22 @@ export default function Reservations() {
   });
 
   return (
-    <Box sx={{ pb: 8 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight="bold">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '24px', color: '#202124' }}>
           Reservations
         </Typography>
       </Box>
 
-      <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', gap: 2 }}>
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', display: 'flex', gap: '16px' }}>
         <TextField
           size="small"
           placeholder="Search by name or ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
-            startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>
+            startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>,
+            sx: { borderRadius: '4px', fontFamily: 'Roboto' }
           }}
           sx={{ flexGrow: 1, maxWidth: 400 }}
         />
@@ -86,6 +87,7 @@ export default function Reservations() {
             value={statusFilter} 
             onChange={(e) => setStatusFilter(e.target.value)}
             displayEmpty
+            sx={{ borderRadius: '4px', fontFamily: 'Roboto' }}
           >
             <MenuItem value="all">All Statuses</MenuItem>
             {Object.keys(STATUS_COLORS).map(s => (
@@ -95,16 +97,16 @@ export default function Reservations() {
         </FormControl>
       </Paper>
 
-      <Paper elevation={2} sx={{ overflow: 'hidden' }}>
+      <Paper sx={{ overflow: 'hidden', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <Table>
           <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
-              <TableCell><strong>ID</strong></TableCell>
-              <TableCell><strong>Customer</strong></TableCell>
-              <TableCell><strong>Date & Time</strong></TableCell>
-              <TableCell align="center"><strong>Guests</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
-              <TableCell align="right"><strong>Actions</strong></TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>ID</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Customer</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Date & Time</TableCell>
+              <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Guests</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Status</TableCell>
+              <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -121,22 +123,27 @@ export default function Reservations() {
                 </TableCell>
               </TableRow>
             ) : filteredReservations.map(res => (
-              <TableRow key={res.id} hover>
-                <TableCell>{res.reservation_id}</TableCell>
+              <TableRow 
+                key={res.id} 
+                hover
+                onClick={() => navigate(`/reservations/view/${res.id}`, { state: { reservation: res } })}
+                sx={{ cursor: 'pointer' }}
+              >
+                <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.reservation_id}</TableCell>
                 <TableCell>
-                  <Typography variant="body2" fontWeight="500">{res.name}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{res.name}</Typography>
                   {res.special_requests && (
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '2px' }} display="block">
                       Note: {res.special_requests}
                     </Typography>
                   )}
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{res.date}</Typography>
-                  <Typography variant="caption" color="text.secondary">{res.time}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.date}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' }}>{res.time}</Typography>
                 </TableCell>
-                <TableCell align="center">{res.guests}</TableCell>
-                <TableCell>
+                <TableCell align="center" sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.guests}</TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <FormControl size="small" variant="standard">
                     <Select
                       value={res.status}
@@ -145,13 +152,14 @@ export default function Reservations() {
                       sx={{ 
                         '& .MuiSelect-select': { 
                           py: 0.5, px: 1, 
-                          borderRadius: 1,
+                          borderRadius: '4px',
                           bgcolor: STATUS_COLORS[res.status] ? `${STATUS_COLORS[res.status]}.light` : 'grey.200',
                           color: STATUS_COLORS[res.status] ? `${STATUS_COLORS[res.status]}.dark` : 'grey.800',
                           minWidth: 90,
                           textAlign: 'center',
-                          fontSize: '0.85rem',
-                          fontWeight: 'bold'
+                          fontSize: '12px',
+                          fontWeight: 500,
+                          fontFamily: 'Roboto'
                         }
                       }}
                     >
@@ -163,20 +171,14 @@ export default function Reservations() {
                 </TableCell>
                 <TableCell align="right">
                   <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Tooltip title="View Reservation">
-                      <IconButton 
-                        size="small" 
-                        color="secondary"
-                        onClick={() => navigate(`/reservations/view/${res.id}`, { state: { reservation: res } })}
-                      >
-                        <span className="material-icons" style={{ fontSize: 20 }}>visibility</span>
-                      </IconButton>
-                    </Tooltip>
                     <Tooltip title="Message on WhatsApp">
                       <IconButton 
                         size="small" 
                         color="success"
-                        onClick={() => window.open(`https://wa.me/${res.phone}`, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://wa.me/${res.phone}`, '_blank');
+                        }}
                       >
                         <WhatsAppIcon fontSize="small" />
                       </IconButton>
@@ -185,7 +187,10 @@ export default function Reservations() {
                       <IconButton 
                         size="small" 
                         color="primary"
-                        onClick={() => navigate(`/reservations/edit/${res.id}`, { state: { reservation: res } })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/reservations/edit/${res.id}`, { state: { reservation: res } });
+                        }}
                       >
                         <span className="material-icons" style={{ fontSize: 20 }}>edit</span>
                       </IconButton>
@@ -201,7 +206,7 @@ export default function Reservations() {
       <Fab 
         color="primary" 
         aria-label="add" 
-        sx={{ position: 'fixed', bottom: 24, right: 24 }}
+        sx={{ position: 'fixed', bottom: 24, right: 24, bgcolor: '#1A73E8', '&:hover': { bgcolor: '#1557B0' }, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
         onClick={() => navigate('/reservations/new')}
       >
         <span className="material-icons">add</span>

@@ -21,73 +21,74 @@ export default function Customers() {
   );
 
   return (
-    <Box sx={{ pb: 8 }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '24px', color: '#202124' }}>
         Customers Directory
       </Typography>
 
-      <Paper sx={{ p: 4, mb: 4 }}>
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <TextField
           size="small"
           placeholder="Search by name, email or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
-            startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>
+            startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>,
+            sx: { borderRadius: '4px', fontFamily: 'Roboto' }
           }}
           sx={{ maxWidth: 400, width: '100%' }}
         />
       </Paper>
 
-      <Paper sx={{ overflow: 'hidden' }}>
+      <Paper sx={{ overflow: 'hidden', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <Table>
           <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
-              <TableCell><strong>Customer</strong></TableCell>
-              <TableCell><strong>Contact</strong></TableCell>
-              <TableCell align="center"><strong>Total Visits</strong></TableCell>
-              <TableCell><strong>Last Visit</strong></TableCell>
-              <TableCell align="right"><strong>Actions</strong></TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Customer</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Contact</TableCell>
+              <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Total Visits</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Last Visit</TableCell>
+              <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filtered.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                  <Typography color="text.secondary">No customers found.</Typography>
+                  <Typography color="text.secondary" sx={{ fontFamily: 'Roboto' }}>No customers found.</Typography>
                 </TableCell>
               </TableRow>
             )}
             {filtered.map(c => (
               <TableRow key={c.id} hover>
                 <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32, fontSize: '1rem' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <Avatar sx={{ bgcolor: '#1A73E8', width: 32, height: 32, fontSize: '14px', fontFamily: 'Roboto', fontWeight: 500 }}>
                       {c.name.charAt(0)}
                     </Avatar>
-                    <Typography variant="body2" fontWeight="500">{c.name}</Typography>
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{c.name}</Typography>
                   </Box>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{c.email}</Typography>
-                  <Typography variant="caption" color="text.secondary">{c.phone}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{c.email}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' }}>{c.phone}</Typography>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, bgcolor: 'grey.100', borderRadius: 1, fontWeight: 'bold' }}>
+                  <Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, bgcolor: '#F1F3F4', borderRadius: '4px', fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#202124' }}>
                     {c.totalVisits}
                   </Box>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{c.lastVisit}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{c.lastVisit}</Typography>
                 </TableCell>
                 <TableCell align="right">
                   <Tooltip title="Send WhatsApp">
-                    <IconButton size="small" color="success" onClick={() => window.open(`https://wa.me/${c.phone}`, '_blank')}>
+                    <IconButton size="small" color="success" onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${c.phone}`, '_blank'); }}>
                       <WhatsAppIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Send Email">
-                    <IconButton size="small" color="primary" onClick={() => window.location.href = `mailto:${c.email}`}>
+                    <IconButton size="small" color="primary" onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${c.email}`; }}>
                       <span className="material-icons" style={{ fontSize: 20 }}>mail</span>
                     </IconButton>
                   </Tooltip>

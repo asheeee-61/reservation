@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Typography, Box, Paper, TextField, 
-  Button, Grid, Alert, Container, MenuItem, Select, FormControl, InputLabel
+  Button, Alert, MenuItem, Select, FormControl, InputLabel
 } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
@@ -33,11 +33,10 @@ export default function EditBooking() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const res = await apiClient(`/admin/reservations/${id}`, {
+      await apiClient(`/admin/reservations/${id}`, {
         method: 'PUT',
         body: JSON.stringify(editBooking)
       });
-
       navigate('/reservations');
     } catch (e) {
       setErrorMsg(e.message || 'Error updating booking');
@@ -47,100 +46,129 @@ export default function EditBooking() {
   };
 
   return (
-    <Container maxWidth={false} sx={{ pb: 8, pt: 2 }}>
-      <Button 
-        startIcon={<span className="material-icons">arrow_back</span>} 
-        onClick={() => navigate('/reservations')} 
-        sx={{ mb: 6 }}
-      >
-        Back to Reservations
-      </Button>
+    <Box sx={{ maxWidth: 960, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <Box>
+        <Button 
+          startIcon={<span className="material-icons">arrow_back</span>} 
+          onClick={() => navigate('/reservations')} 
+          sx={{ color: '#70757A', textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}
+        >
+          Back to Reservations
+        </Button>
+      </Box>
 
-      <Paper sx={{ p: { xs: 4, md: 6 } }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#202124', mb: '8px' }}>
           Edit Reservation #{resData.reservation_id || id}
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 6 }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>
           Update the customer details or status below.
         </Typography>
 
         {errorMsg && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity="error" sx={{ mb: '24px', borderRadius: '4px' }}>
             {errorMsg}
           </Alert>
         )}
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          
+          <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField 
-              fullWidth label="Customer Name" size="medium" required
+              label="Customer Name" required
               value={editBooking.name} onChange={e => setEditBooking({...editBooking, name: e.target.value})}
-              sx={{ flexGrow: 2 }}
+              InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+              InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+              sx={{ flexGrow: 2, minWidth: 200 }}
             />
-            <FormControl size="medium" sx={{ flexGrow: 1, minWidth: 150 }}>
-              <InputLabel>Status</InputLabel>
+            <FormControl sx={{ flexGrow: 1, minWidth: 150 }}>
+              <InputLabel sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>Status</InputLabel>
               <Select
                 value={editBooking.status}
                 label="Status"
                 onChange={e => setEditBooking({...editBooking, status: e.target.value})}
+                sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
               >
                 {STATUS_OPTIONS.map(status => (
-                  <MenuItem key={status} value={status}>{status}</MenuItem>
+                  <MenuItem key={status} value={status} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>{status}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Box>
           
-          <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
+          <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField 
-              fullWidth label="Date" type="date" size="medium" required
-              InputLabelProps={{ shrink: true }}
+              label="Date" type="date" required
+              InputLabelProps={{ shrink: true, sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
               value={editBooking.date} onChange={e => setEditBooking({...editBooking, date: e.target.value})}
+              InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+              sx={{ flex: 1, minWidth: 200 }}
             />
             <TextField 
-              fullWidth label="Time" type="time" size="medium" required
-              InputLabelProps={{ shrink: true }}
+              label="Time" type="time" required
+              InputLabelProps={{ shrink: true, sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
               value={editBooking.time} onChange={e => setEditBooking({...editBooking, time: e.target.value})}
+              InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+              sx={{ flex: 1, minWidth: 200 }}
             />
           </Box>
           
-          <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
+          <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField 
-              fullWidth label="Guests" type="number" size="medium" required
+              label="Guests" type="number" required
               inputProps={{ min: 1 }}
               value={editBooking.guests} onChange={e => setEditBooking({...editBooking, guests: e.target.value})}
+              InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+              InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+              sx={{ flex: 1, minWidth: 200 }}
             />
             <TextField 
-              fullWidth label="Phone (WhatsApp)" size="medium"
+              label="Phone (WhatsApp)" 
               value={editBooking.phone} onChange={e => setEditBooking({...editBooking, phone: e.target.value})}
+              InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+              InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+              sx={{ flex: 1, minWidth: 200 }}
             />
           </Box>
           
           <TextField 
-            fullWidth label="Email Address" size="medium" type="email"
+            fullWidth label="Email Address" type="email"
             value={editBooking.email} onChange={e => setEditBooking({...editBooking, email: e.target.value})}
+            InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
           />
           
           <TextField 
-            fullWidth label="Notes / Special Requests" size="medium" multiline rows={3}
+            fullWidth label="Notes / Special Requests" multiline rows={3}
             value={editBooking.special_requests} onChange={e => setEditBooking({...editBooking, special_requests: e.target.value})}
+            InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+            InputProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
           />
 
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 3 }}>
-            <Button size="large" onClick={() => navigate('/reservations')} disabled={loading}>
+          <Box sx={{ mt: '8px', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
+            <Button 
+              onClick={() => navigate('/reservations')} 
+              disabled={loading}
+              sx={{ color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minWidth: 100 }}
+            >
               Cancel
             </Button>
             <Button 
               variant="contained" 
-              size="large"
               onClick={handleSaveBooking} 
               disabled={loading || !editBooking.name || !editBooking.date || !editBooking.time}
+              sx={{ 
+                height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+                fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+                '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+              }}
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </Box>
         </Box>
+
       </Paper>
-    </Container>
+    </Box>
   );
 }
