@@ -53,10 +53,33 @@ class ReservationController extends Controller
         ], 201);
     }
 
-    // Admin: Update status (cancel, complete)
+    // Admin: Full update of reservation details
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'time' => 'required|string',
+            'guests' => 'required|integer|min:1',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'special_requests' => 'nullable|string',
+            'status' => 'required|in:pending,confirmed,cancelled,no_show'
+        ]);
+
+        $reservation = Reservation::findOrFail($id);
+        $reservation->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'data' => $reservation
+        ]);
+    }
+
+    // Admin: Update status only (quick action)
     public function updateStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|in:pending,confirmed,cancelled']);
+        $request->validate(['status' => 'required|in:pending,confirmed,cancelled,no_show']);
         
         $reservation = Reservation::findOrFail($id);
         $reservation->status = $request->status;

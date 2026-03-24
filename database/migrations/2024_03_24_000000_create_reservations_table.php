@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('time');
             $table->integer('guests');
             $table->text('special_requests')->nullable();
-            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('confirmed');
+            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'no_show'])->default('pending');
             $table->timestamps();
         });
     }

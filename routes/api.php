@@ -26,6 +26,7 @@ Route::post('/admin/login', [AuthController::class, 'login']);
 // Protected Admin Endpoints
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index']);
+    Route::put('/reservations/{id}', [ReservationController::class, 'update']);
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
