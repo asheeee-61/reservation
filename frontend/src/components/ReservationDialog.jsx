@@ -63,7 +63,7 @@ export default function ReservationDialog({ open, onClose, onSuccess }) {
                 Group of {guests} · Standard Table
               </Typography>
               <Typography variant="body2" sx={{ color: '#5f6368', mt: 0.5 }}>
-                {store.config?.restaurant?.name || 'La Trattoria'}
+                {store.config?.restaurant?.name}{store.config?.restaurant?.address ? ` · ${store.config.restaurant.address}` : ''}
               </Typography>
             </Box>
           </Box>
@@ -129,7 +129,14 @@ export default function ReservationDialog({ open, onClose, onSuccess }) {
       
       <DialogActions sx={{ p: 2 }}>
         <Typography variant="caption" sx={{ flexGrow: 1, color: 'text.secondary', pl: 1 }}>
-          By continuing, you agree to the Terms of Service.
+          By continuing, you agree to the{' '}
+          <Box 
+            component="span" 
+            sx={{ color: 'primary.main', cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={() => { onClose(); useReservationStore.getState().setShowTerms(true); }}
+          >
+            Terms of Service
+          </Box>.
         </Typography>
         <Button onClick={onClose} disabled={submitting} sx={{ borderRadius: 8 }}>
           Cancel

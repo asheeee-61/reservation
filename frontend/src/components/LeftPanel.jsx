@@ -74,10 +74,15 @@ export default function LeftPanel({ onContinue }) {
       overflowY: 'auto'
     }}>
       <Box sx={{ mt: { md: 2 } }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
-          {config.restaurant.name || 'Make a Reservation'}
+        <Typography variant="h5" fontWeight="bold">
+          {config.restaurant.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        {config.restaurant.address && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {config.restaurant.address}
+          </Typography>
+        )}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
           Select your party size, date, and time.
         </Typography>
       </Box>

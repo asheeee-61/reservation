@@ -5,9 +5,10 @@ export const getConfig = async () => {
     maxGuests: 10,
     minGuests: 1,
     restaurant: {
-      name: "La Trattoria",
-      lat: 40.4168,
-      lng: -3.7038
+      name: "Hotaru Madrid", // Dynamic name from "server"
+      address: "Calle de Alcalá 99, 28009 Madrid", // Dynamic location address
+      lat: 40.4214, // Real coordinates for Alcalá 99
+      lng: -3.6846
     }
   }, 500);
 };

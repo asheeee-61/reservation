@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress } from '@mui/material';
-import { LeftPanel, RightPanelMap, ReservationDialog, SuccessPage } from './components';
+import { LeftPanel, RightPanelMap, ReservationDialog, SuccessPage, TermsOfService } from './components';
 import { useReservationStore } from './store/useReservationStore';
 import { getConfig } from './services/reservationService';
 
@@ -45,7 +45,7 @@ const theme = createTheme({
 });
 
 function App() {
-  const { config, setConfig, reservationId } = useReservationStore();
+  const { config, setConfig, reservationId, showTerms } = useReservationStore();
   const [initLoading, setInitLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -67,6 +67,15 @@ function App() {
   const handleSuccess = () => {
     setDialogOpen(false);
   };
+
+  if (showTerms) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <TermsOfService />
+      </ThemeProvider>
+    );
+  }
 
   if (reservationId) {
     return (

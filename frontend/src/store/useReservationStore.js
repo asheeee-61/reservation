@@ -11,6 +11,7 @@ export const useReservationStore = create((set) => ({
     specialRequests: ''
   },
   config: null,
+  showTerms: false,
   loading: false,
   error: null,
   
@@ -19,6 +20,7 @@ export const useReservationStore = create((set) => ({
   setSelectedSlot: (selectedSlot) => set({ selectedSlot }),
   setUserData: (userData) => set((state) => ({ userData: { ...state.userData, ...userData } })),
   setConfig: (config) => set({ config }),
+  setShowTerms: (showTerms) => set({ showTerms }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   reset: () => set((state) => ({
