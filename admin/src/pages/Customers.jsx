@@ -1,23 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, Tooltip, IconButton, TextField, InputAdornment, Avatar
 } from '@mui/material';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-const MOCK_CUSTOMERS = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', phone: '1234567890', totalVisits: 5, lastVisit: '2026-03-20' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '0987654321', totalVisits: 2, lastVisit: '2026-03-15' },
-  { id: 3, name: 'Alex Johnson', email: 'alex@example.com', phone: '5551234567', totalVisits: 12, lastVisit: '2026-03-22' }
-];
+import { apiClient } from '../services/apiClient';
 
 export default function Customers() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filtered = MOCK_CUSTOMERS.filter(c => 
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async (page = 1) => {
+    try {
+      const data = await apiClient('/admin/customers');
+      setCustomers(data.data || []);
+      setLoading(false);
+    } catch (e) {
+      console.error(e);
+      setLoading(false);
+    }
+  };
+
+  const filtered = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.phone.includes(searchTerm)
+    (c.phone && c.phone.includes(searchTerm))
   );
 
   return (
@@ -75,11 +89,11 @@ export default function Customers() {
                 </TableCell>
                 <TableCell align="center">
                   <Box sx={{ display: 'inline-block', px: 1.5, py: 0.5, bgcolor: '#F1F3F4', borderRadius: '4px', fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#202124' }}>
-                    {c.totalVisits}
+                    {c.total_reservations || 0}
                   </Box>
                 </TableCell>
                 <TableCell>
-                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{c.lastVisit}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{c.last_visit || 'Never'}</Typography>
                 </TableCell>
                 <TableCell align="right">
                   <Tooltip title="Send WhatsApp">

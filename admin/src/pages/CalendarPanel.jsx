@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   Typography, Box, Paper, Button, IconButton, 
   CircularProgress, Snackbar, Tabs, Tab, Accordion, 
-  AccordionSummary, AccordionDetails
+  AccordionSummary, AccordionDetails, Select, MenuItem, FormControl
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 
@@ -10,6 +10,16 @@ const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
 const DAY_LABELS = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' };
 const DEFAULT_SLOTS = ["13:00", "13:30", "14:00", "14:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
 const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
+const TIME_OPTIONS = (() => {
+  const opts = [];
+  for (let h = 0; h < 24; h++) {
+    opts.push(`${String(h).padStart(2, '0')}:00`);
+    opts.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return opts;
+})();
 
 export default function CalendarPanel() {
   const [loading, setLoading] = useState(true);
@@ -19,6 +29,8 @@ export default function CalendarPanel() {
   const [currentTab, setCurrentTab] = useState(0);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("Cambios guardados");
+  const [regenMsg, setRegenMsg] = useState(null);
   
   // For Blocked Days Tab Calendar
   const [blockMonthStart, setBlockMonthStart] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -33,22 +45,20 @@ export default function CalendarPanel() {
       const schedule = data.schedule || {};
       DAYS.forEach(day => {
         if (!schedule[day]) schedule[day] = { open: true, slots: {} };
+        if (schedule[day].openingTime === undefined) schedule[day].openingTime = '09:00';
+        if (schedule[day].closingTime === undefined) schedule[day].closingTime = '23:30';
+        if (schedule[day].interval === undefined) schedule[day].interval = 30;
+
         if (Object.keys(schedule[day].slots || {}).length === 0) {
            const slotsObj = {};
            DEFAULT_SLOTS.forEach(time => slotsObj[time] = true);
            schedule[day].slots = slotsObj;
         }
       });
-      const capacity = data.capacity || {};
-      DEFAULT_SLOTS.forEach(time => {
-         if (capacity[time] === undefined) capacity[time] = 20;
-      });
-
       setConfig({
         ...data,
         schedule,
-        blockedDays: data.blockedDays || [],
-        capacity
+        blockedDays: data.blockedDays || []
       });
       setLoading(false);
     } catch (e) {
@@ -64,19 +74,24 @@ export default function CalendarPanel() {
         method: 'POST',
         body: JSON.stringify(newConfig)
       });
-      if (showToast) setToastOpen(true);
+      if (showToast) {
+        setToastMessage("Cambios guardados");
+        setToastOpen(true);
+      }
     } catch (e) {
       console.error("Failed to save", e);
     }
   };
 
-  const manualSave = async () => {
+  const manualSave = async (msg = "Cambios guardados") => {
     setSaving(true);
     try {
       await apiClient('/admin/config', {
         method: 'POST',
         body: JSON.stringify(config)
       });
+      setToastMessage(msg);
+      setToastOpen(true);
     } catch (e) {
       console.error("Failed to save", e);
     } finally {
@@ -150,13 +165,79 @@ export default function CalendarPanel() {
   };
 
   // --- TAB 2 (SEMANA) UTILS --- //
+  const updateDayConfig = (day, field, value) => {
+    setConfig(prev => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        [day]: {
+          ...prev.schedule[day],
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const handleRegenerateSlots = (day) => {
+    setConfig(prev => {
+      const dayConf = prev.schedule[day];
+      const [openH, openM] = dayConf.openingTime.split(':').map(Number);
+      const [closeH, closeM] = dayConf.closingTime.split(':').map(Number);
+      
+      const openMin = openH * 60 + openM;
+      const closeMin = closeH * 60 + closeM;
+      
+      const newSlots = {};
+      for (let t = openMin; t <= closeMin; t += dayConf.interval) {
+        const h = String(Math.floor(t / 60)).padStart(2, '0');
+        const m = String(t % 60).padStart(2, '0');
+        newSlots[`${h}:${m}`] = true;
+      }
+      
+      setRegenMsg({ day, msg: `✓ Slots regenerados: ${Object.keys(newSlots).length} franjas de ${dayConf.interval} min` });
+      setTimeout(() => setRegenMsg(null), 3000);
+      
+      return {
+        ...prev,
+        schedule: {
+          ...prev.schedule,
+          [day]: {
+            ...dayConf,
+            slots: newSlots
+          }
+        }
+      };
+    });
+  };
+
   const copyMondayToAll = () => {
     const monSchedule = config.schedule.monday;
+    const [openH, openM] = monSchedule.openingTime.split(':').map(Number);
+    const [closeH, closeM] = monSchedule.closingTime.split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+    
+    const newSlots = {};
+    for (let t = openMin; t <= closeMin; t += monSchedule.interval) {
+      const h = String(Math.floor(t / 60)).padStart(2, '0');
+      const m = String(t % 60).padStart(2, '0');
+      newSlots[`${h}:${m}`] = true;
+    }
+
     const newSchedule = { ...config.schedule };
     DAYS.forEach(day => {
-      newSchedule[day] = JSON.parse(JSON.stringify(monSchedule));
+      newSchedule[day] = {
+        ...newSchedule[day],
+        openingTime: monSchedule.openingTime,
+        closingTime: monSchedule.closingTime,
+        interval: monSchedule.interval,
+        slots: { ...newSlots }
+      };
     });
+    
     setConfig({ ...config, schedule: newSchedule });
+    setToastMessage("Plantilla de Lunes aplicada a todos los días");
+    setToastOpen(true);
   };
 
   const toggleDayStatusWeekly = (day) => {
@@ -358,7 +439,6 @@ export default function CalendarPanel() {
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
               {Object.keys(currentDaySchedule.slots).sort().map(time => {
                 const isOpen = currentDaySchedule.slots[time] && currentDaySchedule.open;
-                const capacity = config.capacity[time] || 0;
                 return (
                   <Box key={time} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <Box 
@@ -376,9 +456,6 @@ export default function CalendarPanel() {
                     >
                       <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>{time}</Typography>
                     </Box>
-                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '11px', color: '#70757A', fontWeight: 400, pl: '4px' }}>
-                      {capacity} personas
-                    </Typography>
                   </Box>
                 );
               })}
@@ -398,15 +475,109 @@ export default function CalendarPanel() {
             {DAYS.map(day => {
               const dayConfig = config.schedule[day];
               const openCount = Object.values(dayConfig.slots).filter(Boolean).length;
+              
+              const [openH, openM] = dayConfig.openingTime.split(':').map(Number);
+              const [closeH, closeM] = dayConfig.closingTime.split(':').map(Number);
+              const openMin = openH * 60 + openM;
+              const closeMin = closeH * 60 + closeM;
+              
+              const isValid = closeMin > openMin;
+              const slotsCountVal = Math.floor((closeMin - openMin) / dayConfig.interval) + 1;
+              const isTooFew = slotsCountVal <= 1;
+
               return (
                 <Accordion disableGutters key={day} sx={{ mb: '8px', border: '1px solid #E0E0E0', boxShadow: 'none', '&:before': { display: 'none' } }}>
                   <AccordionSummary expandIcon={<span className="material-icons">expand_more</span>} sx={{ minHeight: 56, height: 56, px: '16px' }}>
-                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', width: 120 }}>{DAY_LABELS[day]}</Typography>
-                    <Typography sx={{ fontFamily: 'Roboto', color: '#70757A', fontSize: '14px' }}>
-                      {dayConfig.open ? `${openCount} slots abiertos` : 'Cerrado'}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: '16px' }}>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', width: 100 }}>
+                        {DAY_LABELS[day]}
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', width: 140 }}>
+                        {dayConfig.openingTime} – {dayConfig.closingTime}
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', width: 60 }}>
+                        {dayConfig.interval}min
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Roboto', color: '#70757A', fontSize: '14px' }}>
+                        {dayConfig.open ? `${openCount} slots abiertos` : 'Cerrado'}
+                      </Typography>
+                    </Box>
                   </AccordionSummary>
                   <AccordionDetails sx={{ pt: 0, pb: '24px', px: '24px', borderTop: '1px solid #E0E0E0' }}>
+                    
+                    <Box sx={{ display: 'flex', gap: '24px', alignItems: 'flex-end', py: '16px', borderBottom: '1px solid #E0E0E0' }}>
+                      <Box>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px' }}>Apertura</Typography>
+                        <FormControl size="small">
+                          <Select 
+                            value={dayConfig.openingTime} 
+                            onChange={(e) => updateDayConfig(day, 'openingTime', e.target.value)}
+                            sx={{ height: 36, minWidth: 100, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                          >
+                            {TIME_OPTIONS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                      
+                      <Box>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px' }}>Cierre</Typography>
+                        <FormControl size="small">
+                          <Select 
+                            value={dayConfig.closingTime} 
+                            onChange={(e) => updateDayConfig(day, 'closingTime', e.target.value)}
+                            sx={{ height: 36, minWidth: 100, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                          >
+                            {TIME_OPTIONS.map(t => <MenuItem key={t} value={t} disabled={parseInt(t.replace(':', '')) <= parseInt(dayConfig.openingTime.replace(':', ''))}>{t}</MenuItem>)}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                      
+                      <Box>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px' }}>Intervalo</Typography>
+                        <FormControl size="small">
+                          <Select 
+                            value={dayConfig.interval} 
+                            onChange={(e) => updateDayConfig(day, 'interval', parseInt(e.target.value))}
+                            sx={{ height: 36, minWidth: 100, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                          >
+                            {INTERVAL_OPTIONS.map(i => <MenuItem key={i} value={i}>{i} min</MenuItem>)}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                      
+                      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+                        <Button 
+                          variant="outlined" 
+                          disabled={!isValid || isTooFew}
+                          onClick={() => handleRegenerateSlots(day)}
+                          sx={{ 
+                            height: 36, px: '16px', borderRadius: '4px', color: '#1A73E8', borderColor: '#1A73E8',
+                            fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none',
+                            '&.Mui-disabled': { borderColor: '#E0E0E0', color: '#BDBDBD' }
+                          }}
+                          startIcon={<span className="material-icons" style={{ fontSize: 16 }}>refresh</span>}
+                        >
+                          Regenerar slots
+                        </Button>
+                      </Box>
+                    </Box>
+
+                    {!isValid && (
+                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', mt: '16px' }}>
+                        La hora de cierre debe ser posterior a la apertura
+                      </Typography>
+                    )}
+                    {isValid && isTooFew && (
+                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#F9AB00', mt: '16px' }}>
+                        Este intervalo genera muy pocos slots
+                      </Typography>
+                    )}
+                    {regenMsg?.day === day && (
+                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#1A73E8', mt: '16px', transition: 'opacity 0.5s' }}>
+                        {regenMsg.msg}
+                      </Typography>
+                    )}
+
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '16px' }}>
                       <Box sx={{ display: 'flex', gap: '24px' }}>
                         <Button sx={{ p: 0, textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }} onClick={() => toggleAllWeekly(day, true)}>

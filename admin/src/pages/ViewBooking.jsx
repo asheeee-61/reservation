@@ -47,7 +47,7 @@ export default function ViewBooking() {
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
             <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mb: '4px' }}>Customer Name</Typography>
-            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{resData.name || 'N/A'}</Typography>
+            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{resData.customer?.name || 'N/A'}</Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mb: '4px' }}>Date & Time</Typography>
@@ -55,7 +55,7 @@ export default function ViewBooking() {
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mb: '4px' }}>Phone (WhatsApp)</Typography>
-            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{resData.phone || 'N/A'}</Typography>
+            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{resData.customer?.phone || 'N/A'}</Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mb: '4px' }}>Number of Guests</Typography>

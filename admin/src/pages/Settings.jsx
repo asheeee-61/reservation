@@ -19,17 +19,12 @@ export default function Settings() {
     try {
       const data = await apiClient('/config');
       
-      const capacity = data.capacity || {};
-      DEFAULT_SLOTS.forEach(time => {
-         if (capacity[time] === undefined) capacity[time] = 20;
-      });
-
       setConfig({
         ...data,
         restaurant: data.restaurant || { name: 'Hotaru Madrid', address: 'Calle de Alcalá 99' },
         minGuests: data.minGuests || 1,
         maxGuests: data.maxGuests || 10,
-        capacity
+        totalCapacity: data.totalCapacity || 40
       });
       setLoading(false);
     } catch (e) {
@@ -57,35 +52,13 @@ export default function Settings() {
     }
   };
 
-  const updateCapacity = (time, delta) => {
-    setConfig(prev => {
-      const current = prev.capacity[time] || 1;
-      let next = current + delta;
-      if (next < 1) next = 1;
-      if (next > 999) next = 999;
-      return {
-        ...prev,
-        capacity: { ...prev.capacity, [time]: next }
-      };
-    });
-  };
 
-  const handleCapacityChange = (time, value) => {
-    let next = parseInt(value, 10);
-    if (isNaN(next)) return;
-    if (next < 1) next = 1;
-    if (next > 999) next = 999;
-    setConfig(prev => ({
-      ...prev,
-      capacity: { ...prev.capacity, [time]: next }
-    }));
-  };
 
   if (loading || !config) {
     return <Box p={4}><CircularProgress /></Box>;
   }
 
-  const allSlots = Object.keys(config.capacity).sort();
+
 
   return (
     <Box sx={{ maxWidth: 960, display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -189,57 +162,26 @@ export default function Settings() {
         </Box>
       </Paper>
 
-      {/* Capacidad por slot Card */}
+      {/* Capacidad Total Card */}
       <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
-          Capacidad por Slot
+          Capacidad Total
         </Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>
-          Número máximo de personas por franja horaria.
+          Número máximo de personas que el restaurante puede atender simultáneamente.
         </Typography>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', mb: '24px' }}>
-          {allSlots.map(time => (
-            <Box key={time} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-                {time}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <IconButton 
-                  onClick={() => updateCapacity(time, -1)}
-                  sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', p: 0 }}
-                >
-                  <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>remove</span>
-                </IconButton>
-                
-                <input 
-                  type="text" 
-                  value={config.capacity[time]}
-                  onChange={(e) => handleCapacityChange(time, e.target.value)}
-                  style={{ 
-                    width: 48, 
-                    height: 28, 
-                    textAlign: 'center', 
-                    fontFamily: 'Roboto', 
-                    fontWeight: 500, 
-                    fontSize: '14px',
-                    border: '1px solid #DADCE0',
-                    borderRadius: '4px',
-                    color: '#202124',
-                    margin: 0,
-                    padding: 0
-                  }} 
-                />
-
-                <IconButton 
-                  onClick={() => updateCapacity(time, 1)}
-                  sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', p: 0 }}
-                >
-                  <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>add</span>
-                </IconButton>
-              </Box>
-            </Box>
-          ))}
+        <Box sx={{ display: 'flex', gap: '16px', mb: '24px' }}>
+          <TextField
+            label="Capacidad de personas"
+            type="number"
+            variant="outlined"
+            value={config.totalCapacity}
+            onChange={(e) => setConfig({ ...config, totalCapacity: e.target.value })}
+            InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            sx={{ maxWidth: 200 }}
+          />
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -253,7 +195,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingCap ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR CAPACIDADES'}
+            {savingCap ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR CAPACIDAD'}
           </Button>
         </Box>
       </Paper>

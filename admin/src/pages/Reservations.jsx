@@ -57,7 +57,7 @@ export default function Reservations() {
   };
 
   const filteredReservations = reservations.filter(res => {
-    const matchesSearch = res.name.toLowerCase().includes(searchTerm.toLowerCase()) || res.reservation_id.includes(searchTerm);
+    const matchesSearch = res.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || res.reservation_id.includes(searchTerm);
     const matchesStatus = statusFilter === 'all' || res.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -131,7 +131,7 @@ export default function Reservations() {
               >
                 <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.reservation_id}</TableCell>
                 <TableCell>
-                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{res.name}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{res.customer?.name || 'N/A'}</Typography>
                   {res.special_requests && (
                     <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '2px' }} display="block">
                       Note: {res.special_requests}
@@ -177,7 +177,7 @@ export default function Reservations() {
                         color="success"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`https://wa.me/${res.phone}`, '_blank');
+                          window.open(`https://wa.me/${res.customer?.phone}`, '_blank');
                         }}
                       >
                         <WhatsAppIcon fontSize="small" />

@@ -19,9 +19,9 @@ export default function EditBooking() {
   const resData = location.state?.reservation || {};
 
   const [editBooking, setEditBooking] = useState({
-    name: resData.name || '', 
-    phone: resData.phone || '', 
-    email: resData.email || '', 
+    name: resData.customer?.name || '', 
+    phone: resData.customer?.phone || '', 
+    email: resData.customer?.email || '', 
     date: resData.date || '', 
     time: resData.time || '', 
     guests: resData.guests || 2, 
