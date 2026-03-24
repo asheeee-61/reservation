@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Box, Paper, TextField, Button, Grid, Divider, Alert, IconButton, CircularProgress } from '@mui/material';
+import { Typography, Box, Paper, TextField, Button, Grid, Alert, IconButton, CircularProgress } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 
 const DEFAULT_SLOTS = ["13:00", "13:30", "14:00", "14:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
@@ -88,92 +88,126 @@ export default function Settings() {
   const allSlots = Object.keys(config.capacity).sort();
 
   return (
-    <Box sx={{ pb: 8, maxWidth: 800 }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
-        Ajustes del Sistema
-      </Typography>
-      
+    <Box sx={{ maxWidth: 960, display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {savedMsg && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <Alert severity="success" sx={{ mb: 2 }}>
           {savedMsg}
         </Alert>
       )}
 
-      <Paper sx={{ p: 4, mb: 4, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography variant="h6" gutterBottom>
-          Detalles del Restaurante
+      {/* Restaurant Details Card */}
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
+          Restaurant Details
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>
           Estos detalles son visibles para los clientes.
         </Typography>
         
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              size="small"
-              fullWidth label="Nombre del restaurante"
-              value={config.restaurant?.name || ''}
-              onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, name: e.target.value } })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              size="small"
-              fullWidth label="Dirección"
-              value={config.restaurant?.address || ''}
-              onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, address: e.target.value } })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              size="small"
-              fullWidth label="Mínimo de personas"
-              type="number"
-              value={config.minGuests}
-              onChange={(e) => setConfig({ ...config, minGuests: e.target.value })}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              size="small"
-              fullWidth label="Máximo de personas"
-              type="number"
-              value={config.maxGuests}
-              onChange={(e) => setConfig({ ...config, maxGuests: e.target.value })}
-            />
-          </Grid>
-        </Grid>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '16px', mb: '24px' }}>
+          <TextField
+            label="Nombre del restaurante"
+            variant="outlined"
+            value={config.restaurant?.name || ''}
+            onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, name: e.target.value } })}
+            InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            sx={{ flex: 1, minWidth: 200 }}
+          />
+          <TextField
+            label="Dirección"
+            variant="outlined"
+            value={config.restaurant?.address || ''}
+            onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, address: e.target.value } })}
+            InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            sx={{ flex: 1, minWidth: 200 }}
+          />
+        </Box>
 
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
             variant="contained" 
             onClick={() => handleSaveAll(false)}
             disabled={savingSettings}
-            sx={{ px: 4, height: 48, bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px' }}
+            sx={{ 
+              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
           >
-            {savingSettings ? <CircularProgress size={24} color="inherit" /> : 'GUARDAR DETALLES'}
+            {savingSettings ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR DETALLES'}
           </Button>
         </Box>
       </Paper>
 
-      {/* Capacidad por slot */}
-      <Paper sx={{ p: 4, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography variant="h6" gutterBottom>
-          Capacidad por slot
+      {/* Reservation Rules Card */}
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
+          Reservation Rules
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-          Configura la capacidad máxima de personas permitidas para cada franja horaria.
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>
+          Configura límites generales para reservaciones públicas.
+        </Typography>
+        
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '16px', mb: '24px' }}>
+          <TextField
+            label="Mínimo de personas"
+            type="number"
+            variant="outlined"
+            value={config.minGuests}
+            onChange={(e) => setConfig({ ...config, minGuests: e.target.value })}
+            InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            sx={{ flex: 1, minWidth: 200 }}
+          />
+          <TextField
+            label="Máximo de personas"
+            type="number"
+            variant="outlined"
+            value={config.maxGuests}
+            onChange={(e) => setConfig({ ...config, maxGuests: e.target.value })}
+            InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            sx={{ flex: 1, minWidth: 200 }}
+          />
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button 
+            variant="contained" 
+            onClick={() => handleSaveAll(false)}
+            disabled={savingSettings}
+            sx={{ 
+              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
+          >
+            {savingSettings ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR REGLAS'}
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Capacidad por slot Card */}
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
+          Capacidad por Slot
+        </Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>
+          Número máximo de personas por franja horaria.
         </Typography>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 300 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', mb: '24px' }}>
           {allSlots.map(time => (
-            <Box key={time} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid #E0E0E0' }}>
-              <Typography variant="body1" sx={{ fontWeight: 500, color: '#202124' }}>{time}</Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box key={time} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                {time}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <IconButton 
-                  size="small" 
                   onClick={() => updateCapacity(time, -1)}
-                  sx={{ width: 28, height: 28, border: '1px solid #70757A', borderRadius: '4px' }}
+                  sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', p: 0 }}
                 >
                   <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>remove</span>
                 </IconButton>
@@ -189,16 +223,17 @@ export default function Settings() {
                     fontFamily: 'Roboto', 
                     fontWeight: 500, 
                     fontSize: '14px',
-                    border: '1px solid #E0E0E0',
+                    border: '1px solid #DADCE0',
                     borderRadius: '4px',
-                    color: '#202124'
+                    color: '#202124',
+                    margin: 0,
+                    padding: 0
                   }} 
                 />
 
                 <IconButton 
-                  size="small" 
                   onClick={() => updateCapacity(time, 1)}
-                  sx={{ width: 28, height: 28, border: '1px solid #70757A', borderRadius: '4px' }}
+                  sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', p: 0 }}
                 >
                   <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>add</span>
                 </IconButton>
@@ -207,14 +242,18 @@ export default function Settings() {
           ))}
         </Box>
 
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-start' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
             variant="contained" 
             onClick={() => handleSaveAll(true)}
             disabled={savingCap}
-            sx={{ height: 48, px: 4, bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px' }}
+            sx={{ 
+              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
           >
-            {savingCap ? <CircularProgress size={24} color="inherit" /> : 'GUARDAR CAPACIDADES'}
+            {savingCap ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR CAPACIDADES'}
           </Button>
         </Box>
       </Paper>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
-  Typography, Box, Paper, Grid, Button, IconButton, 
+  Typography, Box, Paper, Button, IconButton, 
   CircularProgress, Snackbar, Tabs, Tab, Accordion, 
   AccordionSummary, AccordionDetails
 } from '@mui/material';
@@ -233,18 +233,16 @@ export default function CalendarPanel() {
     const endOfMonth = new Date(blockMonthStart.getFullYear(), blockMonthStart.getMonth() + 1, 0);
     
     let currentDayStr = startOfMonth.getDay(); 
-    // js day: 0=Sun, 1=Mon. Our cal starts Mon.
     let leadingEmptyDays = currentDayStr === 0 ? 6 : currentDayStr - 1;
 
     const daysInMonth = endOfMonth.getDate();
     const cells = [];
 
-    // Header abbreviations
     const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
     dayHeaders.forEach(dh => {
       cells.push(
         <Box key={dh} sx={{ width: '14.28%', textAlign: 'center', py: 1 }}>
-          <Typography variant="caption" sx={{ color: '#70757A', fontWeight: 500 }}>{dh}</Typography>
+          <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', fontWeight: 500 }}>{dh}</Typography>
         </Box>
       );
     });
@@ -286,13 +284,13 @@ export default function CalendarPanel() {
               '&:hover': { bgcolor: blocked ? '#F8D8D5' : '#F1F3F4' }
             }}
           >
-            <Typography variant="body2" sx={{ fontWeight: (isToday || blocked) ? 500 : 400 }}>{i}</Typography>
+            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: (isToday || blocked) ? 500 : 400 }}>{i}</Typography>
           </Box>
         </Box>
       );
     }
     return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%', maxWidth: 350, mx: 'auto' }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>
         {cells}
       </Box>
     );
@@ -300,32 +298,32 @@ export default function CalendarPanel() {
 
 
   return (
-    <Box sx={{ pb: 8, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 4 }}>
+    <Box sx={{ pb: 8, width: '100%' }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: '24px' }}>
         Calendar Control
       </Typography>
 
-      <Paper sx={{ mb: 4, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+      <Paper sx={{ width: '100%', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', p: 0, overflow: 'hidden' }}>
         <Tabs 
           value={currentTab} 
           onChange={(e, v) => setCurrentTab(v)}
-          TabIndicatorProps={{ style: { backgroundColor: '#1A73E8' } }}
-          sx={{ borderBottom: '1px solid #E0E0E0' }}
+          TabIndicatorProps={{ style: { backgroundColor: '#1A73E8', height: 2 } }}
+          sx={{ borderBottom: '1px solid #E0E0E0', minHeight: 48, height: 48 }}
         >
-          <Tab label="HOY" sx={{ textTransform: 'uppercase', fontWeight: 500, fontSize: '14px', '&.Mui-selected': { color: '#1A73E8' } }} />
-          <Tab label="SEMANA" sx={{ textTransform: 'uppercase', fontWeight: 500, fontSize: '14px', '&.Mui-selected': { color: '#1A73E8' } }} />
-          <Tab label="FECHAS BLOQUEADAS" sx={{ textTransform: 'uppercase', fontWeight: 500, fontSize: '14px', '&.Mui-selected': { color: '#1A73E8' } }} />
+          <Tab label="HOY" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minHeight: 48, px: '24px', '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A' }} />
+          <Tab label="SEMANA" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minHeight: 48, px: '24px', '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A' }} />
+          <Tab label="FECHAS BLOQUEADAS" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minHeight: 48, px: '24px', '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A' }} />
         </Tabs>
 
         {/* --- TAB 1: HOY --- */}
         {currentTab === 0 && (
-          <Box sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ p: '24px' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '20px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <IconButton onClick={() => handleDateChange(-1)} size="small" sx={{ border: '1px solid #70757A', width: 28, height: 28 }}>
                   <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>keyboard_arrow_left</span>
                 </IconButton>
-                <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#202124', width: 140, textAlign: 'center' }}>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', width: 180, textAlign: 'center' }}>
                   {dateFormatted}
                 </Typography>
                 <IconButton onClick={() => handleDateChange(1)} size="small" sx={{ border: '1px solid #70757A', width: 28, height: 28 }}>
@@ -338,63 +336,61 @@ export default function CalendarPanel() {
                 sx={{ 
                   bgcolor: currentDaySchedule.open ? '#E8F0FE' : '#FDECEA',
                   color: currentDaySchedule.open ? '#1A73E8' : '#D93025',
-                  px: 2, py: 0.5, borderRadius: '16px', cursor: 'pointer',
+                  px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer',
                   userSelect: 'none'
                 }}
               >
-                <Typography sx={{ fontWeight: 500, fontSize: '14px' }}>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>
                   {currentDaySchedule.open ? 'Abierto' : 'Cerrado'}
                 </Typography>
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-              <Button sx={{ p: 0, textTransform: 'none', color: '#1A73E8', fontWeight: 500 }} onClick={() => toggleAllInstant(true)}>
+            <Box sx={{ display: 'flex', gap: '24px', mb: '24px' }}>
+              <Button sx={{ p: 0, textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }} onClick={() => toggleAllInstant(true)}>
                 Abrir todos
               </Button>
-              <Button sx={{ p: 0, textTransform: 'none', color: '#D93025', fontWeight: 500 }} onClick={() => toggleAllInstant(false)}>
+              <Button sx={{ p: 0, textTransform: 'none', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }} onClick={() => toggleAllInstant(false)}>
                 Cerrar todos
               </Button>
             </Box>
 
-            <Grid container spacing={2}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
               {Object.keys(currentDaySchedule.slots).sort().map(time => {
                 const isOpen = currentDaySchedule.slots[time] && currentDaySchedule.open;
                 const capacity = config.capacity[time] || 0;
                 return (
-                  <Grid item xs={3} key={time}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <Box 
-                        onClick={() => { if(currentDaySchedule.open) toggleSlotInstant(time); }}
-                        sx={{
-                          width: 72, height: 48, borderRadius: '4px',
-                          display: 'flex', justifyContent: 'center', alignItems: 'center',
-                          cursor: currentDaySchedule.open ? 'pointer' : 'not-allowed',
-                          bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
-                          border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
-                          color: isOpen ? '#1A73E8' : '#BDBDBD',
-                          userSelect: 'none',
-                          mb: 0.5
-                        }}
-                      >
-                        <Typography sx={{ fontWeight: 500, fontSize: '14px' }}>{time}</Typography>
-                      </Box>
-                      <Typography sx={{ fontSize: '11px', color: '#70757A', fontWeight: 400, pl: 0.5 }}>
-                        {capacity} personas
-                      </Typography>
+                  <Box key={time} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <Box 
+                      onClick={() => { if(currentDaySchedule.open) toggleSlotInstant(time); }}
+                      sx={{
+                        width: '100%', height: 48, borderRadius: '4px',
+                        display: 'flex', justifyContent: 'center', alignItems: 'center',
+                        cursor: currentDaySchedule.open ? 'pointer' : 'not-allowed',
+                        bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
+                        border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
+                        color: isOpen ? '#1A73E8' : '#BDBDBD',
+                        userSelect: 'none',
+                        mb: '4px'
+                      }}
+                    >
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>{time}</Typography>
                     </Box>
-                  </Grid>
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '11px', color: '#70757A', fontWeight: 400, pl: '4px' }}>
+                      {capacity} personas
+                    </Typography>
+                  </Box>
                 );
               })}
-            </Grid>
+            </Box>
           </Box>
         )}
 
         {/* --- TAB 2: SEMANA --- */}
         {currentTab === 1 && (
-          <Box sx={{ p: 4, bgcolor: '#FAFAFA' }}>
-            <Box sx={{ mb: 3 }}>
-              <Button sx={{ textTransform: 'none', color: '#1A73E8', fontWeight: 500, p: 0 }} onClick={copyMondayToAll}>
+          <Box sx={{ p: '24px' }}>
+            <Box sx={{ mb: '24px' }}>
+              <Button sx={{ textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', p: 0 }} onClick={copyMondayToAll}>
                 Copiar de Lunes a todos los días
               </Button>
             </Box>
@@ -403,20 +399,20 @@ export default function CalendarPanel() {
               const dayConfig = config.schedule[day];
               const openCount = Object.values(dayConfig.slots).filter(Boolean).length;
               return (
-                <Accordion key={day} sx={{ mb: 1, boxShadow: '0 1px 2px rgba(0,0,0,0.1)', '&:before': { display: 'none' } }}>
-                  <AccordionSummary expandIcon={<span className="material-icons">expand_more</span>}>
-                    <Typography sx={{ fontWeight: 500, width: 120 }}>{DAY_LABELS[day]}</Typography>
-                    <Typography sx={{ color: '#70757A', fontSize: '14px' }}>
+                <Accordion disableGutters key={day} sx={{ mb: '8px', border: '1px solid #E0E0E0', boxShadow: 'none', '&:before': { display: 'none' } }}>
+                  <AccordionSummary expandIcon={<span className="material-icons">expand_more</span>} sx={{ minHeight: 56, height: 56, px: '16px' }}>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', width: 120 }}>{DAY_LABELS[day]}</Typography>
+                    <Typography sx={{ fontFamily: 'Roboto', color: '#70757A', fontSize: '14px' }}>
                       {dayConfig.open ? `${openCount} slots abiertos` : 'Cerrado'}
                     </Typography>
                   </AccordionSummary>
-                  <AccordionDetails sx={{ pt: 0, pb: 3, borderTop: '1px solid #E0E0E0', mt: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 2, mb: 3 }}>
-                      <Box sx={{ display: 'flex', gap: 3 }}>
-                        <Button sx={{ p: 0, textTransform: 'none', color: '#1A73E8', fontWeight: 500 }} onClick={() => toggleAllWeekly(day, true)}>
+                  <AccordionDetails sx={{ pt: 0, pb: '24px', px: '24px', borderTop: '1px solid #E0E0E0' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '16px' }}>
+                      <Box sx={{ display: 'flex', gap: '24px' }}>
+                        <Button sx={{ p: 0, textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }} onClick={() => toggleAllWeekly(day, true)}>
                           Abrir todos
                         </Button>
-                        <Button sx={{ p: 0, textTransform: 'none', color: '#D93025', fontWeight: 500 }} onClick={() => toggleAllWeekly(day, false)}>
+                        <Button sx={{ p: 0, textTransform: 'none', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }} onClick={() => toggleAllWeekly(day, false)}>
                           Cerrar todos
                         </Button>
                       </Box>
@@ -425,46 +421,55 @@ export default function CalendarPanel() {
                         sx={{ 
                           bgcolor: dayConfig.open ? '#E8F0FE' : '#FDECEA',
                           color: dayConfig.open ? '#1A73E8' : '#D93025',
-                          px: 2, py: 0.5, borderRadius: '16px', cursor: 'pointer',
+                          px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer',
                           userSelect: 'none'
                         }}
                       >
-                        <Typography sx={{ fontWeight: 500, fontSize: '14px' }}>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>
                           {dayConfig.open ? 'Abierto' : 'Cerrado'}
                         </Typography>
                       </Box>
                     </Box>
-                    <Grid container spacing={2}>
+
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '8px' }}>
                       {Object.keys(dayConfig.slots).sort().map(time => {
                         const isOpen = dayConfig.slots[time] && dayConfig.open;
                         return (
-                          <Grid item xs={3} key={time}>
-                            <Box 
-                              onClick={() => { if(dayConfig.open) toggleSlotWeekly(day, time); }}
-                              sx={{
-                                width: 72, height: 48, borderRadius: '4px',
-                                display: 'flex', justifyContent: 'center', alignItems: 'center',
-                                cursor: dayConfig.open ? 'pointer' : 'not-allowed',
-                                bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
-                                border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
-                                color: isOpen ? '#1A73E8' : '#BDBDBD',
-                                userSelect: 'none',
-                              }}
-                            >
-                              <Typography sx={{ fontWeight: 500, fontSize: '14px' }}>{time}</Typography>
-                            </Box>
-                          </Grid>
+                          <Box 
+                            key={time}
+                            onClick={() => { if(dayConfig.open) toggleSlotWeekly(day, time); }}
+                            sx={{
+                              width: '100%', height: 48, borderRadius: '4px',
+                              display: 'flex', justifyContent: 'center', alignItems: 'center',
+                              cursor: dayConfig.open ? 'pointer' : 'not-allowed',
+                              bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
+                              border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
+                              color: isOpen ? '#1A73E8' : '#BDBDBD',
+                              userSelect: 'none',
+                            }}
+                          >
+                            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>{time}</Typography>
+                          </Box>
                         );
                       })}
-                    </Grid>
+                    </Box>
                   </AccordionDetails>
                 </Accordion>
               );
             })}
 
-            <Box sx={{ mt: 4 }}>
-              <Button variant="contained" fullWidth onClick={manualSave} disabled={saving} sx={{ height: 48, borderRadius: '4px', boxShadow: 'none' }}>
-                {saving ? <CircularProgress size={24} color="inherit" /> : 'GUARDAR PLANTILLA'}
+            <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+              <Button 
+                variant="contained" 
+                onClick={manualSave} 
+                disabled={saving} 
+                sx={{ 
+                  height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+                  fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+                  '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+                }}
+              >
+                {saving ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR PLANTILLA'}
               </Button>
             </Box>
           </Box>
@@ -472,40 +477,56 @@ export default function CalendarPanel() {
 
         {/* --- TAB 3: FECHAS BLOQUEADAS --- */}
         {currentTab === 2 && (
-          <Box sx={{ p: 4, bgcolor: '#FAFAFA' }}>
-            <Paper sx={{ p: 3, mb: 4, borderRadius: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3 }}>
-                <IconButton onClick={() => changeBlockMonth(-1)} size="small">
-                  <span className="material-icons" style={{ fontSize: 20, color: '#70757A' }}>keyboard_arrow_left</span>
+          <Box sx={{ p: '24px', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+            
+            <Paper sx={{ width: 400, flexShrink: 0, p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: '24px' }}>
+                <IconButton onClick={() => changeBlockMonth(-1)} size="small" sx={{ color: '#70757A' }}>
+                  <span className="material-icons" style={{ fontSize: 20 }}>keyboard_arrow_left</span>
                 </IconButton>
-                <Typography sx={{ fontWeight: 500, fontSize: '14px', width: 140, textAlign: 'center' }}>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', width: 140, textAlign: 'center', color: '#202124' }}>
                   {MONTH_NAMES[blockMonthStart.getMonth()]} {blockMonthStart.getFullYear()}
                 </Typography>
-                <IconButton onClick={() => changeBlockMonth(1)} size="small">
-                  <span className="material-icons" style={{ fontSize: 20, color: '#70757A' }}>keyboard_arrow_right</span>
+                <IconButton onClick={() => changeBlockMonth(1)} size="small" sx={{ color: '#70757A' }}>
+                  <span className="material-icons" style={{ fontSize: 20 }}>keyboard_arrow_right</span>
                 </IconButton>
               </Box>
 
               {renderMonthGrid()}
+              
+              <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                <Button 
+                  variant="contained" 
+                  onClick={manualSave} 
+                  disabled={saving} 
+                  sx={{ 
+                    height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+                    '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+                  }}
+                >
+                  {saving ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR FECHAS'}
+                </Button>
+              </Box>
             </Paper>
 
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="body2" sx={{ fontWeight: 500, color: '#70757A', mb: 2, textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>
+            <Box sx={{ flex: 1, minHeight: 100 }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#70757A', mb: '16px', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>
                 Fechas Bloqueadas
               </Typography>
               
               {config.blockedDays.length === 0 ? (
-                <Typography variant="body2" sx={{ color: '#70757A' }}>No hay fechas bloqueadas</Typography>
+                <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>No hay fechas bloqueadas</Typography>
               ) : (
                 <Box sx={{ border: '1px solid #E0E0E0', borderRadius: '4px', bgcolor: '#FFFFFF' }}>
                   {config.blockedDays.map((dateStr, idx) => {
                     const d = new Date(dateStr);
                     const label = `${DAY_LABELS[dayNameMapping[d.getDay()]]}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
                     return (
-                      <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: idx < config.blockedDays.length - 1 ? '1px solid #E0E0E0' : 'none' }}>
-                        <Typography sx={{ color: '#202124', fontSize: '14px' }}>{label}</Typography>
-                        <IconButton size="small" onClick={() => toggleBlockDate(new Date(dateStr))}>
-                          <span className="material-icons" style={{ fontSize: 20, color: '#D93025' }}>close</span>
+                      <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '16px', borderBottom: idx < config.blockedDays.length - 1 ? '1px solid #E0E0E0' : 'none' }}>
+                        <Typography sx={{ fontFamily: 'Roboto', color: '#202124', fontSize: '14px' }}>{label}</Typography>
+                        <IconButton size="small" onClick={() => toggleBlockDate(new Date(dateStr))} sx={{ color: '#D93025' }}>
+                          <span className="material-icons" style={{ fontSize: 20 }}>close</span>
                         </IconButton>
                       </Box>
                     );
@@ -514,11 +535,6 @@ export default function CalendarPanel() {
               )}
             </Box>
 
-            <Box sx={{ mt: 4 }}>
-              <Button variant="contained" fullWidth onClick={manualSave} disabled={saving} sx={{ height: 48, borderRadius: '4px', boxShadow: 'none' }}>
-                {saving ? <CircularProgress size={24} color="inherit" /> : 'GUARDAR FECHAS'}
-              </Button>
-            </Box>
           </Box>
         )}
       </Paper>
@@ -530,7 +546,7 @@ export default function CalendarPanel() {
         message="Cambios guardados"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         ContentProps={{
-          sx: { bgcolor: '#323232', color: '#FFFFFF', borderRadius: '4px', fontSize: '14px' }
+          sx: { bgcolor: '#323232', color: '#FFFFFF', borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px' }
         }}
       />
     </Box>
