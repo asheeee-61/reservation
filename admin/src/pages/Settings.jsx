@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Typography, Box, Paper, TextField, Button, Grid, Divider, Alert } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
 
 export default function Settings() {
   const [config, setConfig] = useState({
@@ -18,8 +17,8 @@ export default function Settings() {
   };
 
   return (
-    <Box maxWidth="md">
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
+    <Box sx={{ pb: 8 }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
         System Settings
       </Typography>
       
@@ -29,7 +28,7 @@ export default function Settings() {
         </Alert>
       )}
 
-      <Paper elevation={2} sx={{ p: 3 }}>
+      <Paper sx={{ p: 6 }}>
         <Typography variant="h6" gutterBottom>
           Restaurant Details
         </Typography>
@@ -37,7 +36,7 @@ export default function Settings() {
           These details are displayed on the public reservation frontend.
         </Typography>
         
-        <Grid container spacing={3}>
+        <Grid container spacing={4}>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth label="Restaurant Name"
@@ -63,7 +62,7 @@ export default function Settings() {
           Configure capacities and limits for public bookings.
         </Typography>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={4}>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth label="Minimum Guests per Booking"
@@ -85,9 +84,9 @@ export default function Settings() {
         <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
             variant="contained" 
-            startIcon={<SaveIcon />}
+            startIcon={<span className="material-icons">save</span>}
             onClick={handleSave}
-            sx={{ px: 4, py: 1 }}
+            sx={{ px: 4, height: 48 }}
           >
             Save Changes
           </Button>

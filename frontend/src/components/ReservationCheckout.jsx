@@ -3,9 +3,6 @@ import {
   Button, TextField, Typography, Box, CircularProgress,
   IconButton, Alert, Backdrop, Container, Paper, Divider
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
 
 import { useReservationStore } from '../store/useReservationStore';
 import { createReservation } from '../services/reservationService';
@@ -48,23 +45,23 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: { xs: 2, md: 6 } }}>
       <Container maxWidth="md">
         <Button 
-          startIcon={<ArrowBackIcon />} 
+          startIcon={<span className="material-icons">arrow_back</span>} 
           onClick={onBack} 
-          sx={{ mb: 3 }}
+          sx={{ mb: 4 }}
           disabled={submitting}
         >
           Back to availability
         </Button>
 
-        <Paper sx={{ overflow: 'hidden', borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-          <Box sx={{ p: { xs: 3, md: 4 }, bgcolor: 'white' }}>
+        <Paper sx={{ overflow: 'hidden' }}>
+          <Box sx={{ p: { xs: 4, md: 6 }, bgcolor: '#FFFFFF' }}>
             <Typography variant="h5" fontWeight="bold" gutterBottom>
               Complete your reservation
             </Typography>
             
-            <Box sx={{ mt: 3, mb: 4, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+            <Box sx={{ mt: 4, mb: 6, p: 4, bgcolor: '#F1F3F4', borderRadius: '4px' }}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
-                <RestaurantIcon sx={{ mr: 2, mt: 0.5, color: 'text.secondary', fontSize: 24 }} />
+                <span className="material-icons" style={{ marginRight: 16, marginTop: 4, color: '#70757A', fontSize: 24 }}>restaurant</span>
                 <Box>
                   <Typography variant="body1" fontWeight={500}>
                     Group of {guests} · Standard Table
@@ -75,7 +72,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                <CalendarTodayIcon sx={{ mr: 2, mt: 0.5, color: 'text.secondary', fontSize: 24 }} />
+                <span className="material-icons" style={{ marginRight: 16, marginTop: 4, color: '#70757A', fontSize: 24 }}>calendar_today</span>
                 <Box>
                   <Typography variant="body1" fontWeight={500} sx={{ textTransform: 'capitalize' }}>
                     {date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : ''}
@@ -87,7 +84,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               </Box>
             </Box>
 
-            <Alert severity="info" sx={{ mb: 4 }}>
+            <Alert severity="info" sx={{ mb: 4, bgcolor: '#F1F3F4', borderRadius: '4px', p: 3, border: 'none', color: '#70757A' }}>
               Please let us know if you decide not to come so we can cancel your reservation and free up the table.
             </Alert>
 
@@ -157,7 +154,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
                 onClick={handleConfirm} 
                 disabled={!isValid || submitting}
                 startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : null}
-                sx={{ borderRadius: '4px', px: 6, py: 1.5, minWidth: 200 }}
+                sx={{ minWidth: 200, height: 48 }}
               >
                 {submitting ? 'Confirming...' : 'Reserve Table'}
               </Button>

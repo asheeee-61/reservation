@@ -3,7 +3,6 @@ import {
   Typography, Box, Paper, TextField, 
   Button, Grid, Alert, Container
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
@@ -59,20 +58,20 @@ export default function NewBooking() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ pb: 8 }}>
+    <Container maxWidth={false} sx={{ pb: 8, pt: 2 }}>
       <Button 
-        startIcon={<ArrowBackIcon />} 
+        startIcon={<span className="material-icons">arrow_back</span>} 
         onClick={() => navigate('/reservations')} 
-        sx={{ mb: 3 }}
+        sx={{ mb: 6 }}
       >
         Back to Reservations
       </Button>
 
-      <Paper elevation={2} sx={{ p: { xs: 3, md: 4 }, borderRadius: 2 }}>
+      <Paper sx={{ p: { xs: 4, md: 6 } }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           New Manual Booking
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 6 }}>
           Enter the customer details to block off a table.
         </Typography>
 
@@ -82,48 +81,43 @@ export default function NewBooking() {
           </Alert>
         )}
 
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <TextField 
-              fullWidth label="Customer Name" size="medium" required
-              value={newBooking.name} onChange={e => setNewBooking({...newBooking, name: e.target.value})}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <TextField 
+            fullWidth label="Customer Name" size="medium" required
+            value={newBooking.name} onChange={e => setNewBooking({...newBooking, name: e.target.value})}
+          />
+          
+          <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField 
               fullWidth label="Date" type="date" size="medium" required
               InputLabelProps={{ shrink: true }}
               value={newBooking.date} onChange={e => setNewBooking({...newBooking, date: e.target.value})}
             />
-          </Grid>
-          <Grid item xs={12} sm={6}>
             <TextField 
               fullWidth label="Time" type="time" size="medium" required
               InputLabelProps={{ shrink: true }}
               value={newBooking.time} onChange={e => setNewBooking({...newBooking, time: e.target.value})}
             />
-          </Grid>
-          <Grid item xs={12} sm={6}>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField 
               fullWidth label="Guests" type="number" size="medium" required
               inputProps={{ min: 1 }}
               value={newBooking.guests} onChange={e => setNewBooking({...newBooking, guests: e.target.value})}
             />
-          </Grid>
-          <Grid item xs={12} sm={6}>
             <TextField 
               fullWidth label="Phone (WhatsApp)" size="medium"
               value={newBooking.phone} onChange={e => setNewBooking({...newBooking, phone: e.target.value})}
             />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField 
-              fullWidth label="Notes / Special Requests" size="medium" multiline rows={3}
-              value={newBooking.notes} onChange={e => setNewBooking({...newBooking, notes: e.target.value})}
-            />
-          </Grid>
+          </Box>
+          
+          <TextField 
+            fullWidth label="Notes / Special Requests" size="medium" multiline rows={3}
+            value={newBooking.notes} onChange={e => setNewBooking({...newBooking, notes: e.target.value})}
+          />
 
-          <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 3 }}>
             <Button size="large" onClick={() => navigate('/reservations')} disabled={loading}>
               Cancel
             </Button>
@@ -135,8 +129,8 @@ export default function NewBooking() {
             >
               {loading ? 'Saving...' : 'Save Booking'}
             </Button>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Paper>
     </Container>
   );

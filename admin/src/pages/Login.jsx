@@ -30,8 +30,8 @@ export default function Login() {
   };
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: 'grey.100' }}>
-      <Paper sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: 3 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F1F3F4' }}>
+      <Paper sx={{ p: 8, width: '100%', maxWidth: 400 }}>
         <Typography variant="h5" fontWeight="bold" align="center" gutterBottom>
           Admin Login
         </Typography>
@@ -44,7 +44,7 @@ export default function Login() {
             fullWidth label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)}
             margin="normal" required
           />
-          <Button fullWidth type="submit" variant="contained" sx={{ mt: 3, py: 1.5, borderRadius: '4px' }}>
+          <Button fullWidth type="submit" variant="contained" sx={{ mt: 6 }}>
             Login
           </Button>
         </Box>

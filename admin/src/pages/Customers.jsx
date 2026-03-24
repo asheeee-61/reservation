@@ -3,9 +3,7 @@ import {
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, Tooltip, IconButton, TextField, InputAdornment, Avatar
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import MailOutlineIcon from '@mui/icons-material/MailOutline';
 
 const MOCK_CUSTOMERS = [
   { id: 1, name: 'John Doe', email: 'john@example.com', phone: '1234567890', totalVisits: 5, lastVisit: '2026-03-20' },
@@ -23,27 +21,27 @@ export default function Customers() {
   );
 
   return (
-    <Box>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
+    <Box sx={{ pb: 8 }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
         Customers Directory
       </Typography>
 
-      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: 4, mb: 4 }}>
         <TextField
           size="small"
           placeholder="Search by name, email or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
-            startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>
+            startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>
           }}
           sx={{ maxWidth: 400, width: '100%' }}
         />
       </Paper>
 
-      <Paper elevation={2} sx={{ overflow: 'hidden' }}>
+      <Paper sx={{ overflow: 'hidden' }}>
         <Table>
-          <TableHead sx={{ bgcolor: 'grey.100' }}>
+          <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
               <TableCell><strong>Customer</strong></TableCell>
               <TableCell><strong>Contact</strong></TableCell>
@@ -90,7 +88,7 @@ export default function Customers() {
                   </Tooltip>
                   <Tooltip title="Send Email">
                     <IconButton size="small" color="primary" onClick={() => window.location.href = `mailto:${c.email}`}>
-                      <MailOutlineIcon fontSize="small" />
+                      <span className="material-icons" style={{ fontSize: 20 }}>mail</span>
                     </IconButton>
                   </Tooltip>
                 </TableCell>

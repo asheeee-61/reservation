@@ -5,19 +5,15 @@ import {
   IconButton, Tooltip, Stack, TextField, InputAdornment, 
   Fab, CircularProgress
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import AddIcon from '@mui/icons-material/Add';
-import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
 const STATUS_COLORS = {
   'pending': 'warning',
   'confirmed': 'info',
-  'seated': 'success',
-  'completed': 'default',
-  'cancelled': 'error'
+  'cancelled': 'error',
+  'no_show': 'secondary'
 };
 
 export default function Reservations() {
@@ -69,7 +65,7 @@ export default function Reservations() {
   return (
     <Box sx={{ pb: 8 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" fontWeight="bold">
+        <Typography variant="h5" fontWeight="bold">
           Reservations
         </Typography>
       </Box>
@@ -81,7 +77,7 @@ export default function Reservations() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
-            startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>
+            startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>
           }}
           sx={{ flexGrow: 1, maxWidth: 400 }}
         />
@@ -101,7 +97,7 @@ export default function Reservations() {
 
       <Paper elevation={2} sx={{ overflow: 'hidden' }}>
         <Table>
-          <TableHead sx={{ bgcolor: 'grey.100' }}>
+          <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
               <TableCell><strong>ID</strong></TableCell>
               <TableCell><strong>Customer</strong></TableCell>
@@ -150,8 +146,8 @@ export default function Reservations() {
                         '& .MuiSelect-select': { 
                           py: 0.5, px: 1, 
                           borderRadius: 1,
-                          bgcolor: `${STATUS_COLORS[res.status]}.light`,
-                          color: `${STATUS_COLORS[res.status]}.dark`,
+                          bgcolor: STATUS_COLORS[res.status] ? `${STATUS_COLORS[res.status]}.light` : 'grey.200',
+                          color: STATUS_COLORS[res.status] ? `${STATUS_COLORS[res.status]}.dark` : 'grey.800',
                           minWidth: 90,
                           textAlign: 'center',
                           fontSize: '0.85rem',
@@ -167,6 +163,15 @@ export default function Reservations() {
                 </TableCell>
                 <TableCell align="right">
                   <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Tooltip title="View Reservation">
+                      <IconButton 
+                        size="small" 
+                        color="secondary"
+                        onClick={() => navigate(`/reservations/view/${res.id}`, { state: { reservation: res } })}
+                      >
+                        <span className="material-icons" style={{ fontSize: 20 }}>visibility</span>
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Message on WhatsApp">
                       <IconButton 
                         size="small" 
@@ -177,8 +182,12 @@ export default function Reservations() {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Edit Reservation">
-                      <IconButton size="small" color="primary">
-                        <EditIcon fontSize="small" />
+                      <IconButton 
+                        size="small" 
+                        color="primary"
+                        onClick={() => navigate(`/reservations/edit/${res.id}`, { state: { reservation: res } })}
+                      >
+                        <span className="material-icons" style={{ fontSize: 20 }}>edit</span>
                       </IconButton>
                     </Tooltip>
                   </Stack>
@@ -195,7 +204,7 @@ export default function Reservations() {
         sx={{ position: 'fixed', bottom: 24, right: 24 }}
         onClick={() => navigate('/reservations/new')}
       >
-        <AddIcon />
+        <span className="material-icons">add</span>
       </Fab>
     </Box>
   );

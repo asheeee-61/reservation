@@ -3,9 +3,6 @@ import {
   Box, Typography, MenuItem, Select, FormControl,
   InputAdornment, Button, Grid, CircularProgress, Divider, Skeleton
 } from '@mui/material';
-import PeopleIcon from '@mui/icons-material/People';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import { useReservationStore } from '../store/useReservationStore';
 import { getAvailableSlots } from '../services/reservationService';
@@ -66,99 +63,116 @@ export default function LeftPanel({ onContinue }) {
 
   return (
     <Box sx={{ 
-      p: { xs: 2.5, md: 4 }, 
-      display: 'flex', flexDirection: 'column', gap: 3, 
+      display: 'flex', flexDirection: 'column', 
       height: '100%',
-      bgcolor: 'background.paper',
-      boxShadow: { xs: 'none', md: '2px 0 8px rgba(0,0,0,0.05)' },
+      bgcolor: '#FFFFFF',
+      borderRight: '1px solid #E0E0E0',
       zIndex: 1,
       overflowY: 'auto'
     }}>
-      <Box sx={{ mt: { md: 2 } }}>
-        <Typography variant="h5" fontWeight="bold">
+      <Box sx={{ 
+        display: 'flex', alignItems: 'center', 
+        height: 56, px: 4, 
+        borderBottom: '1px solid #E0E0E0'
+      }}>
+        <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
           {config.restaurant.name}
         </Typography>
-        {config.restaurant.address && (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      </Box>
+
+      <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <Box>
+          <Typography variant="body2" sx={{ mb: 2 }}>
             {config.restaurant.address}
           </Typography>
-        )}
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Select your party size, date, and time.
-        </Typography>
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ flexGrow: 1, flexBasis: '45%' }}>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5, fontSize: '0.85rem' }}>
-            Guests
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            Select your party size, date, and time.
           </Typography>
-          <FormControl fullWidth>
-            <Select
-              value={guests}
-              onChange={(e) => setGuests(e.target.value)}
-              IconComponent={ArrowDropDownIcon}
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ flexGrow: 1, flexBasis: '45%' }}>
+            <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
+              Guests
+            </Typography>
+            <FormControl fullWidth>
+              <Select
+                value={guests}
+                onChange={(e) => setGuests(e.target.value)}
+                IconComponent={(props) => <span {...props} className={"material-icons " + props.className} style={{ color: '#70757A' }}>arrow_drop_down</span>}
+                sx={{ 
+                  height: 36,
+                  borderRadius: '4px',
+                  bgcolor: '#FFFFFF',
+                  color: '#202124',
+                  fontSize: '14px',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#DADCE0', borderWidth: '1px' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#DADCE0' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1A73E8', borderWidth: '2px' }
+                }}
+              >
+                {guestsOptions.map(num => (
+                  <MenuItem key={num} value={num}>{num}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={{ flexGrow: 1, flexBasis: '45%', position: 'relative' }}>
+            <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
+              Date
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={handleDateClick}
+              endIcon={<span className="material-icons" style={{ color: '#70757A' }}>arrow_drop_down</span>}
               sx={{ 
-                borderRadius: '4px', 
-                bgcolor: 'background.paper',
-                '& .MuiSelect-select': { py: 1.5 },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#dadce0' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#9aa0a6' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1a73e8', borderWidth: '2px' }
+                width: '100%', 
+                height: 36,
+                justifyContent: 'space-between',
+                borderColor: '#DADCE0',
+                color: '#202124',
+                bgcolor: '#FFFFFF',
+                borderRadius: '4px',
+                py: 0,
+                px: 3,
+                fontSize: '14px',
+                fontWeight: 400,
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: '#DADCE0',
+                  bgcolor: '#FFFFFF',
+                },
+                '&:focus': {
+                  borderColor: '#1A73E8',
+                  borderWidth: '2px',
+                }
               }}
             >
-              {guestsOptions.map(num => (
-                <MenuItem key={num} value={num}>{num}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              {formatDateLabel(date)}
+            </Button>
+            <input 
+              type="date"
+              ref={dateInputRef}
+              value={date}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={(e) => setDate(e.target.value)}
+              style={{ position: 'absolute', opacity: 0, width: 0, height: 0, border: 0, padding: 0, overflow: 'hidden' }}
+            />
+          </Box>
         </Box>
 
-        <Box sx={{ flexGrow: 1, flexBasis: '45%', position: 'relative' }}>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5, fontSize: '0.85rem' }}>
-            Date
+        <Divider sx={{ my: 0, borderColor: '#E0E0E0' }} />
+
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
+            Available Times
           </Typography>
-          <Button
-            variant="outlined"
-            onClick={handleDateClick}
-            endIcon={<ArrowDropDownIcon sx={{ color: 'action.active' }} />}
-            sx={{ 
-              width: '100%', 
-              justifyContent: 'space-between',
-              borderColor: '#dadce0',
-              color: 'text.primary',
-              bgcolor: 'background.paper',
-              borderRadius: '4px',
-              py: '11px',
-              px: 2,
-              fontSize: '1rem',
-              fontWeight: 400,
-              textTransform: 'none',
-              '&:hover': {
-                borderColor: '#9aa0a6',
-                bgcolor: 'background.paper',
-              }
-            }}
-          >
-            {formatDateLabel(date)}
-          </Button>
-          <input 
-            type="date"
-            ref={dateInputRef}
-            value={date}
-            min={new Date().toISOString().split('T')[0]}
-            onChange={(e) => setDate(e.target.value)}
-            style={{ position: 'absolute', opacity: 0, width: 0, height: 0, border: 0, padding: 0, overflow: 'hidden' }}
-          />
-        </Box>
-      </Box>
-
-      <Divider sx={{ my: 0.5 }} />
-
-      <Box sx={{ flexGrow: 1 }}>
-        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-          Available Times
-        </Typography>
+          {date && (
+            <Typography variant="subtitle2" sx={{ mb: 3 }}>
+              {new Date(date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase()}
+            </Typography>
+          )}
         
         {loading ? (
           <Box sx={{ mt: 2 }}>
@@ -183,21 +197,32 @@ export default function LeftPanel({ onContinue }) {
                     disabled={!slot.available}
                     onClick={() => setSelectedSlot({ time: slot.time })}
                     sx={{ 
-                      borderRadius: '4px', 
-                      py: 1,
-                      px: 0.5,
+                      height: 36,
+                      minWidth: 72,
+                      borderRadius: '4px',
+                      textTransform: 'none',
                       fontWeight: 500,
-                      borderColor: isSelected ? 'primary.main' : '#dadce0',
-                      color: isSelected ? 'white' : '#1a73e8',
-                      bgcolor: isSelected ? 'primary.main' : 'transparent',
-                      '&:hover': {
-                        bgcolor: isSelected ? 'primary.dark' : '#f8f9fa',
-                        borderColor: isSelected ? 'primary.dark' : '#dadce0'
-                      },
+                      fontSize: '14px',
+                      p: 0,
+                      ...(isSelected ? {
+                        border: '2px solid #1A73E8',
+                        bgcolor: '#E8F0FE',
+                        color: '#1A73E8',
+                        '&:hover': { bgcolor: '#E8F0FE', border: '2px solid #1A73E8' }
+                      } : slot.available ? {
+                        border: '1px solid #1A73E8',
+                        bgcolor: '#FFFFFF',
+                        color: '#1A73E8',
+                        '&:hover': { bgcolor: '#E8F0FE', border: '1px solid #1A73E8' }
+                      } : {
+                        border: '1px solid #E0E0E0',
+                        bgcolor: '#F1F3F4',
+                        color: '#BDBDBD',
+                      }),
                       '&.Mui-disabled': {
-                        bgcolor: '#f1f3f4',
-                        borderColor: '#f1f3f4',
-                        color: 'rgba(0,0,0,0.38)'
+                        border: '1px solid #E0E0E0',
+                        bgcolor: '#F1F3F4',
+                        color: '#BDBDBD',
                       }
                     }}
                   >
@@ -208,21 +233,20 @@ export default function LeftPanel({ onContinue }) {
             })}
           </Grid>
         )}
-      </Box>
+        </Box>
 
-      {/* Sticky Bottom Bar for Continue */}
-      <Box sx={{ mt: 'auto', pt: 3, pb: { xs: 2, md: 0 } }}>
-        <Button 
-          variant="contained" 
-          fullWidth 
-          size="large"
-          disabled={!selectedSlot}
-          onClick={onContinue}
-          disableElevation
-          sx={{ borderRadius: '4px', py: 1.5, fontSize: '1rem', fontWeight: 600 }}
-        >
-          Continue
-        </Button>
+        <Box sx={{ mt: 'auto', pt: 4 }}>
+          <Button 
+            variant="contained" 
+            fullWidth 
+            disabled={!selectedSlot}
+            onClick={onContinue}
+            disableElevation
+            sx={{ height: 48 }}
+          >
+            Continue
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

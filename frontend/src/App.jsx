@@ -5,39 +5,57 @@ import { useReservationStore } from './store/useReservationStore';
 import { getConfig } from './services/reservationService';
 
 const theme = createTheme({
+  spacing: 4,
   palette: {
-    primary: {
-      main: '#1a73e8', // Google Style Primary
-    },
-    background: {
-      default: '#ffffff' 
-    }
+    primary: { main: '#1A73E8', contrastText: '#FFFFFF' },
+    secondary: { main: '#70757A', contrastText: '#ffffff' },
+    error: { main: '#D93025' },
+    background: { default: '#FFFFFF', paper: '#FFFFFF' },
+    text: { primary: '#202124', secondary: '#70757A' }
   },
   typography: {
-    fontFamily: '"Google Sans", "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    button: {
-      textTransform: 'none',
-      fontWeight: 500,
-    }
-  },
-  shape: {
-    borderRadius: 8,
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h5: { fontWeight: 500, fontSize: '18px', color: '#202124' },
+    h6: { fontWeight: 500, fontSize: '18px', color: '#202124' },
+    subtitle1: { fontWeight: 400, fontSize: '14px', color: '#70757A' },
+    subtitle2: { fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' },
+    body1: { fontWeight: 400, fontSize: '14px', color: '#202124' },
+    body2: { fontWeight: 400, fontSize: '14px', color: '#70757A' },
+    button: { fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px' }
   },
   components: {
-    MuiButton: {
+    MuiCssBaseline: {
       styleOverrides: {
-        root: {
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: 'none',
-          }
+        body: {
+          backgroundColor: '#FFFFFF',
+          color: '#202124'
         }
       }
     },
-    MuiDialog: {
+    MuiPaper: {
       styleOverrides: {
-        paper: {
-           borderRadius: 16,
+        root: {
+          borderRadius: 4,
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+          backgroundImage: 'none',
+        }
+      }
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 4,
+          transition: 'all 200ms ease',
+        },
+        containedPrimary: {
+          backgroundColor: '#1A73E8',
+          color: '#FFFFFF',
+          boxShadow: 'none',
+          '&:hover': {
+            backgroundColor: '#1557B0',
+            boxShadow: 'none',
+          }
         }
       }
     }

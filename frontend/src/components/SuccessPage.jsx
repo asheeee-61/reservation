@@ -1,5 +1,4 @@
 import { Box, Typography, Button, Container } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useReservationStore } from '../store/useReservationStore';
 
 export default function SuccessPage() {
@@ -11,7 +10,7 @@ export default function SuccessPage() {
         display: 'flex', flexDirection: 'column', alignItems: 'center', 
         justifyContent: 'center', minHeight: '100vh', textAlign: 'center', py: 4 
       }}>
-        <CheckCircleIcon color="success" sx={{ fontSize: 80, mb: 3 }} />
+        <span className="material-icons" style={{ fontSize: 80, marginBottom: 24, color: '#1A73E8' }}>check_circle</span>
         
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           Reservation Confirmed
@@ -22,8 +21,8 @@ export default function SuccessPage() {
         </Typography>
 
         <Box sx={{ 
-          bgcolor: 'grey.100', py: 2, px: 4, borderRadius: 2, mb: 4,
-          border: '1px solid', borderColor: 'grey.300' 
+          bgcolor: '#F1F3F4', py: 4, px: 6, borderRadius: '4px', mb: 6,
+          border: '1px solid #E0E0E0' 
         }}>
           <Typography variant="subtitle2" color="text.secondary" textTransform="uppercase" letterSpacing={1}>
             Reservation ID
@@ -38,7 +37,7 @@ export default function SuccessPage() {
           size="large"
           color="primary"
           onClick={reset}
-          sx={{ borderRadius: 8, px: 4 }}
+          sx={{ borderRadius: '4px', px: 4, height: 48 }}
         >
           Book another table
         </Button>
