@@ -9,11 +9,24 @@ export default function Login() {
   const login = useAuthStore(state => state.login);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simulate login for now
-    login('fake-jwt-token', { name: 'Admin User', email: email });
-    navigate('/');
+    try {
+      const response = await fetch('http://localhost:8000/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (data.success) {
+        login(data.token, data.user);
+        navigate('/');
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (error) {
+      alert('Error during login: ' + error.message);
+    }
   };
 
   return (
@@ -31,7 +44,7 @@ export default function Login() {
             fullWidth label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)}
             margin="normal" required
           />
-          <Button fullWidth type="submit" variant="contained" sx={{ mt: 3, py: 1.5, borderRadius: 8 }}>
+          <Button fullWidth type="submit" variant="contained" sx={{ mt: 3, py: 1.5, borderRadius: '4px' }}>
             Login
           </Button>
         </Box>

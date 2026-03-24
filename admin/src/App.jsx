@@ -3,6 +3,8 @@ import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Reservations from './pages/Reservations';
+import Customers from './pages/Customers';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { useAuthStore } from './store/useAuthStore';
 
@@ -12,7 +14,7 @@ const theme = createTheme({
     background: { default: '#f5f5f5' }
   },
   typography: {
-    fontFamily: '"Google Sans", "Inter", sans-serif'
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
   }
 });
 
@@ -33,7 +35,8 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="reservations" element={<Reservations />} />
-            {/* Settings route can be added later */}
+            <Route path="customers" element={<Customers />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>

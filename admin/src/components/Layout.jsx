@@ -3,6 +3,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import GroupIcon from '@mui/icons-material/Group';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 
@@ -16,6 +17,7 @@ export default function Layout() {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Reservations', icon: <EventAvailableIcon />, path: '/reservations' },
+    { text: 'Customers', icon: <GroupIcon />, path: '/customers' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
   ];
 
