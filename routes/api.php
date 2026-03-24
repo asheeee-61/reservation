@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AuthController;
 
 use Illuminate\Support\Facades\Storage;
@@ -48,6 +49,12 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index']);
     Route::put('/reservations/{id}', [ReservationController::class, 'update']);
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
+    
+    Route::get('/customers', [CustomerController::class, 'index']);
+    Route::get('/customers/{customer}', [CustomerController::class, 'show']);
+    Route::put('/customers/{customer}', [CustomerController::class, 'update']);
+    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', function(\Illuminate\Http\Request $request) {
         Storage::put('config.json', json_encode($request->all(), JSON_PRETTY_PRINT));

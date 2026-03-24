@@ -9,5 +9,18 @@ class Reservation extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'reservation_id',
+        'customer_id',
+        'date',
+        'time',
+        'guests',
+        'special_requests',
+        'status',
+    ];
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }
