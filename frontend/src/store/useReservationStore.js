@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 
 export const useReservationStore = create((set) => ({
-  date: null, // yyyy-mm-dd format
+  date: new Date().toISOString().split('T')[0],
   guests: 2,
-  selectedTime: null, // "12:00" format
+  selectedSlot: null, // { time, area }
   userData: {
     firstName: '',
     lastName: '',
@@ -11,21 +11,23 @@ export const useReservationStore = create((set) => ({
     phone: '',
     specialRequests: ''
   },
+  config: null,
   loading: false,
   error: null,
   
-  setDate: (date) => set({ date, selectedTime: null }),
-  setGuests: (guests) => set({ guests, selectedTime: null }),
-  setSelectedTime: (selectedTime) => set({ selectedTime }),
+  setDate: (date) => set({ date, selectedSlot: null }),
+  setGuests: (guests) => set({ guests, selectedSlot: null }),
+  setSelectedSlot: (selectedSlot) => set({ selectedSlot }),
   setUserData: (userData) => set((state) => ({ userData: { ...state.userData, ...userData } })),
+  setConfig: (config) => set({ config }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
-  reset: () => set({
-    date: null,
-    guests: 2,
-    selectedTime: null,
+  reset: () => set((state) => ({
+    date: new Date().toISOString().split('T')[0],
+    guests: state.config?.minGuests || 1,
+    selectedSlot: null,
     userData: { firstName: '', lastName: '', email: '', phone: '', specialRequests: '' },
     loading: false,
     error: null
-  })
+  }))
 }));
