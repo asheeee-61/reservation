@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   Dialog, DialogTitle, DialogContent, DialogActions, 
   Button, TextField, Typography, Box, CircularProgress,
-  IconButton, Alert
+  IconButton, Alert, Backdrop
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -54,6 +54,21 @@ export default function ReservationDialog({ open, onClose, onSuccess }) {
         </IconButton>
       </DialogTitle>
       
+      <Backdrop
+        sx={{ 
+          color: '#fff', 
+          zIndex: (theme) => theme.zIndex.drawer + 1, 
+          position: 'absolute', 
+          flexDirection: 'column', 
+          gap: 2,
+          bgcolor: 'rgba(255, 255, 255, 0.7)'
+        }}
+        open={submitting}
+      >
+        <CircularProgress color="primary" />
+        <Typography color="text.primary" fontWeight="bold">Confirming your reservation...</Typography>
+      </Backdrop>
+
       <DialogContent dividers>
         <Box sx={{ mb: 3, pt: 1, pb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
@@ -138,7 +153,7 @@ export default function ReservationDialog({ open, onClose, onSuccess }) {
             Terms of Service
           </Box>.
         </Typography>
-        <Button onClick={onClose} disabled={submitting} sx={{ borderRadius: 8 }}>
+        <Button onClick={onClose} disabled={submitting} sx={{ borderRadius: '4px' }}>
           Cancel
         </Button>
         <Button 
@@ -146,7 +161,7 @@ export default function ReservationDialog({ open, onClose, onSuccess }) {
           onClick={handleConfirm} 
           disabled={!isValid || submitting}
           startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
-          sx={{ borderRadius: 8, px: 3 }}
+          sx={{ borderRadius: '4px', px: 3 }}
         >
           {submitting ? 'Confirming...' : 'Confirm'}
         </Button>

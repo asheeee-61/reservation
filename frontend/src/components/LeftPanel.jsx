@@ -219,7 +219,7 @@ export default function LeftPanel({ onContinue }) {
           disabled={!selectedSlot}
           onClick={onContinue}
           disableElevation
-          sx={{ borderRadius: 2, py: 1.5, fontSize: '1rem', fontWeight: 600 }}
+          sx={{ borderRadius: '4px', py: 1.5, fontSize: '1rem', fontWeight: 600 }}
         >
           Continue
         </Button>
