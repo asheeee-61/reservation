@@ -25,7 +25,7 @@ class ReservationController extends Controller
             'slot.time' => 'required|string',
             'guests' => 'required|integer|min:1',
             'user.name' => 'required|string|max:255',
-            'user.email' => 'required|email|max:255',
+            'user.email' => 'nullable|email|max:255',
             'user.phone' => 'nullable|string|max:20',
             'user.specialRequests' => 'nullable|string'
         ]);
@@ -33,13 +33,28 @@ class ReservationController extends Controller
         $resId = '#' . rand(1000, 9999);
 
         // Find or create customer
-        $customer = Customer::firstOrCreate(
-            ['email' => $validated['user']['email']],
-            [
-                'name'  => $validated['user']['name'],
-                'phone' => $validated['user']['phone'] ?? null,
-            ]
-        );
+        $email = $validated['user']['email'] ?? null;
+        $phone = $validated['user']['phone'] ?? null;
+        $name = $validated['user']['name'];
+        $customer = null;
+
+        if ($email) {
+            $customer = Customer::firstOrCreate(
+                ['email' => $email],
+                ['name' => $name, 'phone' => $phone]
+            );
+        } elseif ($phone) {
+            $customer = Customer::firstOrCreate(
+                ['phone' => $phone],
+                ['name' => $name, 'email' => null]
+            );
+        } else {
+            $customer = Customer::create([
+                'name' => $name,
+                'email' => null,
+                'phone' => null
+            ]);
+        }
 
         $reservation = Reservation::create([
             'reservation_id' => $resId,
@@ -71,7 +86,7 @@ class ReservationController extends Controller
             'time' => 'required|string',
             'guests' => 'required|integer|min:1',
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'special_requests' => 'nullable|string',
             'status' => 'required|in:pending,confirmed,cancelled,no_show'
@@ -79,10 +94,28 @@ class ReservationController extends Controller
 
         $reservation = Reservation::findOrFail($id);
         
-        $customer = Customer::firstOrCreate(
-            ['email' => $validated['email']],
-            ['name' => $validated['name'], 'phone' => $validated['phone']]
-        );
+        $email = $validated['email'] ?? null;
+        $phone = $validated['phone'] ?? null;
+        $name = $validated['name'];
+        $customer = null;
+
+        if ($email) {
+            $customer = Customer::firstOrCreate(
+                ['email' => $email],
+                ['name' => $name, 'phone' => $phone]
+            );
+        } elseif ($phone) {
+            $customer = Customer::firstOrCreate(
+                ['phone' => $phone],
+                ['name' => $name, 'email' => null]
+            );
+        } else {
+            $customer = Customer::create([
+                'name' => $name,
+                'email' => null,
+                'phone' => null
+            ]);
+        }
 
         $reservation->update([
             'customer_id' => $customer->id,
