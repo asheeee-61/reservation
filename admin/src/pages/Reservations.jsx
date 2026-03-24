@@ -1,61 +1,104 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, MenuItem, Select, FormControl,
   IconButton, Tooltip, Stack, TextField, InputAdornment, 
-  Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid
+  Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, CircularProgress
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-
-const MOCK_RESERVATIONS = [
-  { id: '#4813', name: 'John Doe', phone: '1234567890', date: '2026-03-24', time: '19:00', guests: 2, status: 'Confirmed', notes: 'Anniversary' },
-  { id: '#1234', name: 'Jane Smith', phone: '0987654321', date: '2026-03-24', time: '20:30', guests: 4, status: 'Pending', notes: '' },
-  { id: '#5678', name: 'Alex Johnson', phone: '5551234567', date: '2026-03-25', time: '19:30', guests: 1, status: 'Seated', notes: 'Allergy: Peanuts' }
-];
+import { apiClient } from '../services/apiClient';
 
 const STATUS_COLORS = {
-  'Pending': 'warning',
-  'Confirmed': 'info',
-  'Seated': 'success',
-  'Completed': 'default',
-  'Cancelled': 'error',
-  'No Show': 'error'
+  'pending': 'warning',
+  'confirmed': 'info',
+  'seated': 'success',
+  'completed': 'default',
+  'cancelled': 'error'
 };
 
 export default function Reservations() {
-  const [reservations, setReservations] = useState(MOCK_RESERVATIONS);
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [openDialog, setOpenDialog] = useState(false);
   
   const [newBooking, setNewBooking] = useState({
     name: '', phone: '', date: '', time: '', guests: 2, notes: ''
   });
 
-  const handleStatusChange = (id, newStatus) => {
+  useEffect(() => {
+    fetchReservations();
+  }, []);
+
+  const fetchReservations = async () => {
+    try {
+      const data = await apiClient('/admin/reservations');
+      setReservations(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    // optimistic update
+    const previous = [...reservations];
     setReservations(prev => prev.map(res => 
       res.id === id ? { ...res, status: newStatus } : res
     ));
+
+    try {
+      await apiClient(`/admin/reservations/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (e) {
+      alert('Failed to update status');
+      setReservations(previous);
+    }
+  };
+
+  const handleAddBooking = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          date: newBooking.date,
+          slot: { time: newBooking.time },
+          guests: newBooking.guests,
+          user: {
+            name: newBooking.name,
+            phone: newBooking.phone,
+            email: '',
+            specialRequests: newBooking.notes
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchReservations();
+        setOpenDialog(false);
+        setNewBooking({ name: '', phone: '', date: '', time: '', guests: 2, notes: '' });
+      }
+    } catch (e) {
+      alert('Error saving booking');
+    }
   };
 
   const filteredReservations = reservations.filter(res => {
-    const matchesSearch = res.name.toLowerCase().includes(searchTerm.toLowerCase()) || res.id.includes(searchTerm);
-    const matchesStatus = statusFilter === 'All' || res.status === statusFilter;
+    const matchesSearch = res.name.toLowerCase().includes(searchTerm.toLowerCase()) || res.reservation_id.includes(searchTerm);
+    const matchesStatus = statusFilter === 'all' || res.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  const handleAddBooking = () => {
-    setReservations([{
-      id: `#${Math.floor(1000 + Math.random() * 9000)}`,
-      ...newBooking,
-      status: 'Confirmed'
-    }, ...reservations]);
-    setOpenDialog(false);
-    setNewBooking({ name: '', phone: '', date: '', time: '', guests: 2, notes: '' });
-  };
 
   return (
     <Box sx={{ pb: 8 }}>
@@ -82,7 +125,7 @@ export default function Reservations() {
             onChange={(e) => setStatusFilter(e.target.value)}
             displayEmpty
           >
-            <MenuItem value="All">All Statuses</MenuItem>
+            <MenuItem value="all">All Statuses</MenuItem>
             {Object.keys(STATUS_COLORS).map(s => (
               <MenuItem key={s} value={s}>{s}</MenuItem>
             ))}
@@ -103,21 +146,26 @@ export default function Reservations() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredReservations.length === 0 && (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
+            ) : filteredReservations.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
                   <Typography color="text.secondary">No reservations found.</Typography>
                 </TableCell>
               </TableRow>
-            )}
-            {filteredReservations.map(res => (
+            ) : filteredReservations.map(res => (
               <TableRow key={res.id} hover>
-                <TableCell>{res.id}</TableCell>
+                <TableCell>{res.reservation_id}</TableCell>
                 <TableCell>
                   <Typography variant="body2" fontWeight="500">{res.name}</Typography>
-                  {res.notes && (
+                  {res.special_requests && (
                     <Typography variant="caption" color="text.secondary" display="block">
-                      Note: {res.notes}
+                      Note: {res.special_requests}
                     </Typography>
                   )}
                 </TableCell>
