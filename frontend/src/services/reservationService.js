@@ -42,12 +42,20 @@ export const createReservation = async (reservationData) => {
       body: JSON.stringify(reservationData)
     });
     
-    if (!res.ok) throw new Error('Failed to book');
-    
     const data = await res.json();
+
+    if (!res.ok) {
+      if (data.errors) {
+        // Extract first validation error
+        const firstErrorKey = Object.keys(data.errors)[0];
+        throw new Error(data.errors[firstErrorKey][0]);
+      }
+      throw new Error(data.message || 'Failed to book');
+    }
+    
     return data;
   } catch (e) {
     console.error(e);
-    return { success: false, message: 'API error' };
+    return { success: false, message: e.message || 'API error' };
   }
 };

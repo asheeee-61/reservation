@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress } from '@mui/material';
-import { LeftPanel, RightPanelMap, ReservationDialog, SuccessPage, TermsOfService } from './components';
+import { LeftPanel, RightPanelMap, ReservationCheckout, SuccessPage, TermsOfService } from './components';
 import { useReservationStore } from './store/useReservationStore';
 import { getConfig } from './services/reservationService';
 
@@ -47,7 +47,7 @@ const theme = createTheme({
 function App() {
   const { config, setConfig, reservationId, showTerms } = useReservationStore();
   const [initLoading, setInitLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     getConfig().then((cfg) => {
@@ -65,7 +65,7 @@ function App() {
   }
 
   const handleSuccess = () => {
-    setDialogOpen(false);
+    setShowCheckout(false);
   };
 
   if (showTerms) {
@@ -86,22 +86,28 @@ function App() {
     );
   }
 
+  if (showCheckout) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ReservationCheckout 
+          onBack={() => setShowCheckout(false)} 
+          onSuccess={handleSuccess} 
+        />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh', width: '100%' }}>
         <Box sx={{ flex: { xs: '1 1 auto', md: '0 0 40%', lg: '0 0 35%' }, height: { md: '100vh' } }}>
-          <LeftPanel onContinue={() => setDialogOpen(true)} />
+          <LeftPanel onContinue={() => setShowCheckout(true)} />
         </Box>
         <Box sx={{ flex: '1 1 auto', height: { xs: '300px', md: '100vh' } }}>
           <RightPanelMap />
         </Box>
-
-        <ReservationDialog 
-          open={dialogOpen} 
-          onClose={() => setDialogOpen(false)} 
-          onSuccess={handleSuccess} 
-        />
       </Box>
     </ThemeProvider>
   );
