@@ -27,6 +27,6 @@ export const getAvailableSlots = async (date, guests) => {
 export const createReservation = async (reservationData) => {
   return mockFetch({
     success: true,
-    reservationId: `RES-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`
+    reservationId: `#${Math.floor(1000 + Math.random() * 9000)}`
   }, 1200);
 };

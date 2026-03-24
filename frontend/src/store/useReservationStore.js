@@ -5,8 +5,7 @@ export const useReservationStore = create((set) => ({
   guests: 2,
   selectedSlot: null, // { time, area }
   userData: {
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
     phone: '',
     specialRequests: ''
@@ -26,7 +25,7 @@ export const useReservationStore = create((set) => ({
     date: new Date().toISOString().split('T')[0],
     guests: state.config?.minGuests || 1,
     selectedSlot: null,
-    userData: { firstName: '', lastName: '', email: '', phone: '', specialRequests: '' },
+    userData: { name: '', email: '', phone: '', specialRequests: '' },
     loading: false,
     error: null
   }))

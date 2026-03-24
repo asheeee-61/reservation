@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress } from '@mui/material';
-import { LeftPanel, RightPanelMap, ReservationDialog } from './components';
+import { LeftPanel, RightPanelMap, ReservationDialog, SuccessPage } from './components';
 import { useReservationStore } from './store/useReservationStore';
 import { getConfig } from './services/reservationService';
 
@@ -45,13 +45,13 @@ const theme = createTheme({
 });
 
 function App() {
-  const { setConfig } = useReservationStore();
+  const { config, setConfig, reservationId } = useReservationStore();
   const [initLoading, setInitLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    getConfig().then((config) => {
-      setConfig(config);
+    getConfig().then((cfg) => {
+      setConfig(cfg);
       setInitLoading(false);
     });
   }, [setConfig]);
@@ -64,11 +64,18 @@ function App() {
     );
   }
 
-  const handleSuccess = (resId) => {
+  const handleSuccess = () => {
     setDialogOpen(false);
-    alert(`Success! Reservation ID: ${resId}`);
-    useReservationStore.getState().reset();
   };
+
+  if (reservationId) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <SuccessPage />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
