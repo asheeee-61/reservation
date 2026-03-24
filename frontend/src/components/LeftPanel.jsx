@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import { useReservationStore } from '../store/useReservationStore';
 import { getAvailableSlots } from '../services/reservationService';
@@ -88,44 +89,54 @@ export default function LeftPanel({ onContinue }) {
       </Box>
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        <FormControl sx={{ minWidth: 140, flexGrow: 1 }}>
-          <Select
-            value={guests}
-            onChange={(e) => setGuests(e.target.value)}
-            startAdornment={<InputAdornment position="start"><PeopleIcon fontSize="small" /></InputAdornment>}
-            renderValue={(val) => `${val} ${val === 1 ? 'Guest' : 'Guests'}`}
-            sx={{ 
-              borderRadius: 2, 
-              bgcolor: 'background.default',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' }
-            }}
-          >
-            {guestsOptions.map(num => (
-              <MenuItem key={num} value={num}>{num}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Box sx={{ flexGrow: 1, flexBasis: '45%' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5, fontSize: '0.85rem' }}>
+            Guests
+          </Typography>
+          <FormControl fullWidth>
+            <Select
+              value={guests}
+              onChange={(e) => setGuests(e.target.value)}
+              IconComponent={ArrowDropDownIcon}
+              sx={{ 
+                borderRadius: '4px', 
+                bgcolor: 'background.paper',
+                '& .MuiSelect-select': { py: 1.5 },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#dadce0' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#9aa0a6' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1a73e8', borderWidth: '2px' }
+              }}
+            >
+              {guestsOptions.map(num => (
+                <MenuItem key={num} value={num}>{num}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
 
-        <Box sx={{ minWidth: 140, flexGrow: 1, position: 'relative' }}>
+        <Box sx={{ flexGrow: 1, flexBasis: '45%', position: 'relative' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5, fontSize: '0.85rem' }}>
+            Date
+          </Typography>
           <Button
             variant="outlined"
             onClick={handleDateClick}
-            startIcon={<CalendarTodayIcon fontSize="small" color="action" />}
+            endIcon={<ArrowDropDownIcon sx={{ color: 'action.active' }} />}
             sx={{ 
               width: '100%', 
-              height: '56px',
-              justifyContent: 'flex-start',
-              borderColor: 'divider',
+              justifyContent: 'space-between',
+              borderColor: '#dadce0',
               color: 'text.primary',
-              bgcolor: 'background.default',
-              borderRadius: 2,
-              pl: 2,
-              py: 0,
+              bgcolor: 'background.paper',
+              borderRadius: '4px',
+              py: '11px',
+              px: 2,
               fontSize: '1rem',
               fontWeight: 400,
+              textTransform: 'none',
               '&:hover': {
-                borderColor: 'text.primary',
-                bgcolor: 'background.default',
+                borderColor: '#9aa0a6',
+                bgcolor: 'background.paper',
               }
             }}
           >
@@ -172,15 +183,21 @@ export default function LeftPanel({ onContinue }) {
                     disabled={!slot.available}
                     onClick={() => setSelectedSlot({ time: slot.time })}
                     sx={{ 
-                      borderRadius: 2, 
+                      borderRadius: '4px', 
                       py: 1,
+                      px: 0.5,
                       fontWeight: 500,
-                      borderColor: isSelected ? 'primary.main' : 'divider',
-                      color: isSelected ? 'white' : 'text.primary',
-                      bgcolor: isSelected ? 'primary.main' : 'white',
+                      borderColor: isSelected ? 'primary.main' : '#dadce0',
+                      color: isSelected ? 'white' : '#1a73e8',
+                      bgcolor: isSelected ? 'primary.main' : 'transparent',
                       '&:hover': {
-                        bgcolor: isSelected ? 'primary.dark' : 'grey.100',
-                        borderColor: isSelected ? 'primary.dark' : 'grey.300'
+                        bgcolor: isSelected ? 'primary.dark' : '#f8f9fa',
+                        borderColor: isSelected ? 'primary.dark' : '#dadce0'
+                      },
+                      '&.Mui-disabled': {
+                        bgcolor: '#f1f3f4',
+                        borderColor: '#f1f3f4',
+                        color: 'rgba(0,0,0,0.38)'
                       }
                     }}
                   >
