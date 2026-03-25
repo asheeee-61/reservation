@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress, Fade } from '@mui/material';
-import { LeftPanel, RightPanelMap, ReservationCheckout, SuccessPage, TermsOfService } from './components';
+import { LeftPanel, RightPanelMap, TableTypeSelection, ReservationCheckout, SuccessPage, TermsOfService } from './components';
 import { useReservationStore } from './store/useReservationStore';
 import { getConfig } from './services/reservationService';
 
@@ -101,7 +101,21 @@ function App() {
         <Fade in={step === 'selection'} timeout={200} unmountOnExit>
           <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
             <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
-              <LeftPanel onContinue={() => setStep('confirmation')} />
+              <LeftPanel onContinue={() => setStep('table_selection')} />
+            </Box>
+            <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
+              <RightPanelMap />
+            </Box>
+          </Box>
+        </Fade>
+
+        <Fade in={step === 'table_selection'} timeout={200} unmountOnExit>
+          <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
+            <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
+              <TableTypeSelection 
+                onBack={() => setStep('selection')}
+                onContinue={() => setStep('confirmation')} 
+              />
             </Box>
             <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
               <RightPanelMap />
@@ -112,7 +126,7 @@ function App() {
         <Fade in={step === 'confirmation'} timeout={200} unmountOnExit>
           <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', minHeight: '100vh', bgcolor: 'grey.50' }}>
             <ReservationCheckout 
-              onBack={() => setStep('selection')} 
+              onBack={() => setStep('table_selection')} 
               onSuccess={handleSuccess} 
             />
           </Box>

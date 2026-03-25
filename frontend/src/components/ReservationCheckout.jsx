@@ -12,7 +12,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const { date, guests, selectedSlot, userData, setUserData } = store;
+  const { date, guests, selectedSlot, selectedTableType, userData, setUserData } = store;
 
   const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   
@@ -26,7 +26,13 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
     setSubmitting(true);
     setErrorMsg(null);
     try {
-      const payload = { date, guests, slot: selectedSlot, user: userData };
+      const payload = { 
+        date, 
+        guests, 
+        slot: selectedSlot, 
+        user: userData,
+        table_type_id: selectedTableType?.id 
+      };
       const res = await createReservation(payload);
       if (res.success) {
         useReservationStore.setState({ reservationId: res.reservationId });
@@ -73,7 +79,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>restaurant</span>
                 <Typography variant="body1" sx={{ color: '#202124' }}>
-                  Mesa estándar
+                  {selectedTableType?.name || 'Mesa estándar'}
                 </Typography>
               </Box>
             </Box>
