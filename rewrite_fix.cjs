@@ -1,4 +1,9 @@
-import { useState } from 'react';
+const fs = require('fs');
+const path = require('path');
+
+const targetFile = path.join(__dirname, 'admin', 'src', 'pages', 'ViewBooking.jsx');
+
+const code = `import { useState } from 'react';
 import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
@@ -19,7 +24,7 @@ const formatTimestamp = (isoString) => {
   const year = d.getFullYear();
   const hours = String(d.getHours()).padStart(2, '0');
   const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${day} ${month} ${year} · ${hours}:${minutes}`;
+  return \`\${day} \${month} \${year} · \${hours}:\${minutes}\`;
 };
 
 export default function ViewBooking() {
@@ -32,9 +37,10 @@ export default function ViewBooking() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [errorToast, setErrorToast] = useState(false);
   
+  // Create an artificial activity log for the timeline to append cancellation event dynamically
   const [activities, setActivities] = useState([
     { id: 1, text: 'Reserva creada', time: resData.created_at },
-    { id: 2, text: `Estado cambiado a ${resData.status || 'Pending'}`, time: resData.created_at }
+    { id: 2, text: \`Estado cambiado a \${resData.status || 'Pending'}\`, time: resData.created_at }
   ]);
 
   const currentStatus = resData.status?.toLowerCase() || 'pending';
@@ -43,14 +49,15 @@ export default function ViewBooking() {
   const getInitials = (name) => {
     if (!name) return '';
     const parts = name.split(' ');
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    if (parts.length >= 2) return \`\${parts[0][0]}\${parts[1][0]}\`.toUpperCase();
     return name.substring(0, 2).toUpperCase();
   };
 
   const handleCancelClick = async () => {
     setCancelLoading(true);
     try {
-      await apiClient(`/admin/reservations/${resData.id}`, {
+      // apiClient handles JSON parsing and baseUrl natively if properly configured, otherwise we fallback strictly
+      await apiClient(\`/admin/reservations/\${resData.id}\`, {
         method: 'PATCH',
         body: JSON.stringify({ status: 'cancelled' })
       });
@@ -96,11 +103,11 @@ export default function ViewBooking() {
             {/* Card Header */}
             <Box sx={{ px: { xs: '16px', md: '24px' }, py: '20px', borderBottom: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '18px', md: '20px' }, color: '#202124' }}>
-                Reserva #{resData.reservation_id || id}
+                Reserva #\${resData.reservation_id || id}
               </Typography>
               <Box sx={{ bgcolor: statusColors.bg, color: statusColors.text, borderRadius: '4px', px: '12px', py: '6px' }}>
                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'capitalize' }}>
-                  {currentStatus === 'cancelled' ? 'Cancelada' : resData.status || 'Pending'}
+                  \${currentStatus === 'cancelled' ? 'Cancelada' : resData.status || 'Pending'}
                 </Typography>
               </Box>
             </Box>
@@ -117,26 +124,26 @@ export default function ViewBooking() {
                 <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pr: { md: '12px' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Fecha y hora</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
-                    {resData.date || 'N/A'} · {resData.time || 'N/A'}
+                    \${resData.date || 'N/A'} · \${resData.time || 'N/A'}
                   </Typography>
                 </Box>
                 <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pl: { md: '12px' }, pt: { xs: '20px', md: 0 } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Número de personas</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
-                    {resData.guests || 0} personas
+                    \${resData.guests || 0} personas
                   </Typography>
                 </Box>
                 
                 <Box sx={{ pb: { xs: '20px', md: 0 }, pt: '20px', pr: { md: '12px' }, borderBottom: { xs: '1px solid #E0E0E0', md: 'none' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Sala</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
-                    {resData.table_type || 'General'}
+                    \${resData.table_type || 'General'}
                   </Typography>
                 </Box>
                 <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Estado</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px', textTransform: 'capitalize' }}>
-                    {currentStatus === 'cancelled' ? 'Cancelada' : resData.status || 'Pending'}
+                    \${currentStatus === 'cancelled' ? 'Cancelada' : resData.status || 'Pending'}
                   </Typography>
                 </Box>
               </Box>
@@ -185,7 +192,7 @@ export default function ViewBooking() {
                  </Tooltip>
                  <Button 
                    variant="contained"
-                   onClick={() => navigate(`/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
+                   onClick={() => navigate(\`/reservations/edit/\${resData.id}\`, { state: { reservation: resData } })}
                    disabled={!resData.id || currentStatus === 'cancelled'}
                    sx={{ 
                      width: { xs: '100%', md: 'auto' }, 
@@ -220,26 +227,24 @@ export default function ViewBooking() {
             </Typography>
             <Box sx={{ p: '20px' }}>
               {resData.customer?.name ? (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#E8F0FE', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#1A73E8' }}>
-                        {getInitials(resData.customer.name)}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-                        {resData.customer.name}
-                      </Typography>
-                      {resData.customer.email && (
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>{resData.customer.email}</Typography>
-                      )}
-                      {resData.customer.phone && (
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>{resData.customer.phone}</Typography>
-                      )}
-                    </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#E8F0FE', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#1A73E8' }}>
+                      {getInitials(resData.customer.name)}
+                    </Typography>
                   </Box>
-                </>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                      {resData.customer.name}
+                    </Typography>
+                    {resData.customer.email && (
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>{resData.customer.email}</Typography>
+                    )}
+                    {resData.customer.phone && (
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>{resData.customer.phone}</Typography>
+                    )}
+                  </Box>
+                </Box>
               ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <span className="material-icons" style={{ fontSize: 32, color: '#BDBDBD' }}>person_off</span>
@@ -263,18 +268,17 @@ export default function ViewBooking() {
                 <Box sx={{ position: 'relative', pl: '16px' }}>
                   <Box sx={{ position: 'absolute', left: 3, top: 4, bottom: 4, width: '1px', bgcolor: '#E0E0E0' }} />
                   {activities.map((act, i) => (
-                    <Box sx={{ position: 'relative', mb: i === activities.length - 1 ? 0 : '16px' }} key={act.id}>
-                      <Box sx={{ position: 'absolute', left: '-16px', top: '5px', width: 8, height: 8, borderRadius: '50%', bgcolor: '#1A73E8' }} />
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#202124' }}>{act.text}</Typography>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>{formatTimestamp(act.time)}</Typography>
-                    </Box>
+                     <Box sx={{ position: 'relative', mb: i === activities.length - 1 ? 0 : '16px' }} key={act.id}>
+                       <Box sx={{ position: 'absolute', left: '-16px', top: '5px', width: 8, height: 8, borderRadius: '50%', bgcolor: '#1A73E8' }} />
+                       <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#202124' }}>{act.text}</Typography>
+                       <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>{formatTimestamp(act.time)}</Typography>
+                     </Box>
                   ))}
                 </Box>
               ) : (
                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>Sin actividad registrada</Typography>
               )}
             </Box>
-
           </Paper>
         </Box>
       </Box>
@@ -306,7 +310,7 @@ export default function ViewBooking() {
           Cancelar reserva
         </Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px' }}>
-          ¿Estás seguro de que quieres cancelar la reserva #{resData.reservation_id || id}?<br/>
+          ¿Estás seguro de que quieres cancelar la reserva #\${resData.reservation_id || id}?<br/>
           Esta acción no se puede deshacer.
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
@@ -358,3 +362,7 @@ export default function ViewBooking() {
     </Box>
   );
 }
+\`;
+
+fs.writeFileSync(targetFile, code);
+console.log('Successfully wrote ViewBooking.jsx');
