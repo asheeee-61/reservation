@@ -17,6 +17,86 @@ class ReservationController extends Controller
         return response()->json($query);
     }
 
+    // Customer: Get available slots dynamically
+    public function availableSlots(Request $request)
+    {
+        $date = $request->query('date');
+        $guests = (int) $request->query('guests', 1);
+
+        if (!$date) {
+            return response()->json([]);
+        }
+
+        $defaultConfig = [
+            'totalCapacity' => 40,
+            'schedule' => [
+                'monday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+                'tuesday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+                'wednesday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+                'thursday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+                'friday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+                'saturday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+                'sunday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+            ],
+            'blockedDays' => []
+        ];
+
+        if (!\Illuminate\Support\Facades\Storage::exists('config.json')) {
+            $config = $defaultConfig;
+        } else {
+            $savedConfig = json_decode(\Illuminate\Support\Facades\Storage::get('config.json'), true);
+            $config = array_merge($defaultConfig, $savedConfig);
+        }
+        
+        $dayOfWeek = strtolower(date('l', strtotime($date)));
+        $dayConfig = $config['schedule'][$dayOfWeek] ?? ['open' => false, 'slots' => []];
+
+        if (!$dayConfig['open'] || collect($config['blockedDays'] ?? [])->contains($date)) {
+            return response()->json([]);
+        }
+
+        $totalCapacity = $config['totalCapacity'] ?? 40;
+
+        $reservedGuestsForSlots = \App\Models\Reservation::where('date', $date)
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->selectRaw('time, SUM(guests) as total_guests')
+            ->groupBy('time')
+            ->pluck('total_guests', 'time');
+
+        $masterSlots = [];
+        if (isset($dayConfig['shifts']) && is_array($dayConfig['shifts'])) {
+            foreach ($dayConfig['shifts'] as $shift) {
+                if (isset($shift['slots']) && is_array($shift['slots'])) {
+                    foreach ($shift['slots'] as $time => $isOpen) {
+                        $masterSlots[$time] = $isOpen;
+                    }
+                }
+            }
+        } elseif (isset($dayConfig['slots']) && is_array($dayConfig['slots'])) {
+            $masterSlots = $dayConfig['slots'];
+        }
+
+        $availableSlots = [];
+        if (!empty($masterSlots)) {
+            $slotDefinitions = array_keys($masterSlots);
+            sort($slotDefinitions);
+            
+            foreach ($slotDefinitions as $time) {
+                if ($masterSlots[$time] === true) {
+                    $booked = (int) $reservedGuestsForSlots->get($time, 0);
+                    $remaining = $totalCapacity - $booked;
+                    
+                    $availableSlots[] = [
+                        'time' => $time,
+                        'available' => $remaining >= $guests
+                    ];
+                }
+            }
+        }
+
+        return response()->json($availableSlots);
+    }
+
     // Customer: Submit a new reservation
     public function store(Request $request)
     {
