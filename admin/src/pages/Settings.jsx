@@ -88,7 +88,7 @@ export default function Settings() {
             if (sCloseMins <= sOpenMins) sCloseMins += 1440;
 
             if (sOpenMins < gOpenMins || sCloseMins > gCloseMins) {
-              const suffix = toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? ' (+1)' : '';
+              const suffix = toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? '' : '';
               newConflicts.push({ day, shiftId: shift.id, text: `${DAY_LABELS[day]} Turno ${idx + 1}: ${shift.openingTime} – ${shift.closingTime}${suffix}` });
             }
           });
@@ -309,7 +309,7 @@ export default function Settings() {
 
         <Box sx={{ mt: { xs: '24px', sm: '12px' }, p: '12px', bgcolor: '#E8F0FE', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', mb: '24px' }}>
           <span className="material-icons" style={{ fontSize: 16, color: '#1A73E8' }}>info</span>
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#1A73E8' }}>Horario permitido: {localGlobal.openingTime} – {localGlobal.closingTime} {toMinutes(localGlobal.closingTime) <= toMinutes(localGlobal.openingTime) ? '(+1)' : ''}</Typography>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#1A73E8' }}>Horario permitido: {localGlobal.openingTime} – {localGlobal.closingTime} {toMinutes(localGlobal.closingTime) <= toMinutes(localGlobal.openingTime) ? '' : ''}</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
