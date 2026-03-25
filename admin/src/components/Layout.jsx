@@ -11,9 +11,10 @@ export default function Layout() {
   const menuItems = [
     { text: 'Dashboard', icon: 'dashboard', path: '/' },
     { text: 'Reservations', icon: 'event', path: '/reservations' },
-    { text: 'Customers', icon: 'group', path: '/customers' },
+    { text: 'Clientes', icon: 'people', path: '/customers' },
     { text: 'Tipos de Mesa', icon: 'table_restaurant', path: '/table-types' },
-    { text: 'Calendar', icon: 'calendar_month', path: '/calendar' },
+    { text: 'Eventos Especiales', icon: 'celebration', path: '/special-events' },
+    { text: 'Calendario', icon: 'calendar_month', path: '/calendar' },
     { text: 'Settings', icon: 'settings', path: '/settings' }
   ];
 
@@ -25,9 +26,10 @@ export default function Layout() {
   const getPageTitle = (path) => {
     if (path === '/') return 'Dashboard';
     if (path.startsWith('/reservations')) return 'Reservations';
-    if (path.startsWith('/customers')) return 'Customers';
+    if (path.startsWith('/customers')) return 'Clientes';
     if (path.startsWith('/table-types')) return 'Tipos de Mesa';
-    if (path.startsWith('/calendar')) return 'Calendar';
+    if (path.startsWith('/special-events')) return 'Eventos Especiales';
+    if (path.startsWith('/calendar')) return 'Calendario';
     if (path.startsWith('/settings')) return 'Settings';
     return 'Restaurant Admin';
   };

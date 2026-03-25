@@ -5,6 +5,7 @@ export const useReservationStore = create((set) => ({
   guests: 2,
   selectedSlot: null, // { time, area }
   selectedTableType: null,
+  selectedSpecialEvent: null,
   userData: {
     name: '',
     email: '',
@@ -24,6 +25,7 @@ export const useReservationStore = create((set) => ({
   setGuests: (guests) => set({ guests, selectedSlot: null }),
   setSelectedSlot: (selectedSlot) => set({ selectedSlot }),
   setSelectedTableType: (selectedTableType) => set({ selectedTableType }),
+  setSelectedSpecialEvent: (selectedSpecialEvent) => set({ selectedSpecialEvent }),
   setUserData: (userData) => set((state) => ({ userData: { ...state.userData, ...userData } })),
   setConfig: (config) => set({ config }),
   setShowTerms: (showTerms) => set({ showTerms }),
@@ -36,6 +38,7 @@ export const useReservationStore = create((set) => ({
     guests: state.config?.minGuests || 1,
     selectedSlot: null,
     selectedTableType: null,
+    selectedSpecialEvent: null,
     userData: { name: '', email: '', phone: '', specialRequests: '' },
     loading: false,
     error: null

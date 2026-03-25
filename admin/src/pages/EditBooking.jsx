@@ -27,20 +27,26 @@ export default function EditBooking() {
     guests: resData.guests || 2, 
     special_requests: resData.special_requests || '',
     status: resData.status || 'pending',
-    table_type_id: resData.table_type_id || ''
+    table_type_id: resData.table_type_id || '',
+    special_event_id: resData.special_event_id || ''
   });
   const [tableTypes, setTableTypes] = useState([]);
+  const [specialEvents, setSpecialEvents] = useState([]);
 
   useState(() => {
-    const fetchTableTypes = async () => {
+    const fetchTypesAndEvents = async () => {
       try {
-        const data = await apiClient('/admin/table-types');
-        setTableTypes(data);
+        const [types, events] = await Promise.all([
+          apiClient('/admin/table-types'),
+          apiClient('/admin/special-events')
+        ]);
+        setTableTypes(types);
+        setSpecialEvents(events);
       } catch (err) {
         console.error(err);
       }
     };
-    fetchTableTypes();
+    fetchTypesAndEvents();
   }, []);
 
   const handleSaveBooking = async () => {
@@ -152,21 +158,40 @@ export default function EditBooking() {
             InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
           />
 
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>Tipo de Mesa *</InputLabel>
-            <Select
-              value={editBooking.table_type_id}
-              label="Tipo de Mesa *"
-              onChange={e => setEditBooking({...editBooking, table_type_id: e.target.value})}
-              sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
-            >
-              {tableTypes.map(type => (
-                <MenuItem key={type.id} value={type.id} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
-                  {type.name} {!type.is_active && '(Inactivo)'}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'column', sm: 'row' } }}>
+            <FormControl fullWidth sx={{ flex: 1 }}>
+              <InputLabel sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>Tipo de Mesa *</InputLabel>
+              <Select
+                value={editBooking.table_type_id}
+                label="Tipo de Mesa *"
+                onChange={e => setEditBooking({...editBooking, table_type_id: e.target.value})}
+                sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
+              >
+                {tableTypes.map(type => (
+                  <MenuItem key={type.id} value={type.id} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
+                    {type.name} {!type.is_active && '(Inactivo)'}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth sx={{ flex: 1 }}>
+              <InputLabel sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>Evento Especial</InputLabel>
+              <Select
+                value={editBooking.special_event_id}
+                label="Evento Especial"
+                onChange={e => setEditBooking({...editBooking, special_event_id: e.target.value})}
+                sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
+              >
+                <MenuItem value="" sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>Ninguno</MenuItem>
+                {specialEvents.map(event => (
+                  <MenuItem key={event.id} value={event.id} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
+                    {event.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
           
           <TextField 
             fullWidth label="Notes / Special Requests" multiline rows={3}

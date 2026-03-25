@@ -35,9 +35,12 @@ export default function NewBooking() {
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [newBooking, setNewBooking] = useState({
-    name: '', phone: '', date: todayStr, time: '', guests: 2, notes: '', table_type_id: ''
+    name: '', phone: '', date: todayStr, time: '', guests: 2, notes: ''
   });
   const [tableTypes, setTableTypes] = useState([]);
+  const [specialEvents, setSpecialEvents] = useState([]);
+  const [tableTypeId, setTableTypeId] = useState('');
+  const [specialEventId, setSpecialEventId] = useState('');
 
   // DatePicker state
   const [anchorEl, setAnchorEl] = useState(null);
@@ -46,28 +49,31 @@ export default function NewBooking() {
 
   useEffect(() => {
     fetchGlobalHours();
-    fetchTableTypes();
-  }, [fetchGlobalHours]);
-
-  const fetchTableTypes = async () => {
-    try {
-      const data = await apiClient('/admin/table-types');
-      const active = data.filter(t => t.is_active);
-      setTableTypes(active);
-      if (active.length > 0) {
-        setNewBooking(prev => ({ ...prev, table_type_id: active[0].id }));
+    const fetchTypesAndEvents = async () => {
+      try {
+        const [types, events] = await Promise.all([
+          apiClient('/admin/table-types'),
+          apiClient('/admin/special-events')
+        ]);
+        const activeTypes = types.filter(t => t.is_active);
+        setTableTypes(activeTypes);
+        setSpecialEvents(events);
+        if (activeTypes.length > 0) {
+          setTableTypeId(activeTypes[0].id);
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    };
+    fetchTypesAndEvents();
+  }, [fetchGlobalHours]);
 
   // Set default guests when loaded
   useEffect(() => {
     if (globalSettings?.minGuests && newBooking.guests < globalSettings.minGuests) {
       setNewBooking(prev => ({ ...prev, guests: globalSettings.minGuests }));
     }
-  }, [globalSettings]);
+  }, [globalSettings, newBooking.guests]);
 
   // --- Logic for Admin limits ---
   const isBlockedDay = adminCalendar?.blockedDays?.includes(newBooking.date);
@@ -99,7 +105,7 @@ export default function NewBooking() {
     if (newBooking.time && !allAvailableSlots.includes(newBooking.time)) {
       setNewBooking(prev => ({ ...prev, time: '' }));
     }
-  }, [newBooking.date, allAvailableSlots]);
+  }, [newBooking.date, allAvailableSlots, newBooking.time]);
 
   // Validation
   const guestsNum = Number(newBooking.guests);
@@ -107,7 +113,7 @@ export default function NewBooking() {
   const isDateInvalid = !newBooking.date || isBlockedDay;
   const isNameInvalid = !newBooking.name.trim();
   const isTimeInvalid = !newBooking.time || !allAvailableSlots.includes(newBooking.time);
-  const isTableTypeInvalid = !newBooking.table_type_id;
+  const isTableTypeInvalid = !tableTypeId;
 
   const isFormValid = !isGuestsInvalid && !isDateInvalid && !isTimeInvalid && !isNameInvalid && !isTableTypeInvalid;
 
@@ -116,24 +122,27 @@ export default function NewBooking() {
     setLoading(true);
     setErrorMsg(null);
     try {
+      const payload = {
+        date: newBooking.date,
+        slot: { time: newBooking.time },
+        guests: newBooking.guests,
+        user: {
+          name: newBooking.name,
+          phone: newBooking.phone,
+          email: '',
+          specialRequests: newBooking.notes
+        },
+        table_type_id: tableTypeId,
+        special_event_id: specialEventId || null // Send null if no special event is selected
+      };
+
       const res = await fetch('http://localhost:8000/api/reservations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          date: newBooking.date,
-          slot: { time: newBooking.time },
-          guests: newBooking.guests,
-          user: {
-            name: newBooking.name,
-            phone: newBooking.phone,
-            email: '',
-            specialRequests: newBooking.notes
-          },
-          table_type_id: newBooking.table_type_id
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -400,25 +409,43 @@ export default function NewBooking() {
           </Box>
           
           <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'column', sm: 'row' } }}>
-            <Box sx={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column' }}>
-              <FormControl fullWidth>
-                <InputLabel sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>Tipo de Mesa *</InputLabel>
+            {/* Table Type Dropdown */}
+            <Box sx={{ flexGrow: 1, minWidth: '45%' }}>
+              <FormControl fullWidth required>
+                <InputLabel shrink sx={{ color: '#70757A', fontSize: '12px' }}>Tipo de Mesa</InputLabel>
                 <Select
-                  required
-                  value={newBooking.table_type_id}
-                  label="Tipo de Mesa *"
-                  onChange={e => setNewBooking({...newBooking, table_type_id: e.target.value})}
-                  sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                  value={tableTypeId}
+                  onChange={(e) => setTableTypeId(e.target.value)}
+                  variant="outlined"
+                  displayEmpty
+                  sx={{ height: 56, borderRadius: '4px' }}
                 >
-                  {tableTypes.map(type => (
-                    <MenuItem key={type.id} value={type.id} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
-                      {type.name}
-                    </MenuItem>
+                  <MenuItem value="" disabled>Seleccionar tipo</MenuItem>
+                  {tableTypes.map(t => (
+                    <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Box>
-            <Box sx={{ flex: 1 }} />
+
+            {/* Special Event Dropdown */}
+            <Box sx={{ flexGrow: 1, minWidth: '45%' }}>
+              <FormControl fullWidth> {/* Not required, can be empty */}
+                <InputLabel shrink sx={{ color: '#70757A', fontSize: '12px' }}>Evento Especial</InputLabel>
+                <Select
+                  value={specialEventId}
+                  onChange={(e) => setSpecialEventId(e.target.value)}
+                  variant="outlined"
+                  displayEmpty
+                  sx={{ height: 56, borderRadius: '4px' }}
+                >
+                  <MenuItem value="">Ninguno</MenuItem> {/* Option for no special event */}
+                  {specialEvents.map(e => (
+                    <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
           
           <TextField 

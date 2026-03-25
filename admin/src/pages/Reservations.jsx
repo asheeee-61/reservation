@@ -143,6 +143,7 @@ export default function Reservations() {
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Customer</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Date & Time</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Tipo de Mesa</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Evento</TableCell>
               <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Guests</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Status</TableCell>
               <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Actions</TableCell>
@@ -150,9 +151,9 @@ export default function Reservations() {
           </TableHead>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
             ) : filteredReservations.length === 0 ? (
-              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No reservations found.</Typography></TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No reservations found.</Typography></TableCell></TableRow>
             ) : filteredReservations.map(res => (
               <TableRow 
                 key={res.id} 
@@ -175,6 +176,9 @@ export default function Reservations() {
                 </TableCell>
                 <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
                   {res.table_type?.name || 'Sin tipo'}
+                </TableCell>
+                <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
+                  {res.special_event?.name || <Box component="span" sx={{ color: '#BDBDBD' }}>—</Box>}
                 </TableCell>
                 <TableCell align="center" sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.guests}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>

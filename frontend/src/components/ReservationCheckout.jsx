@@ -12,7 +12,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const { date, guests, selectedSlot, selectedTableType, userData, setUserData } = store;
+  const { date, guests, selectedSlot, selectedTableType, selectedSpecialEvent, userData, setUserData } = store;
 
   const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   
@@ -31,7 +31,8 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
         guests, 
         slot: selectedSlot, 
         user: userData,
-        table_type_id: selectedTableType?.id 
+        table_type_id: selectedTableType?.id,
+        special_event_id: selectedSpecialEvent?.id
       };
       const res = await createReservation(payload);
       if (res.success) {
@@ -72,13 +73,19 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>group</span>
-                <Typography variant="body1" sx={{ color: '#202124' }}>
+                <Typography sx={{ color: '#202124', fontFamily: 'Roboto', fontSize: '14px', fontWeight: 400 }}>
                   {guests} personas
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>celebration</span>
+                <Typography sx={{ color: '#202124', fontFamily: 'Roboto', fontSize: '14px', fontWeight: 400 }}>
+                  {selectedSpecialEvent?.name || 'Sin evento especial'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 20 }}>restaurant</span>
-                <Typography variant="body1" sx={{ color: '#202124' }}>
+                <Typography sx={{ color: '#202124', fontFamily: 'Roboto', fontSize: '14px', fontWeight: 400 }}>
                   {selectedTableType?.name || 'Mesa estándar'}
                 </Typography>
               </Box>

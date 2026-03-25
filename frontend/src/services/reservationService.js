@@ -69,3 +69,14 @@ export const getTableTypes = async () => {
     return [];
   }
 };
+
+export const getSpecialEvents = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/special-events`);
+    if (!res.ok) throw new Error('Failed to fetch special events');
+    return res.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
