@@ -72,7 +72,7 @@ export default function LeftPanel({ onContinue }) {
     }}>
       <Box sx={{ 
         display: 'flex', alignItems: 'center', 
-        height: 56, px: 4, 
+        height: 56, px: { xs: 2, sm: 4 }, 
         borderBottom: '1px solid #E0E0E0'
       }}>
         <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
@@ -80,7 +80,7 @@ export default function LeftPanel({ onContinue }) {
         </Typography>
       </Box>
 
-      <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <Box sx={{ p: { xs: 2, sm: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 4, sm: 6 } }}>
         <Box>
           <Typography variant="body2" sx={{ mb: 2 }}>
             {config.restaurant.address}
@@ -91,7 +91,7 @@ export default function LeftPanel({ onContinue }) {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Box sx={{ flexGrow: 1, flexBasis: '45%' }}>
+          <Box sx={{ flexGrow: 1, flexBasis: { xs: '100%', sm: '45%' } }}>
             <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
               Guests
             </Typography>
@@ -118,7 +118,7 @@ export default function LeftPanel({ onContinue }) {
             </FormControl>
           </Box>
 
-          <Box sx={{ flexGrow: 1, flexBasis: '45%', position: 'relative' }}>
+          <Box sx={{ flexGrow: 1, flexBasis: { xs: '100%', sm: '45%' }, position: 'relative' }}>
             <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
               Date
             </Typography>
@@ -177,14 +177,14 @@ export default function LeftPanel({ onContinue }) {
         {(() => {
           if (loading) {
             return (
-              <Box sx={{ mt: 2 }}>
-                <Grid container spacing={1.5}>
-                  {[1,2,3,4,5,6].map(i => <Grid item xs={4} sm={3} md={4} lg={3} key={i}>
-                    <Skeleton variant="rectangular" height={42} sx={{ borderRadius: 2 }} />
-                  </Grid>)}
-                </Grid>
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                <CircularProgress size={32} sx={{ color: '#1A73E8' }} />
               </Box>
             );
+          }
+
+          if (!date) {
+            return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">Por favor, seleccione una fecha para ver los horarios disponibles.</Typography>;
           }
 
           const isBlocked = config.blockedDays && config.blockedDays.includes(date);
@@ -203,21 +203,40 @@ export default function LeftPanel({ onContinue }) {
           const dayConfig = config.schedule?.[dayName] || { open: true, slots: {} };
           
           if (!dayConfig.open) {
-             return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">Restaurant is closed on this day.</Typography>;
+             return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">Restaurante cerrado este día.</Typography>;
+          }
+
+          let masterSlots = {};
+          if (dayConfig.shifts && Array.isArray(dayConfig.shifts)) {
+            dayConfig.shifts.forEach(shift => {
+              if (shift.slots) Object.assign(masterSlots, shift.slots);
+            });
+          } else if (dayConfig.slots) {
+            masterSlots = dayConfig.slots;
           }
 
           // Filter out slots that admin specifically closed
-          const visibleSlots = slots.filter(slot => dayConfig.slots[slot.time] !== false);
+          const visibleSlots = slots.filter(slot => masterSlots[slot.time] !== false);
 
           if (visibleSlots.length === 0) {
             return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">No slots available for this date.</Typography>;
           }
 
+          const todayObj = new Date();
+          const todayStr = todayObj.toDateString();
+          const selectedDateStr = new Date(date).toDateString();
+          const isToday = todayStr === selectedDateStr;
+          
+          const currentHour = todayObj.getHours().toString().padStart(2, '0');
+          const currentMin = todayObj.getMinutes().toString().padStart(2, '0');
+          const currentTimeString = `${currentHour}:${currentMin}`;
+
           return (
             <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
               {visibleSlots.map((slot, sIdx) => {
                 const isSelected = selectedSlot?.time === slot.time;
-                const isFull = !slot.available;
+                const isPast = isToday && slot.time <= currentTimeString;
+                const isFull = !slot.available || isPast;
                 return (
                   <Grid item xs={4} sm={3} md={4} lg={3} key={sIdx}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -261,7 +280,7 @@ export default function LeftPanel({ onContinue }) {
                       </Button>
                       {isFull && (
                         <Typography variant="caption" sx={{ color: '#BDBDBD', mt: 0.5, fontSize: '11px', fontWeight: 500 }}>
-                          Completo
+                          {isPast ? 'Cerrado' : 'Completo'}
                         </Typography>
                       )}
                     </Box>

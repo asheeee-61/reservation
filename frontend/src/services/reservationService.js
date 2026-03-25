@@ -22,16 +22,16 @@ export const getConfig = async () => {
 };
 
 export const getAvailableSlots = async (date, guests) => {
-  // Mock remaining for slots logic until backend logic is developed
-  const mockSlots = [
-    { time: "18:00", available: true },
-    { time: "18:30", available: true },
-    { time: "19:00", available: false },
-    { time: "19:30", available: true },
-    { time: "20:00", available: true },
-    { time: "20:30", available: true },
-  ];
-  return mockFetch(mockSlots, 800);
+  if (!date) return [];
+  try {
+    const res = await fetch(`${API_BASE_URL}/slots?date=${date}&guests=${guests}`);
+    if (!res.ok) throw new Error('Failed to fetch slots');
+    const data = await res.json();
+    return new Promise(resolve => setTimeout(() => resolve(data), 500));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
 };
 
 export const createReservation = async (reservationData) => {

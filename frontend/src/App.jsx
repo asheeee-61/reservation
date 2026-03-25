@@ -100,10 +100,10 @@ function App() {
       <Box sx={{ position: 'relative', width: '100%', minHeight: '100vh', overflowX: 'hidden' }}>
         <Fade in={step === 'selection'} timeout={200} unmountOnExit>
           <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
-            <Box sx={{ flex: { xs: '1 1 auto', md: '0 0 40%', lg: '0 0 35%' }, height: { md: '100vh' } }}>
+            <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
               <LeftPanel onContinue={() => setStep('confirmation')} />
             </Box>
-            <Box sx={{ flex: '1 1 auto', height: { xs: '300px', md: '100vh' } }}>
+            <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
               <RightPanelMap />
             </Box>
           </Box>

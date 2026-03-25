@@ -42,12 +42,11 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: { xs: 2, md: 6 } }}>
-      <Container maxWidth="md">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: { xs: 0, sm: 2, md: 6 } }}>
+      <Container maxWidth="md" disableGutters sx={{ px: { xs: 0, sm: 2, md: 3 } }}>
 
-
-        <Paper sx={{ overflow: 'hidden' }}>
-          <Box sx={{ p: { xs: 4, md: 6 }, bgcolor: '#FFFFFF' }}>
+        <Paper sx={{ overflow: 'hidden', borderRadius: { xs: 0, sm: 4 }, minHeight: { xs: '100vh', sm: 'auto' } }}>
+          <Box sx={{ p: { xs: 3, sm: 4, md: 6 }, bgcolor: '#FFFFFF' }}>
             <Typography variant="h5" fontWeight="bold" gutterBottom>
               Complete your reservation
             </Typography>

@@ -1,8 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Typography, Box, Paper, TextField, Button, Grid, Alert, IconButton, CircularProgress } from '@mui/material';
+import { 
+  Typography, Box, Paper, TextField, Button, Grid, Alert, 
+  IconButton, CircularProgress, Select, MenuItem, FormControl,
+  Dialog, DialogContent, DialogActions 
+} from '@mui/material';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { apiClient } from '../services/apiClient';
 
 const DEFAULT_SLOTS = ["13:00", "13:30", "14:00", "14:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
+const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
+const TIME_OPTIONS = (() => {
+  const opts = [];
+  for (let h = 0; h < 24; h++) {
+    opts.push(`${String(h).padStart(2, '0')}:00`);
+    opts.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return opts;
+})();
+const DAY_LABELS = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' };
 
 export default function Settings() {
   const [config, setConfig] = useState(null);
@@ -10,6 +25,26 @@ export default function Settings() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [savingCap, setSavingCap] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
+
+  const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
+  const globalHours = useSettingsStore(state => state.globalHours);
+  
+  const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
+  const [savingGlobal, setSavingGlobal] = useState(false);
+  const [conflictModalOpen, setConflictModalOpen] = useState(false);
+  const [conflicts, setConflicts] = useState([]);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastOpen, setToastOpen] = useState(false);
+
+  useEffect(() => {
+    fetchGlobalHours();
+  }, [fetchGlobalHours]);
+
+  useEffect(() => {
+    if (globalHours) {
+      setLocalGlobal(globalHours);
+    }
+  }, [globalHours]);
 
   useEffect(() => {
     fetchConfig();
@@ -30,6 +65,73 @@ export default function Settings() {
     } catch (e) {
       console.error(e);
       setLoading(false);
+    }
+  };
+
+  const handleSaveGlobalHours = () => {
+    // Determine conflicts
+    const newConflicts = [];
+    if (config?.schedule) {
+      const gOpen = Number(localGlobal.openingTime.replace(':', ''));
+      const gClose = Number(localGlobal.closingTime.replace(':', ''));
+      const adjustedGClose = gClose === 0 ? 2400 : gClose;
+
+      Object.keys(config.schedule).forEach(day => {
+        const dayConfig = config.schedule[day];
+        if (dayConfig.shifts) {
+          dayConfig.shifts.forEach((shift, idx) => {
+            const sOpen = Number(shift.openingTime.replace(':', ''));
+            let sClose = Number(shift.closingTime.replace(':', ''));
+            if (sClose === 0) sClose = 2400;
+
+            if (sOpen < gOpen || sClose > adjustedGClose || sClose < sOpen) {
+              newConflicts.push({ day, shiftId: shift.id, text: `${DAY_LABELS[day]} Turno ${idx + 1}: ${shift.openingTime} – ${shift.closingTime}` });
+            }
+          });
+        }
+      });
+    }
+
+    if (newConflicts.length > 0) {
+      setConflicts(newConflicts);
+      setConflictModalOpen(true);
+    } else {
+      executeSaveGlobalHours(false);
+    }
+  };
+
+  const executeSaveGlobalHours = async (removeConflicts) => {
+    setSavingGlobal(true);
+    try {
+      let newConfig = { ...config };
+      if (removeConflicts && conflicts.length > 0) {
+        conflicts.forEach(c => {
+          const dayShifts = newConfig.schedule[c.day].shifts;
+          newConfig.schedule[c.day].shifts = dayShifts.filter(s => s.id !== c.shiftId);
+        });
+        setConfig(newConfig);
+      }
+
+      await apiClient('/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...newConfig,
+          global_opening_time: localGlobal.openingTime,
+          global_closing_time: localGlobal.closingTime,
+          default_interval: localGlobal.defaultInterval
+        })
+      });
+
+      useSettingsStore.getState().setGlobalHours(localGlobal);
+      
+      setToastMessage("Horario global guardado");
+      setToastOpen(true);
+      setTimeout(() => setToastOpen(false), 2000);
+      setConflictModalOpen(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSavingGlobal(false);
     }
   };
 
@@ -61,7 +163,49 @@ export default function Settings() {
 
 
   return (
-    <Box sx={{ maxWidth: 960, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <Box sx={{ maxWidth: 960, display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
+      
+      {/* Custom Toast */}
+      {toastOpen && (
+        <Box sx={{ 
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', 
+          bgcolor: '#323232', color: '#fff', px: '16px', py: '12px', borderRadius: '4px',
+          fontFamily: 'Roboto', fontSize: '14px', zIndex: 9999, boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+        }}>
+          {toastMessage}
+        </Box>
+      )}
+
+      {/* Conflict Modal */}
+      <Dialog open={conflictModalOpen} onClose={() => setConflictModalOpen(false)} PaperProps={{ sx: { p: '24px', borderRadius: '4px', bgcolor: '#fff', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' } }}>
+        <Box sx={{ mb: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="material-icons" style={{ color: '#F29900' }}>warning</span>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#202124' }}>
+            Conflicto de horarios
+          </Typography>
+        </Box>
+        <DialogContent sx={{ p: 0, pb: '24px' }}>
+          <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A', mb: '16px' }}>
+            Los siguientes turnos quedan fuera del nuevo horario:
+          </Typography>
+          <ul style={{ margin: 0, paddingLeft: '20px', color: '#70757A', fontFamily: 'Roboto', fontSize: '14px' }}>
+            {conflicts.map((c, i) => (
+              <li key={i} style={{ marginBottom: '4px' }}>• {c.text}</li>
+            ))}
+          </ul>
+          <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A', mt: '16px', fontWeight: 500 }}>
+            Estos turnos serán eliminados automáticamente.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 0 }}>
+          <Button onClick={() => setConflictModalOpen(false)} sx={{ height: 36, px: '16px', borderRadius: '4px', border: '1px solid #1A73E8', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, textTransform: 'uppercase' }}>
+            CANCELAR
+          </Button>
+          <Button onClick={() => executeSaveGlobalHours(true)} variant="contained" sx={{ height: 36, px: '16px', borderRadius: '4px', bgcolor: '#1A73E8', color: '#fff', fontFamily: 'Roboto', fontWeight: 500, textTransform: 'uppercase', boxShadow: 'none' }}>
+            GUARDAR DE TODAS FORMAS
+          </Button>
+        </DialogActions>
+      </Dialog>
       {savedMsg && (
         <Alert severity="success" sx={{ mb: 2 }}>
           {savedMsg}
@@ -110,6 +254,82 @@ export default function Settings() {
             }}
           >
             {savingSettings ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR DETALLES'}
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Horario del Restaurante Card */}
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
+          Horario del Restaurante
+        </Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>
+          Define el horario global. Ningún turno puede salir fuera de estos límites.
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: '16px' }}>
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Apertura global</Typography>
+            <FormControl size="small">
+              <Select 
+                value={localGlobal.openingTime} 
+                onChange={(e) => setLocalGlobal({ ...localGlobal, openingTime: e.target.value })}
+                sx={{ height: 40, minWidth: 120, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+              >
+                {TIME_OPTIONS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Cierre global</Typography>
+            <FormControl size="small">
+              <Select 
+                value={localGlobal.closingTime} 
+                onChange={(e) => setLocalGlobal({ ...localGlobal, closingTime: e.target.value })}
+                sx={{ height: 40, minWidth: 120, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+              >
+                {TIME_OPTIONS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+              </Select>
+            </FormControl>
+            {Number(localGlobal.closingTime.replace(':', '')) !== 0 && Number(localGlobal.closingTime.replace(':', '')) <= Number(localGlobal.openingTime.replace(':', '')) && (
+              <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', mt: '4px', position: 'absolute' }}>
+                El cierre debe ser posterior a la apertura
+              </Typography>
+            )}
+          </Box>
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Intervalo base</Typography>
+            <FormControl size="small">
+              <Select 
+                value={localGlobal.defaultInterval} 
+                onChange={(e) => setLocalGlobal({ ...localGlobal, defaultInterval: e.target.value })}
+                sx={{ height: 40, minWidth: 120, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+              >
+                {INTERVAL_OPTIONS.map(i => <MenuItem key={i} value={i}>{i} min</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: '12px', p: '12px', bgcolor: '#E8F0FE', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', mb: '24px' }}>
+          <span className="material-icons" style={{ fontSize: 16, color: '#1A73E8' }}>info</span>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#1A73E8' }}>
+            Los turnos en el calendario no podrán configurarse fuera de este horario.
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button 
+            variant="contained" 
+            onClick={handleSaveGlobalHours}
+            disabled={savingGlobal || (Number(localGlobal.closingTime.replace(':', '')) !== 0 && Number(localGlobal.closingTime.replace(':', '')) <= Number(localGlobal.openingTime.replace(':', '')))}
+            sx={{ 
+              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
+          >
+            {savingGlobal ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR HORARIO'}
           </Button>
         </Box>
       </Paper>
