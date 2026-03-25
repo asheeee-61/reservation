@@ -278,11 +278,7 @@ export default function LeftPanel({ onContinue }) {
                       >
                         {slot.time}
                       </Button>
-                      {isFull && (
-                        <Typography variant="caption" sx={{ color: '#BDBDBD', mt: 0.5, fontSize: '11px', fontWeight: 500 }}>
-                          {isPast ? 'Cerrado' : 'Completo'}
-                        </Typography>
-                      )}
+
                     </Box>
                   </Grid>
                 );
