@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, Button, CircularProgress, 
   Paper, Radio, RadioGroup, FormControlLabel, FormControl,
-  List, ListItem, ListItemButton, ListItemText, ListItemIcon
+  List, ListItem, ListItemButton, ListItemText, ListItemIcon,
+  IconButton
 } from '@mui/material';
 import { useReservationStore } from '../store/useReservationStore';
 import { getTableTypes } from '../services/reservationService';

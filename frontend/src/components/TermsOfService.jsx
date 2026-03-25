@@ -10,54 +10,60 @@ export default function TermsOfService() {
       <Button 
         startIcon={<ArrowBackIcon />} 
         onClick={() => setShowTerms(false)}
-        sx={{ mb: 4 }}
+        sx={{ mb: 4, height: 48, borderRadius: '4px', textTransform: 'none', fontWeight: 500 }}
       >
-        Back to Reservation
+        Volver a la reserva
       </Button>
       
-      <Typography variant="h3" fontWeight="bold" gutterBottom>
-        Terms of Service
+      <Typography variant="h3" sx={{ fontWeight: 700, fontSize: { xs: '28px', sm: '36px' }, color: '#202124', mb: 3 }}>
+        Términos del Servicio
       </Typography>
       
-      <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, mb: 4 }}>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          1. Acceptance of Terms
+      <Paper elevation={0} sx={{ p: { xs: 3, sm: 4 }, borderRadius: '8px', mb: 4, border: '1px solid #DADCE0' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '18px', mb: 1.5, color: '#202124' }}>
+          1. Aceptación de los Términos
         </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          By booking a reservation, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our reservation system.
-        </Typography>
-
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          2. Reservation Policies
-        </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Reservations are held for a maximum of 15 minutes past the scheduled time. If your party is late, we reserve the right to forfeit your table to other waiting guests.
+        <Typography variant="body1" sx={{ color: '#70757A', mb: 4, fontSize: '15px', lineHeight: 1.6 }}>
+          Al realizar una reserva, usted acepta quedar vinculado por estos Términos del Servicio. Si no está de acuerdo con estos términos, no utilice nuestro sistema de reservas.
         </Typography>
 
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          3. Cancellations
+        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '18px', mb: 1.5, color: '#202124' }}>
+          2. Políticas de Reserva
         </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Please notify us at least 24 hours in advance if you need to cancel or modify your reservation. Repeated no-shows without cancellation may result in restricted access to future bookings.
+        <Typography variant="body1" sx={{ color: '#70757A', mb: 4, fontSize: '15px', lineHeight: 1.6 }}>
+          Las reservas se mantienen durante un máximo de 15 minutos después de la hora programada. Si su grupo llega tarde, nos reservamos el derecho de ceder su mesa a otros clientes en espera.
         </Typography>
 
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          4. Data Privacy
+        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '18px', mb: 1.5, color: '#202124' }}>
+          3. Cancelaciones
         </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Your contact information, including your full name, email address, and WhatsApp registered phone number, is securely stored. We use this exclusively to confirm and manage your booking. We never share your data with third parties.
+        <Typography variant="body1" sx={{ color: '#70757A', mb: 4, fontSize: '15px', lineHeight: 1.6 }}>
+          Por favor, avísenos con al menos 24 horas de antelación si necesita cancelar o modificar su reserva. Las incomparecencias repetidas sin cancelación pueden dar lugar a restricciones en futuras reservas.
+        </Typography>
+
+        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '18px', mb: 1.5, color: '#202124' }}>
+          4. Privacidad de Datos
+        </Typography>
+        <Typography variant="body1" sx={{ color: '#70757A', mb: 2, fontSize: '15px', lineHeight: 1.6 }}>
+          Su información de contacto, incluyendo su nombre completo, correo electrónico y número de teléfono registrado en WhatsApp, se almacena de forma segura. Utilizamos esta información exclusivamente para confirmar y gestionar su reserva. Nunca compartimos sus datos con terceros.
         </Typography>
       </Paper>
       
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
         <Button 
           variant="contained" 
-          size="large"
-          color="primary"
+          fullWidth
           onClick={() => setShowTerms(false)}
-          sx={{ borderRadius: 8, px: 6 }}
+          sx={{ 
+            borderRadius: '4px', 
+            height: 56, 
+            px: 6, 
+            fontSize: '15px', 
+            fontWeight: 600,
+            textTransform: 'uppercase'
+          }}
         >
-          I Understand & Return
+          Entendido y Volver
         </Button>
       </Box>
     </Container>

@@ -238,7 +238,7 @@ export default function LeftPanel({ onContinue }) {
                 const isPast = isToday && slot.time <= currentTimeString;
                 const isFull = !slot.available || isPast;
                 return (
-                  <Grid item xs={4} sm={3} md={4} lg={3} key={sIdx}>
+                  <Grid size={{ xs: 4, sm: 3, md: 4, lg: 3 }} key={sIdx}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <Button
                         fullWidth
