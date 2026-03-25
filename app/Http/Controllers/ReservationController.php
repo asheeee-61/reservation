@@ -10,11 +10,9 @@ use Illuminate\Support\Facades\Log;
 class ReservationController extends Controller
 {
     // Admin: Get all reservations
-    public function index(Request $request)
+    public function index()
     {
-        // We will remove pagination for now and return all to avoid breaking React unless we implement pagination
-        $query = Reservation::with(['customer', 'tableType'])->orderBy('date', 'asc')->get();
-        return response()->json($query);
+        return Reservation::with(['customer', 'tableType', 'specialEvent'])->latest()->get();
     }
 
     // Customer: Get available slots dynamically
@@ -107,8 +105,9 @@ class ReservationController extends Controller
             'user.name' => 'required|string|max:255',
             'user.email' => 'nullable|email|max:255',
             'user.phone' => 'nullable|string|max:20',
-            'user.specialRequests' => 'nullable|string',
-            'table_type_id' => 'required|exists:table_types,id'
+            'special_requests' => 'nullable|string',
+            'table_type_id' => 'required|exists:table_types,id',
+            'special_event_id' => 'required|exists:special_events,id'
         ]);
 
         $resId = '#' . rand(1000, 9999);
@@ -143,9 +142,10 @@ class ReservationController extends Controller
             'date' => $validated['date'],
             'time' => $validated['slot']['time'],
             'guests' => $validated['guests'],
-            'special_requests' => $validated['user']['specialRequests'] ?? null,
+            'special_requests' => $validated['special_requests'] ?? null,
             'status' => 'confirmed',
             'table_type_id' => $validated['table_type_id'],
+            'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
 
         // Simulated WhatsApp logging as requested by user
@@ -186,7 +186,8 @@ class ReservationController extends Controller
             'phone' => 'nullable|string|max:20',
             'special_requests' => 'nullable|string',
             'status' => 'required|in:pending,confirmed,cancelled,no_show',
-            'table_type_id' => 'required|exists:table_types,id'
+            'table_type_id' => 'required|exists:table_types,id',
+            'special_event_id' => 'nullable|exists:special_events,id'
         ]);
 
         $reservation = Reservation::findOrFail($id);
@@ -221,7 +222,8 @@ class ReservationController extends Controller
             'guests' => $validated['guests'],
             'special_requests' => $validated['special_requests'],
             'status' => $validated['status'],
-            'table_type_id' => $validated['table_type_id']
+            'table_type_id' => $validated['table_type_id'],
+            'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
 
         return response()->json([

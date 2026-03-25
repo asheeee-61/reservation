@@ -18,6 +18,7 @@ class Reservation extends Model
         'special_requests',
         'status',
         'table_type_id',
+        'special_event_id',
     ];
 
     public function customer()
@@ -28,5 +29,10 @@ class Reservation extends Model
     public function tableType()
     {
         return $this->belongsTo(TableType::class);
+    }
+
+    public function specialEvent()
+    {
+        return $this->belongsTo(SpecialEvent::class);
     }
 }

@@ -16,6 +16,9 @@ Route::get('/config', [SettingsController::class, 'index']);
 // Endpoint for table types
 use App\Http\Controllers\TableTypeController;
 Route::get('/table-types', [TableTypeController::class, 'publicIndex']);
+// Endpoint for special events
+use App\Http\Controllers\SpecialEventController;
+Route::get('/special-events', [SpecialEventController::class, 'publicIndex']);
 
 // Admin Authentication
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -35,6 +38,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/table-types', [TableTypeController::class, 'store']);
     Route::put('/table-types/{tableType}', [TableTypeController::class, 'update']);
     Route::delete('/table-types/{tableType}', [TableTypeController::class, 'destroy']);
+
+    Route::get('/special-events', [SpecialEventController::class, 'index']);
+    Route::post('/special-events', [SpecialEventController::class, 'store']);
+    Route::put('/special-events/{specialEvent}', [SpecialEventController::class, 'update']);
+    Route::delete('/special-events/{specialEvent}', [SpecialEventController::class, 'destroy']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);
