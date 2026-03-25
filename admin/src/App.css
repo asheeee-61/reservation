@@ -182,3 +182,16 @@
     border-right-color: var(--border);
   }
 }
+
+/* Global Mobile Touch Targets */
+@media (max-width: 767px) {
+  .MuiInputBase-root {
+    min-height: 52px !important;
+    font-size: 16px !important;
+  }
+  
+  .MuiButton-root {
+    min-height: 44px !important;
+  }
+}
+

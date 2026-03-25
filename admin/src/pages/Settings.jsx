@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { 
-  Typography, Box, Paper, TextField, Button, Grid, Alert, 
-  IconButton, CircularProgress, Select, MenuItem, FormControl,
-  Dialog, DialogContent, DialogActions 
+  Typography, Box, Paper, TextField, Button, Dialog, Alert, 
+  CircularProgress, Select, MenuItem, FormControl,
+  DialogContent, DialogActions 
 } from '@mui/material';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { apiClient } from '../services/apiClient';
+import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
-const DEFAULT_SLOTS = ["13:00", "13:30", "14:00", "14:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
 const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
 const TIME_OPTIONS = (() => {
   const opts = [];
@@ -53,7 +53,6 @@ export default function Settings() {
   const fetchConfig = async () => {
     try {
       const data = await apiClient('/config');
-      
       setConfig({
         ...data,
         restaurant: data.restaurant || { name: 'Hotaru Madrid', address: 'Calle de Alcalá 99' },
@@ -69,7 +68,6 @@ export default function Settings() {
   };
 
   const handleSaveGlobalHours = () => {
-    // Determine conflicts
     const newConflicts = [];
     if (config?.schedule) {
       const gOpen = Number(localGlobal.openingTime.replace(':', ''));
@@ -154,18 +152,11 @@ export default function Settings() {
     }
   };
 
-
-
-  if (loading || !config) {
-    return <Box p={4}><CircularProgress /></Box>;
-  }
-
-
+  if (loading || !config) return <Box p={4}><CircularProgress /></Box>;
 
   return (
     <Box sx={{ maxWidth: 960, display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
       
-      {/* Custom Toast */}
       {toastOpen && (
         <Box sx={{ 
           position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', 
@@ -176,7 +167,6 @@ export default function Settings() {
         </Box>
       )}
 
-      {/* Conflict Modal */}
       <Dialog open={conflictModalOpen} onClose={() => setConflictModalOpen(false)} PaperProps={{ sx: { p: '24px', borderRadius: '4px', bgcolor: '#fff', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' } }}>
         <Box sx={{ mb: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="material-icons" style={{ color: '#F29900' }}>warning</span>
@@ -189,46 +179,37 @@ export default function Settings() {
             Los siguientes turnos quedan fuera del nuevo horario:
           </Typography>
           <ul style={{ margin: 0, paddingLeft: '20px', color: '#70757A', fontFamily: 'Roboto', fontSize: '14px' }}>
-            {conflicts.map((c, i) => (
-              <li key={i} style={{ marginBottom: '4px' }}>• {c.text}</li>
-            ))}
+            {conflicts.map((c, i) => <li key={i} style={{ marginBottom: '4px' }}>• {c.text}</li>)}
           </ul>
           <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A', mt: '16px', fontWeight: 500 }}>
             Estos turnos serán eliminados automáticamente.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 0 }}>
-          <Button onClick={() => setConflictModalOpen(false)} sx={{ height: 36, px: '16px', borderRadius: '4px', border: '1px solid #1A73E8', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, textTransform: 'uppercase' }}>
+        <DialogActions sx={{ p: 0, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: '8px', sm: '0' } }}>
+          <Button onClick={() => setConflictModalOpen(false)} sx={{ width: { xs: '100%', sm: 'auto' }, height: { xs: 44, sm: 36 }, px: '16px', borderRadius: '4px', border: '1px solid #1A73E8', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, textTransform: 'uppercase' }}>
             CANCELAR
           </Button>
-          <Button onClick={() => executeSaveGlobalHours(true)} variant="contained" sx={{ height: 36, px: '16px', borderRadius: '4px', bgcolor: '#1A73E8', color: '#fff', fontFamily: 'Roboto', fontWeight: 500, textTransform: 'uppercase', boxShadow: 'none' }}>
+          <Button onClick={() => executeSaveGlobalHours(true)} variant="contained" sx={{ width: { xs: '100%', sm: 'auto' }, ml: { xs: 0, sm: '8px' }, height: { xs: 44, sm: 36 }, px: '16px', borderRadius: '4px', bgcolor: '#1A73E8', color: '#fff', fontFamily: 'Roboto', fontWeight: 500, textTransform: 'uppercase', boxShadow: 'none' }}>
             GUARDAR DE TODAS FORMAS
           </Button>
         </DialogActions>
       </Dialog>
-      {savedMsg && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {savedMsg}
-        </Alert>
-      )}
+      
+      {savedMsg && <Alert severity="success" sx={{ mb: 2 }}>{savedMsg}</Alert>}
 
       {/* Restaurant Details Card */}
-      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
-          Restaurant Details
-        </Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>
-          Estos detalles son visibles para los clientes.
-        </Typography>
+      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Restaurant Details</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Estos detalles son visibles para los clientes.</Typography>
         
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '16px', mb: '24px' }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>
           <TextField
             label="Nombre del restaurante"
             variant="outlined"
             value={config.restaurant?.name || ''}
             onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, name: e.target.value } })}
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
-            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
             sx={{ flex: 1, minWidth: 200 }}
           />
           <TextField
@@ -237,18 +218,16 @@ export default function Settings() {
             value={config.restaurant?.address || ''}
             onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, address: e.target.value } })}
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
-            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
             sx={{ flex: 1, minWidth: 200 }}
           />
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
-            variant="contained" 
-            onClick={() => handleSaveAll(false)}
-            disabled={savingSettings}
+            variant="contained" onClick={() => handleSaveAll(false)} disabled={savingSettings}
             sx={{ 
-              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              width: { xs: '100%', sm: 'auto' }, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
               fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
@@ -259,51 +238,47 @@ export default function Settings() {
       </Paper>
 
       {/* Horario del Restaurante Card */}
-      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
-          Horario del Restaurante
-        </Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>
-          Define el horario global. Ningún turno puede salir fuera de estos límites.
-        </Typography>
+      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Horario del Restaurante</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Define el horario global. Ningún turno puede salir fuera de estos límites.</Typography>
 
-        <Box sx={{ display: 'flex', gap: '16px' }}>
-          <Box>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Apertura global</Typography>
-            <FormControl size="small">
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px' }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Apertura global</Typography>
+            <FormControl size="small" sx={{ width: '100%' }}>
               <Select 
                 value={localGlobal.openingTime} 
                 onChange={(e) => setLocalGlobal({ ...localGlobal, openingTime: e.target.value })}
-                sx={{ height: 40, minWidth: 120, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                sx={{ height: { xs: 52, sm: 40 }, borderRadius: '4px', fontFamily: 'Roboto', fontSize: { xs: '16px', sm: '14px' }, color: '#202124' }}
               >
                 {TIME_OPTIONS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
               </Select>
             </FormControl>
           </Box>
-          <Box>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Cierre global</Typography>
-            <FormControl size="small">
+          <Box sx={{ flex: 1, position: 'relative' }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Cierre global</Typography>
+            <FormControl size="small" sx={{ width: '100%' }}>
               <Select 
                 value={localGlobal.closingTime} 
                 onChange={(e) => setLocalGlobal({ ...localGlobal, closingTime: e.target.value })}
-                sx={{ height: 40, minWidth: 120, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                sx={{ height: { xs: 52, sm: 40 }, borderRadius: '4px', fontFamily: 'Roboto', fontSize: { xs: '16px', sm: '14px' }, color: '#202124' }}
               >
                 {TIME_OPTIONS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
               </Select>
             </FormControl>
             {Number(localGlobal.closingTime.replace(':', '')) !== 0 && Number(localGlobal.closingTime.replace(':', '')) <= Number(localGlobal.openingTime.replace(':', '')) && (
-              <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', mt: '4px', position: 'absolute' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', mt: '4px', position: { sm: 'absolute' } }}>
                 El cierre debe ser posterior a la apertura
               </Typography>
             )}
           </Box>
-          <Box>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Intervalo base</Typography>
-            <FormControl size="small">
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Intervalo base</Typography>
+            <FormControl size="small" sx={{ width: '100%' }}>
               <Select 
                 value={localGlobal.defaultInterval} 
                 onChange={(e) => setLocalGlobal({ ...localGlobal, defaultInterval: e.target.value })}
-                sx={{ height: 40, minWidth: 120, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                sx={{ height: { xs: 52, sm: 40 }, borderRadius: '4px', fontFamily: 'Roboto', fontSize: { xs: '16px', sm: '14px' }, color: '#202124' }}
               >
                 {INTERVAL_OPTIONS.map(i => <MenuItem key={i} value={i}>{i} min</MenuItem>)}
               </Select>
@@ -311,20 +286,16 @@ export default function Settings() {
           </Box>
         </Box>
 
-        <Box sx={{ mt: '12px', p: '12px', bgcolor: '#E8F0FE', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', mb: '24px' }}>
+        <Box sx={{ mt: { xs: '24px', sm: '12px' }, p: '12px', bgcolor: '#E8F0FE', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', mb: '24px' }}>
           <span className="material-icons" style={{ fontSize: 16, color: '#1A73E8' }}>info</span>
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#1A73E8' }}>
-            Los turnos en el calendario no podrán configurarse fuera de este horario.
-          </Typography>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#1A73E8' }}>Los turnos en el calendario no podrán configurarse fuera de este horario.</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
-            variant="contained" 
-            onClick={handleSaveGlobalHours}
-            disabled={savingGlobal || (Number(localGlobal.closingTime.replace(':', '')) !== 0 && Number(localGlobal.closingTime.replace(':', '')) <= Number(localGlobal.openingTime.replace(':', '')))}
+            variant="contained" onClick={handleSaveGlobalHours} disabled={savingGlobal || (Number(localGlobal.closingTime.replace(':', '')) !== 0 && Number(localGlobal.closingTime.replace(':', '')) <= Number(localGlobal.openingTime.replace(':', '')))}
             sx={{ 
-              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              width: { xs: '100%', sm: 'auto' }, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
               fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
@@ -335,44 +306,30 @@ export default function Settings() {
       </Paper>
 
       {/* Reservation Rules Card */}
-      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
-          Reservation Rules
-        </Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>
-          Configura límites generales para reservaciones públicas.
-        </Typography>
+      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Reservation Rules</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Configura límites generales para reservaciones públicas.</Typography>
         
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '16px', mb: '24px' }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>
           <TextField
-            label="Mínimo de personas"
-            type="number"
-            variant="outlined"
-            value={config.minGuests}
-            onChange={(e) => setConfig({ ...config, minGuests: e.target.value })}
+            label="Mínimo de personas" type="number" variant="outlined" value={config.minGuests} onChange={(e) => setConfig({ ...config, minGuests: e.target.value })}
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
-            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
             sx={{ flex: 1, minWidth: 200 }}
           />
           <TextField
-            label="Máximo de personas"
-            type="number"
-            variant="outlined"
-            value={config.maxGuests}
-            onChange={(e) => setConfig({ ...config, maxGuests: e.target.value })}
+            label="Máximo de personas" type="number" variant="outlined" value={config.maxGuests} onChange={(e) => setConfig({ ...config, maxGuests: e.target.value })}
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
-            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
+            InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
             sx={{ flex: 1, minWidth: 200 }}
           />
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
-            variant="contained" 
-            onClick={() => handleSaveAll(false)}
-            disabled={savingSettings}
+            variant="contained" onClick={() => handleSaveAll(false)} disabled={savingSettings}
             sx={{ 
-              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              width: { xs: '100%', sm: 'auto' }, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
               fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
@@ -383,34 +340,24 @@ export default function Settings() {
       </Paper>
 
       {/* Capacidad Total Card */}
-      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>
-          Capacidad Total
-        </Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>
-          Número máximo de personas que el restaurante puede atender simultáneamente.
-        </Typography>
+      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Capacidad Total</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>Número máximo de personas que el restaurante puede atender simultáneamente.</Typography>
 
-        <Box sx={{ display: 'flex', gap: '16px', mb: '24px' }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>
           <TextField
-            label="Capacidad de personas"
-            type="number"
-            variant="outlined"
-            value={config.totalCapacity}
-            onChange={(e) => setConfig({ ...config, totalCapacity: e.target.value })}
+            label="Capacidad de personas" type="number" variant="outlined" value={config.totalCapacity} onChange={(e) => setConfig({ ...config, totalCapacity: e.target.value })}
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
-            InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
-            sx={{ maxWidth: 200 }}
+            InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
+            sx={{ maxWidth: { xs: '100%', sm: 200 } }}
           />
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
-            variant="contained" 
-            onClick={() => handleSaveAll(true)}
-            disabled={savingCap}
+            variant="contained" onClick={() => handleSaveAll(true)} disabled={savingCap}
             sx={{ 
-              height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              width: { xs: '100%', sm: 'auto' }, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
               fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}

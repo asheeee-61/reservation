@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Typography, Box, Paper, Button, IconButton, 
   CircularProgress, Snackbar, Tabs, Tab, Accordion, 
@@ -6,10 +6,10 @@ import {
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const DAY_LABELS = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' };
-const DEFAULT_SLOTS = ["13:00", "13:30", "14:00", "14:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
 const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
@@ -35,7 +35,6 @@ export default function CalendarPanel() {
   const [toastMessage, setToastMessage] = useState("Cambios guardados");
   const [regenMsg, setRegenMsg] = useState(null);
   
-  // For Blocked Days Tab Calendar
   const [blockMonthStart, setBlockMonthStart] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
   useEffect(() => {
@@ -49,7 +48,6 @@ export default function CalendarPanel() {
       const schedule = data.schedule || {};
       DAYS.forEach(day => {
         if (!schedule[day]) schedule[day] = { open: true, shifts: [] };
-        // Migrate legacy formats natively
         if (!schedule[day].shifts) {
            const oldOp = schedule[day].openingTime || '09:00';
            const oldCl = schedule[day].closingTime || '23:30';
@@ -62,9 +60,7 @@ export default function CalendarPanel() {
               defaultSlots.forEach(time => oldSlots[time] = true);
            }
            
-           schedule[day].shifts = [
-             { id: 1, openingTime: oldOp, closingTime: oldCl, interval: oldInt, slots: oldSlots }
-           ];
+           schedule[day].shifts = [{ id: 1, openingTime: oldOp, closingTime: oldCl, interval: oldInt, slots: oldSlots }];
            delete schedule[day].slots;
            delete schedule[day].openingTime;
            delete schedule[day].closingTime;
@@ -96,7 +92,6 @@ export default function CalendarPanel() {
   };
 
   const manualSave = async (msg = "Cambios guardados") => {
-    // Cross-shift validation before save
     for (const day of DAYS) {
       const shifts = config.schedule[day].shifts;
       for (const shift of shifts) {
@@ -134,11 +129,8 @@ export default function CalendarPanel() {
     }
   };
 
-  if (loading || !config) {
-    return <Box p={4}><CircularProgress /></Box>;
-  }
+  if (loading || !config) return <Box p={4}><CircularProgress /></Box>;
 
-  // --- TAB 1 (HOY) UTILS --- //
   const handleDateChange = (daysToAdd) => {
     const nextDate = new Date(selectedDate);
     nextDate.setDate(selectedDate.getDate() + daysToAdd);
@@ -146,7 +138,6 @@ export default function CalendarPanel() {
   };
 
   const jsDayIndex = selectedDate.getDay();
-  // js getDay: Sun = 0, Mon = 1 ... Sat = 6. Our DAYS array starts at monday.
   const dayNameMapping = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const currentDayKey = dayNameMapping[jsDayIndex];
   const currentDaySchedule = config.schedule[currentDayKey];
@@ -166,18 +157,10 @@ export default function CalendarPanel() {
 
   const toggleSlotInstant = (time, shiftId) => {
     const newShifts = currentDaySchedule.shifts.map(s => {
-      if (s.id === shiftId) {
-        return { ...s, slots: { ...s.slots, [time]: !s.slots[time] } };
-      }
+      if (s.id === shiftId) return { ...s, slots: { ...s.slots, [time]: !s.slots[time] } };
       return s;
     });
-    const newConfig = {
-      ...config,
-      schedule: {
-        ...config.schedule,
-        [currentDayKey]: { ...currentDaySchedule, shifts: newShifts }
-      }
-    };
+    const newConfig = { ...config, schedule: { ...config.schedule, [currentDayKey]: { ...currentDaySchedule, shifts: newShifts } } };
     saveConfigState(newConfig, true);
   };
 
@@ -187,27 +170,15 @@ export default function CalendarPanel() {
       Object.keys(newSlots).forEach(time => newSlots[time] = status);
       return { ...s, slots: newSlots };
     });
-    const newConfig = {
-      ...config,
-      schedule: {
-        ...config.schedule,
-        [currentDayKey]: { ...currentDaySchedule, shifts: newShifts }
-      }
-    };
+    const newConfig = { ...config, schedule: { ...config.schedule, [currentDayKey]: { ...currentDaySchedule, shifts: newShifts } } };
     saveConfigState(newConfig, true);
   };
 
-
-
-  // --- TAB 2 (SEMANA) UTILS --- //
   const updateShiftConfig = (day, shiftId, field, value) => {
     setConfig(prev => {
       const dayConf = prev.schedule[day];
       const newShifts = dayConf.shifts.map(s => s.id === shiftId ? { ...s, [field]: value } : s);
-      return {
-        ...prev,
-        schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } }
-      };
+      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
     });
   };
 
@@ -215,10 +186,7 @@ export default function CalendarPanel() {
     setConfig(prev => {
       const dayConf = prev.schedule[day];
       const newShifts = [...dayConf.shifts, { id: 2, openingTime: '20:00', closingTime: globalHours.closingTime === '00:00' ? '23:30' : globalHours.closingTime, interval: globalHours.defaultInterval || 30, slots: {} }];
-      return {
-        ...prev,
-        schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } }
-      };
+      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
     });
   };
 
@@ -226,10 +194,7 @@ export default function CalendarPanel() {
     setConfig(prev => {
       const dayConf = prev.schedule[day];
       const newShifts = dayConf.shifts.filter(s => s.id !== shiftId);
-      return {
-        ...prev,
-        schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } }
-      };
+      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
     });
   };
 
@@ -254,23 +219,17 @@ export default function CalendarPanel() {
       setTimeout(() => setRegenMsg(null), 3000);
       
       const newShifts = dayConf.shifts.map(s => s.id === shiftId ? { ...s, slots: newSlots } : s);
-      return {
-        ...prev,
-        schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } }
-      };
+      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
     });
   };
 
   const copyMondayToAll = () => {
     const monShifts = config.schedule.monday.shifts;
-    
-    // Regenerate slots automatically for Monday shifts
     const generateSlots = (shift) => {
       const [openH, openM] = shift.openingTime.split(':').map(Number);
       const [closeH, closeM] = shift.closingTime.split(':').map(Number);
       const openMin = openH * 60 + openM;
       const closeMin = closeH * 60 + closeM;
-      
       const newSlots = {};
       for (let t = openMin; t <= closeMin; t += shift.interval) {
         const h = String(Math.floor(t / 60)).padStart(2, '0');
@@ -281,13 +240,9 @@ export default function CalendarPanel() {
     };
 
     const newMonShifts = monShifts.map(generateSlots);
-
     const newSchedule = { ...config.schedule };
     DAYS.forEach(day => {
-      newSchedule[day] = {
-        ...newSchedule[day],
-        shifts: JSON.parse(JSON.stringify(newMonShifts))
-      };
+      newSchedule[day] = { ...newSchedule[day], shifts: JSON.parse(JSON.stringify(newMonShifts)) };
     });
     
     setConfig({ ...config, schedule: newSchedule });
@@ -297,11 +252,7 @@ export default function CalendarPanel() {
 
   const toggleDayStatusWeekly = (day) => {
     setConfig(prev => ({
-      ...prev,
-      schedule: {
-        ...prev.schedule,
-        [day]: { ...prev.schedule[day], open: !prev.schedule[day].open }
-      }
+      ...prev, schedule: { ...prev.schedule, [day]: { ...prev.schedule[day], open: !prev.schedule[day].open } }
     }));
   };
 
@@ -309,10 +260,7 @@ export default function CalendarPanel() {
     setConfig(prev => {
       const dayConf = prev.schedule[day];
       const newShifts = dayConf.shifts.map(s => s.id === shiftId ? { ...s, slots: { ...s.slots, [time]: !s.slots[time] } } : s);
-      return {
-        ...prev,
-        schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } }
-      };
+      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
     });
   };
 
@@ -325,14 +273,10 @@ export default function CalendarPanel() {
          Object.keys(newSlots).forEach(t => newSlots[t] = status);
          return { ...s, slots: newSlots };
        });
-       return {
-          ...prev,
-          schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } }
-       }
+       return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } }
     });
   };
 
-  // --- TAB 3 (FECHAS BLOQUEADAS) UTILS --- //
   const changeBlockMonth = (months) => {
     const nextMonth = new Date(blockMonthStart);
     nextMonth.setMonth(blockMonthStart.getMonth() + months);
@@ -349,11 +293,8 @@ export default function CalendarPanel() {
 
     setConfig(prev => {
       let nextBlocks = [...prev.blockedDays];
-      if (nextBlocks.includes(dateStr)) {
-        nextBlocks = nextBlocks.filter(d => d !== dateStr);
-      } else {
-        nextBlocks.push(dateStr);
-      }
+      if (nextBlocks.includes(dateStr)) nextBlocks = nextBlocks.filter(d => d !== dateStr);
+      else nextBlocks.push(dateStr);
       return { ...prev, blockedDays: nextBlocks.sort() };
     });
   };
@@ -389,19 +330,13 @@ export default function CalendarPanel() {
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       const dd = String(d.getDate()).padStart(2, '0');
       const dateStr = `${yyyy}-${mm}-${dd}`;
-
       const blocked = isBlocked(dateStr);
       const isToday = dateStr === todayStr;
 
       let bg = 'transparent';
       let color = '#202124';
-      if (blocked) {
-        bg = '#FDECEA';
-        color = '#D93025';
-      } else if (isToday) {
-        bg = '#E8F0FE';
-        color = '#1A73E8';
-      }
+      if (blocked) { bg = '#FDECEA'; color = '#D93025'; } 
+      else if (isToday) { bg = '#E8F0FE'; color = '#1A73E8'; }
 
       cells.push(
         <Box key={i} sx={{ width: '14.28%', height: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', my: 0.5 }}>
@@ -409,8 +344,7 @@ export default function CalendarPanel() {
             onClick={() => toggleBlockDate(d)}
             sx={{ 
               width: 32, height: 32, borderRadius: '50%', bgcolor: bg, color: color,
-              display: 'flex', justifyContent: 'center', alignItems: 'center',
-              cursor: 'pointer',
+              display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
               '&:hover': { bgcolor: blocked ? '#F8D8D5' : '#F1F3F4' }
             }}
           >
@@ -419,17 +353,18 @@ export default function CalendarPanel() {
         </Box>
       );
     }
-    return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>
-        {cells}
-      </Box>
-    );
+    return <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>{cells}</Box>;
   };
 
 
   return (
     <Box sx={{ pb: 8, width: '100%' }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: '24px' }}>
+      <Typography sx={{ 
+        fontFamily: 'Roboto', fontWeight: 500, color: '#202124', mb: '24px',
+        [DESKTOP]: { fontSize: '20px' },
+        [TABLET]: { fontSize: '18px' },
+        [MOBILE]: { fontSize: '16px' }
+      }}>
         Calendar Control
       </Typography>
 
@@ -437,23 +372,34 @@ export default function CalendarPanel() {
         <Tabs 
           value={currentTab} 
           onChange={(e, v) => setCurrentTab(v)}
+          variant="fullWidth"
           TabIndicatorProps={{ style: { backgroundColor: '#1A73E8', height: 2 } }}
           sx={{ borderBottom: '1px solid #E0E0E0', minHeight: 48, height: 48 }}
         >
-          <Tab label="HOY" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minHeight: 48, px: '24px', '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A' }} />
-          <Tab label="SEMANA" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minHeight: 48, px: '24px', '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A' }} />
-          <Tab label="FECHAS BLOQUEADAS" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minHeight: 48, px: '24px', '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A' }} />
+          <Tab label="HOY" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, minHeight: 48, p: 0, '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A', [DESKTOP]: { fontSize: '14px', px: '24px' }, [TABLET]: { fontSize: '14px', px: '24px' }, [MOBILE]: { fontSize: '12px', px: '8px' } }} />
+          <Tab label="SEMANA" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, minHeight: 48, p: 0, '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A', [DESKTOP]: { fontSize: '14px', px: '24px' }, [TABLET]: { fontSize: '14px', px: '24px' }, [MOBILE]: { fontSize: '12px', px: '8px' } }} />
+          <Tab label="FECHAS BLOQUEADAS" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, minHeight: 48, p: 0, '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A', [DESKTOP]: { fontSize: '14px', px: '24px' }, [TABLET]: { fontSize: '14px', px: '24px' }, [MOBILE]: { fontSize: '12px', px: '8px' } }} />
         </Tabs>
 
         {/* --- TAB 1: HOY --- */}
         {currentTab === 0 && (
-          <Box sx={{ p: '24px' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '20px' }}>
+          <Box sx={{ [DESKTOP]: { p: '24px' }, [TABLET]: { p: '24px' }, [MOBILE]: { p: '16px' } }}>
+            <Box sx={{ 
+              display: 'flex', alignItems: 'center', mb: '20px',
+              [DESKTOP]: { justifyContent: 'space-between', flexDirection: 'row' },
+              [TABLET]: { justifyContent: 'space-between', flexDirection: 'row' },
+              [MOBILE]: { justifyContent: 'space-between', flexDirection: 'row', width: '100%' }
+            }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <IconButton onClick={() => handleDateChange(-1)} size="small" sx={{ border: '1px solid #70757A', width: 28, height: 28 }}>
                   <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>keyboard_arrow_left</span>
                 </IconButton>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', width: 180, textAlign: 'center' }}>
+                <Typography sx={{ 
+                  fontFamily: 'Roboto', fontWeight: 500, color: '#202124', textAlign: 'center',
+                  [DESKTOP]: { fontSize: '16px', width: 180 },
+                  [TABLET]: { fontSize: '16px', width: 180 },
+                  [MOBILE]: { fontSize: '14px', flex: 1, minWidth: 120 }
+                }}>
                   {dateFormatted}
                 </Typography>
                 <IconButton onClick={() => handleDateChange(1)} size="small" sx={{ border: '1px solid #70757A', width: 28, height: 28 }}>
@@ -475,11 +421,34 @@ export default function CalendarPanel() {
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: '24px', mb: '24px' }}>
-              <Button sx={{ p: 0, textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }} onClick={() => toggleAllInstant(true)}>
+            <Box sx={{ 
+              display: 'flex', mb: '24px',
+              [DESKTOP]: { gap: '24px', flexDirection: 'row' },
+              [TABLET]: { gap: '24px', flexDirection: 'row' },
+              [MOBILE]: { gap: '8px', flexDirection: 'column' }
+            }}>
+              <Button 
+                variant="outlined"
+                sx={{ 
+                  p: 0, textTransform: 'none', color: '#1A73E8', borderColor: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px',
+                  [DESKTOP]: { border: 'none', minHeight: 0 },
+                  [TABLET]: { border: 'none', minHeight: 0 },
+                  [MOBILE]: { width: '100%', height: 44, borderRadius: '4px' } 
+                }} 
+                onClick={() => toggleAllInstant(true)}
+              >
                 Abrir todos
               </Button>
-              <Button sx={{ p: 0, textTransform: 'none', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }} onClick={() => toggleAllInstant(false)}>
+              <Button 
+                variant="outlined"
+                sx={{ 
+                  p: 0, textTransform: 'none', color: '#D93025', borderColor: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px',
+                  [DESKTOP]: { border: 'none', minHeight: 0 },
+                  [TABLET]: { border: 'none', minHeight: 0 },
+                  [MOBILE]: { width: '100%', height: 44, borderRadius: '4px' } 
+                }} 
+                onClick={() => toggleAllInstant(false)}
+              >
                 Cerrar todos
               </Button>
             </Box>
@@ -492,7 +461,12 @@ export default function CalendarPanel() {
                   </Typography>
                   <Box sx={{ flexGrow: 1, height: '1px', bgcolor: '#E0E0E0' }}></Box>
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
+                <Box sx={{ 
+                  display: 'grid', 
+                  [DESKTOP]: { gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' },
+                  [TABLET]: { gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' },
+                  [MOBILE]: { gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }
+                }}>
                   {Object.keys(shift.slots).sort().map(time => {
                     const isOpen = shift.slots[time] && currentDaySchedule.open;
                     return (
@@ -500,16 +474,23 @@ export default function CalendarPanel() {
                         <Box 
                           onClick={() => { if(currentDaySchedule.open) toggleSlotInstant(time, shift.id); }}
                           sx={{
-                            width: '100%', height: 48, borderRadius: '4px',
+                            width: '100%', borderRadius: '4px',
                             display: 'flex', justifyContent: 'center', alignItems: 'center',
                             cursor: currentDaySchedule.open ? 'pointer' : 'not-allowed',
                             bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
                             border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
-                            color: isOpen ? '#1A73E8' : '#BDBDBD',
-                            userSelect: 'none', mb: '4px'
+                            color: isOpen ? '#1A73E8' : '#BDBDBD', userSelect: 'none', mb: '4px',
+                            [DESKTOP]: { height: 48 },
+                            [TABLET]: { height: 48 },
+                            [MOBILE]: { height: 44 }
                           }}
                         >
-                          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>{time}</Typography>
+                          <Typography sx={{ 
+                            fontFamily: 'Roboto', fontWeight: 500, 
+                            [DESKTOP]: { fontSize: '14px' },
+                            [TABLET]: { fontSize: '14px' },
+                            [MOBILE]: { fontSize: '13px' }
+                          }}>{time}</Typography>
                         </Box>
                       </Box>
                     );
@@ -522,9 +503,9 @@ export default function CalendarPanel() {
 
         {/* --- TAB 2: SEMANA --- */}
         {currentTab === 1 && (
-          <Box sx={{ p: '24px' }}>
+          <Box sx={{ [DESKTOP]: { p: '24px' }, [TABLET]: { p: '24px' }, [MOBILE]: { p: '16px' } }}>
             <Box sx={{ mb: '24px' }}>
-              <Button sx={{ textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', p: 0 }} onClick={copyMondayToAll}>
+              <Button sx={{ textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', p: 0, [MOBILE]: { minHeight: 44 } }} onClick={copyMondayToAll}>
                 Copiar de Lunes a todos los días
               </Button>
             </Box>
@@ -532,11 +513,9 @@ export default function CalendarPanel() {
             {DAYS.map(day => {
               const dayConfig = config.schedule[day];
               const totalOpenCount = dayConfig.shifts.reduce((acc, s) => acc + Object.values(s.slots).filter(Boolean).length, 0);
-              
               const summaryRanges = dayConfig.shifts.map(s => `${s.openingTime}–${s.closingTime}`).join(' · ');
               const sameInterval = dayConfig.shifts.length > 0 && dayConfig.shifts.every(s => s.interval === dayConfig.shifts[0].interval);
               const summaryInterval = sameInterval && dayConfig.shifts.length > 0 ? `${dayConfig.shifts[0].interval}min` : 'Mix';
-              
               const hasOverlap = dayConfig.shifts.length === 2 && (() => {
                 const c1 = Number(dayConfig.shifts[0].closingTime.split(':')[0]) * 60 + Number(dayConfig.shifts[0].closingTime.split(':')[1]);
                 const o2 = Number(dayConfig.shifts[1].openingTime.split(':')[0]) * 60 + Number(dayConfig.shifts[1].openingTime.split(':')[1]);
@@ -547,62 +526,51 @@ export default function CalendarPanel() {
                 <Accordion disableGutters key={day} sx={{ mb: '8px', border: '1px solid #E0E0E0', boxShadow: 'none', '&:before': { display: 'none' } }}>
                   <AccordionSummary expandIcon={<span className="material-icons">expand_more</span>} sx={{ minHeight: 56, height: 56, px: '16px' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: '16px' }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', width: 100 }}>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', width: { xs: 80, sm: 100 } }}>
                         {DAY_LABELS[day]}
                       </Typography>
-                      
                       {!dayConfig.open ? (
-                        <Typography sx={{ fontFamily: 'Roboto', color: '#D93025', fontSize: '14px', fontWeight: 500 }}>
-                          Cerrado
-                        </Typography>
+                        <Typography sx={{ fontFamily: 'Roboto', color: '#D93025', fontSize: '14px', fontWeight: 500 }}>Cerrado</Typography>
                       ) : (
-                        <>
-                          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', width: 140 }}>
+                        <Box sx={{ display: 'flex', flex: 1, alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', flex: 1 }}>
                             {summaryRanges}
                           </Typography>
-                          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', width: 60 }}>
+                          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', display: { xs: 'none', sm: 'block' } }}>
                             {summaryInterval}
                           </Typography>
-                          <Typography sx={{ fontFamily: 'Roboto', color: '#70757A', fontSize: '14px' }}>
+                          <Typography sx={{ fontFamily: 'Roboto', color: '#70757A', fontSize: '14px', display: { xs: 'none', sm: 'block' } }}>
                             {totalOpenCount} slots
                           </Typography>
-                        </>
+                        </Box>
                       )}
                     </Box>
                   </AccordionSummary>
 
-                  <AccordionDetails sx={{ pt: 0, pb: '24px', px: '24px', borderTop: '1px solid #E0E0E0', position: 'relative' }}>
+                  <AccordionDetails sx={{ pt: 0, pb: '24px', px: { xs: '16px', md: '24px' }, borderTop: '1px solid #E0E0E0', position: 'relative' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '16px' }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>Configuración de {DAY_LABELS[day]}</Typography>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>Config de {DAY_LABELS[day]}</Typography>
                       <Box 
                         onClick={() => toggleDayStatusWeekly(day)}
-                        sx={{ 
-                          bgcolor: dayConfig.open ? '#E8F0FE' : '#FDECEA',
-                          color: dayConfig.open ? '#1A73E8' : '#D93025',
-                          px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer', userSelect: 'none'
-                        }}
+                        sx={{ bgcolor: dayConfig.open ? '#E8F0FE' : '#FDECEA', color: dayConfig.open ? '#1A73E8' : '#D93025', px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer', userSelect: 'none' }}
                       >
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>
-                          {dayConfig.open ? 'Abierto' : 'Cerrado'}
-                        </Typography>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>{dayConfig.open ? 'Abierto' : 'Cerrado'}</Typography>
                       </Box>
                     </Box>
 
                     {!dayConfig.open ? (
                       <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', bgcolor: '#F1F3F4', borderRadius: '4px' }}>
-                         <Typography sx={{ color: '#70757A', fontFamily: 'Roboto', fontSize: '14px' }}>El restaurante está marcado como cerrado este día. Ningún cliente podrá reservar.</Typography>
+                         <Typography sx={{ color: '#70757A', fontFamily: 'Roboto', fontSize: '14px', textAlign: 'center' }}>Restaurante cerrado este día.</Typography>
                       </Box>
                     ) : (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {dayConfig.shifts.map((shift, idx) => {
-                          const [openH, openM] = shift.openingTime.split(':').map(Number);
-                          const [closeH, closeM] = shift.closingTime.split(':').map(Number);
-                          const openMin = openH * 60 + openM;
-                          const closeMin = closeH * 60 + closeM;
-                          const isValid = closeMin > openMin;
+                          const [oH, oM] = shift.openingTime.split(':').map(Number);
+                          const [cH, cM] = shift.closingTime.split(':').map(Number);
+                          const isValid = (cH * 60 + cM) > (oH * 60 + oM);
 
                           return (
-                            <Box key={shift.id} sx={{ bgcolor: '#FFF', border: `1px solid ${!isValid ? '#D93025' : '#E0E0E0'}`, borderRadius: '4px', p: '16px' }}>
+                            <Box key={shift.id} sx={{ bgcolor: '#FFF', border: `1px solid ${!isValid ? '#D93025' : '#E0E0E0'}`, borderRadius: '4px', p: { xs: '12px', md: '16px' } }}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#70757A' }}>Turno {idx + 1}</Typography>
                                 {idx === 1 && (
@@ -613,120 +581,112 @@ export default function CalendarPanel() {
                               </Box>
 
                               <Box sx={{ borderBottom: '1px solid #E0E0E0', pb: '16px' }}>
-  <Box sx={{ display: 'flex', gap: '24px', alignItems: 'flex-end' }}>
-    <Box>
-      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Apertura</Typography>
-      <FormControl size="small">
-        <Select 
-          value={shift.openingTime} 
-          onChange={(e) => updateShiftConfig(day, shift.id, 'openingTime', e.target.value)}
-          sx={{ height: 36, minWidth: 90, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
-        >
-          {TIME_OPTIONS.filter(t => {
-            const tNum = Number(t.replace(':', ''));
-            const gOpen = Number(globalHours.openingTime.replace(':', ''));
-            let gClose = Number(globalHours.closingTime.replace(':', ''));
-            if (gClose === 0) gClose = 2400;
-            return tNum >= gOpen && tNum < gClose;
-          }).map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
-        </Select>
-      </FormControl>
-    </Box>
-    
-    <Box>
-      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Cierre</Typography>
-      <FormControl size="small">
-        <Select 
-          value={shift.closingTime} 
-          onChange={(e) => updateShiftConfig(day, shift.id, 'closingTime', e.target.value)}
-          sx={{ height: 36, minWidth: 90, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
-        >
-          {TIME_OPTIONS.filter(t => {
-            const tNum = Number(t.replace(':', ''));
-            const sOpen = Number(shift.openingTime.replace(':', ''));
-            let gClose = Number(globalHours.closingTime.replace(':', ''));
-            if (gClose === 0) gClose = 2400;
-            const effectiveTNum = tNum === 0 ? 2400 : tNum;
-            return effectiveTNum > sOpen && effectiveTNum <= gClose;
-          }).map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
-        </Select>
-      </FormControl>
-    </Box>
-    
-    <Box>
-      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Intervalo</Typography>
-      <FormControl size="small">
-        <Select 
-          value={shift.interval} 
-          onChange={(e) => updateShiftConfig(day, shift.id, 'interval', parseInt(e.target.value))}
-          sx={{ height: 36, minWidth: 90, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
-        >
-          {INTERVAL_OPTIONS.map(i => <MenuItem key={i} value={i}>{i} min</MenuItem>)}
-        </Select>
-      </FormControl>
-    </Box>
-    
-    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
-      <Button 
-        variant="outlined" 
-        disabled={!isValid}
-        onClick={() => handleRegenerateSlots(day, shift.id)}
-        sx={{ 
-          height: 36, px: '16px', borderRadius: '4px', color: '#1A73E8', borderColor: '#1A73E8',
-          fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none',
-          '&.Mui-disabled': { borderColor: '#E0E0E0', color: '#BDBDBD' }
-        }}
-        startIcon={<span className="material-icons" style={{ fontSize: 16 }}>refresh</span>}
-      >
-        Regenerar slots
-      </Button>
-    </Box>
-  </Box>
-  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A', mt: '8px' }}>
-    Horario permitido: {globalHours.openingTime} – {globalHours.closingTime}
-  </Typography>
-</Box>
-
+                                <Box sx={{ 
+                                  display: 'grid', 
+                                  [DESKTOP]: { gridTemplateColumns: 'min-content min-content min-content auto', gap: '24px', alignItems: 'flex-end' },
+                                  [TABLET]: { gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'flex-end' },
+                                  [MOBILE]: { gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'flex-end' }
+                                }}>
+                                  <Box sx={{ width: '100%' }}>
+                                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Apertura</Typography>
+                                    <FormControl size="small" sx={{ width: '100%' }}>
+                                      <Select value={shift.openingTime} onChange={(e) => updateShiftConfig(day, shift.id, 'openingTime', e.target.value)} sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
+                                        {TIME_OPTIONS.filter(t => {
+                                          const tNum = Number(t.replace(':', ''));
+                                          const gOpen = Number(globalHours.openingTime.replace(':', ''));
+                                          let gClose = Number(globalHours.closingTime.replace(':', ''));
+                                          if (gClose === 0) gClose = 2400;
+                                          return tNum >= gOpen && tNum < gClose;
+                                        }).map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                                      </Select>
+                                    </FormControl>
+                                  </Box>
+                                  <Box sx={{ width: '100%' }}>
+                                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Cierre</Typography>
+                                    <FormControl size="small" sx={{ width: '100%' }}>
+                                      <Select value={shift.closingTime} onChange={(e) => updateShiftConfig(day, shift.id, 'closingTime', e.target.value)} sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
+                                        {TIME_OPTIONS.filter(t => {
+                                          const tNum = Number(t.replace(':', ''));
+                                          const sOpen = Number(shift.openingTime.replace(':', ''));
+                                          let gClose = Number(globalHours.closingTime.replace(':', ''));
+                                          if (gClose === 0) gClose = 2400;
+                                          return (tNum === 0 ? 2400 : tNum) > sOpen && (tNum === 0 ? 2400 : tNum) <= gClose;
+                                        }).map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                                      </Select>
+                                    </FormControl>
+                                  </Box>
+                                  <Box sx={{ width: '100%' }}>
+                                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Intervalo</Typography>
+                                    <FormControl size="small" sx={{ width: '100%' }}>
+                                      <Select value={shift.interval} onChange={(e) => updateShiftConfig(day, shift.id, 'interval', parseInt(e.target.value))}  sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
+                                        {INTERVAL_OPTIONS.map(i => <MenuItem key={i} value={i}>{i} min</MenuItem>)}
+                                      </Select>
+                                    </FormControl>
+                                  </Box>
+                                  <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: { xs: 'center', md: 'flex-end' } }}>
+                                    <Button 
+                                      variant="outlined" disabled={!isValid} onClick={() => handleRegenerateSlots(day, shift.id)}
+                                      sx={{ 
+                                        width: '100%', height: { xs: 52, md: 36 }, borderRadius: '4px', color: '#1A73E8', borderColor: '#1A73E8',
+                                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none',
+                                        '&.Mui-disabled': { borderColor: '#E0E0E0', color: '#BDBDBD' }
+                                      }}
+                                      startIcon={<span className="material-icons" style={{ fontSize: 16 }}>refresh</span>}
+                                    >
+                                      Regenerar slots
+                                    </Button>
+                                  </Box>
+                                </Box>
+                                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A', mt: '8px' }}>
+                                  Horario permitido: {globalHours.openingTime} – {globalHours.closingTime}
+                                </Typography>
                                 {regenMsg?.day === day && regenMsg?.shiftId === shift.id && (
-                                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#1A73E8', transition: 'opacity 0.5s', alignSelf: 'center' }}>
-                                    {regenMsg.msg}
-                                  </Typography>
+                                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#1A73E8', mt: '8px' }}>{regenMsg.msg}</Typography>
                                 )}
                               </Box>
 
-                              {!isValid && (
-                                <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', mt: '8px' }}>
-                                  La hora de cierre debe ser posterior a la apertura
-                                </Typography>
-                              )}
-
-                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', py: '12px' }}>
-                                <Box sx={{ display: 'flex', gap: '24px' }}>
-                                  <Button sx={{ p: 0, textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px' }} onClick={() => toggleAllWeekly(day, shift.id, true)}>
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', py: '12px' }}>
+                                <Box sx={{ 
+                                  display: 'flex', 
+                                  [DESKTOP]: { gap: '24px' }, [TABLET]: { gap: '24px' }, [MOBILE]: { gap: '8px', width: '100%', flexDirection: 'column' }
+                                }}>
+                                  <Button sx={{ 
+                                    textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', 
+                                    [MOBILE]: { width: '100%', height: 44, border: '1px solid currentColor' },
+                                    [TABLET]: { p: 0 }, [DESKTOP]: { p: 0 } 
+                                  }} onClick={() => toggleAllWeekly(day, shift.id, true)}>
                                     Abrir todos
                                   </Button>
-                                  <Button sx={{ p: 0, textTransform: 'none', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px' }} onClick={() => toggleAllWeekly(day, shift.id, false)}>
+                                  <Button sx={{ 
+                                    textTransform: 'none', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px',
+                                    [MOBILE]: { width: '100%', height: 44, border: '1px solid currentColor' },
+                                    [TABLET]: { p: 0 }, [DESKTOP]: { p: 0 }
+                                  }} onClick={() => toggleAllWeekly(day, shift.id, false)}>
                                     Cerrar todos
                                   </Button>
                                 </Box>
                               </Box>
 
-                              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', mt: '12px' }}>
+                              <Box sx={{ 
+                                display: 'grid', 
+                                [DESKTOP]: { gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', mt: '12px' },
+                                [TABLET]: { gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', mt: '12px' },
+                                [MOBILE]: { gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', mt: '12px' }
+                              }}>
                                 {Object.keys(shift.slots).sort().map(time => {
                                   const isOpen = shift.slots[time];
                                   return (
                                     <Box 
-                                      key={time}
-                                      onClick={() => toggleSlotWeekly(day, shift.id, time) }
+                                      key={time} onClick={() => toggleSlotWeekly(day, shift.id, time) }
                                       sx={{
-                                        width: '100%', height: 40, borderRadius: '4px',
+                                        width: '100%', height: { xs: 44, md: 40 }, borderRadius: '4px',
                                         display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
                                         bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
                                         border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
                                         color: isOpen ? '#1A73E8' : '#BDBDBD', userSelect: 'none',
                                       }}
                                     >
-                                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>{time}</Typography>
+                                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '13px', md: '14px' } }}>{time}</Typography>
                                     </Box>
                                   );
                                 })}
@@ -735,19 +695,13 @@ export default function CalendarPanel() {
                           );
                         })}
 
-                        {hasOverlap && (
-                          <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', textAlign: 'center' }}>
-                            El turno 2 se solapa con el turno 1
-                          </Typography>
-                        )}
+                        {hasOverlap && <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', textAlign: 'center' }}>El turno 2 se solapa</Typography>}
 
                         {dayConfig.shifts.length === 1 && (
                           <Box sx={{ display: 'flex' }}>
                              <Button 
-                               variant="outlined" 
-                               onClick={() => addShift(day)}
-                               startIcon={<span className="material-icons" style={{ fontSize: 16 }}>add</span>}
-                               sx={{ height: 36, px: '16px', borderRadius: '4px', color: '#1A73E8', borderColor: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none' }}
+                               variant="outlined" onClick={() => addShift(day)} startIcon={<span className="material-icons" style={{ fontSize: 16 }}>add</span>}
+                               sx={{ height: 44, px: '16px', borderRadius: '4px', color: '#1A73E8', borderColor: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none', [MOBILE]: { width: '100%' } }}
                              >
                                Añadir turno 2
                              </Button>
@@ -760,15 +714,14 @@ export default function CalendarPanel() {
               );
             })}
 
-            <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+            <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end', [MOBILE]: { mt: '16px' } }}>
               <Button 
-                variant="contained" 
-                onClick={manualSave} 
-                disabled={saving} 
+                variant="contained" onClick={manualSave} disabled={saving} 
                 sx={{ 
-                  height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+                  height: { xs: 44, md: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
                   fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
-                  '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+                  '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
+                  [MOBILE]: { width: '100%' }
                 }}
               >
                 {saving ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR PLANTILLA'}
@@ -779,9 +732,19 @@ export default function CalendarPanel() {
 
         {/* --- TAB 3: FECHAS BLOQUEADAS --- */}
         {currentTab === 2 && (
-          <Box sx={{ p: '24px', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+          <Box sx={{ 
+            display: 'flex', alignItems: 'flex-start',
+            [DESKTOP]: { gap: '24px', flexDirection: 'row', p: '24px' },
+            [TABLET]: { gap: '24px', flexDirection: 'column', p: '24px' },
+            [MOBILE]: { gap: '24px', flexDirection: 'column', p: '16px' }
+          }}>
             
-            <Paper sx={{ width: 400, flexShrink: 0, p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+            <Paper sx={{ 
+              flexShrink: 0, p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none',
+              [DESKTOP]: { width: 400 },
+              [TABLET]: { width: '100%' },
+              [MOBILE]: { width: '100%', p: '16px' }
+            }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: '24px' }}>
                 <IconButton onClick={() => changeBlockMonth(-1)} size="small" sx={{ color: '#70757A' }}>
                   <span className="material-icons" style={{ fontSize: 20 }}>keyboard_arrow_left</span>
@@ -798,13 +761,12 @@ export default function CalendarPanel() {
               
               <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end' }}>
                 <Button 
-                  variant="contained" 
-                  onClick={manualSave} 
-                  disabled={saving} 
+                  variant="contained" onClick={manualSave} disabled={saving} 
                   sx={{ 
-                    height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+                    height: { xs: 44, md: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
                     fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
-                    '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+                    '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
+                    [MOBILE]: { width: '100%' }
                   }}
                 >
                   {saving ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR FECHAS'}
@@ -812,7 +774,7 @@ export default function CalendarPanel() {
               </Box>
             </Paper>
 
-            <Box sx={{ flex: 1, minHeight: 100 }}>
+            <Box sx={{ flex: 1, minHeight: 100, width: '100%' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#70757A', mb: '16px', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>
                 Fechas Bloqueadas
               </Typography>
@@ -825,7 +787,7 @@ export default function CalendarPanel() {
                     const d = new Date(dateStr);
                     const label = `${DAY_LABELS[dayNameMapping[d.getDay()]]}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
                     return (
-                      <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '16px', borderBottom: idx < config.blockedDays.length - 1 ? '1px solid #E0E0E0' : 'none' }}>
+                      <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '16px', height: 48, borderBottom: idx < config.blockedDays.length - 1 ? '1px solid #E0E0E0' : 'none', boxSizing: 'border-box' }}>
                         <Typography sx={{ fontFamily: 'Roboto', color: '#202124', fontSize: '14px' }}>{label}</Typography>
                         <IconButton size="small" onClick={() => toggleBlockDate(new Date(dateStr))} sx={{ color: '#D93025' }}>
                           <span className="material-icons" style={{ fontSize: 20 }}>close</span>
@@ -842,14 +804,8 @@ export default function CalendarPanel() {
       </Paper>
 
       <Snackbar
-        open={toastOpen}
-        autoHideDuration={2000}
-        onClose={() => setToastOpen(false)}
-        message="Cambios guardados"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        ContentProps={{
-          sx: { bgcolor: '#323232', color: '#FFFFFF', borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px' }
-        }}
+        open={toastOpen} autoHideDuration={2000} onClose={() => setToastOpen(false)} message="Cambios guardados" anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        ContentProps={{ sx: { bgcolor: '#323232', color: '#FFFFFF', borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px' } }}
       />
     </Box>
   );

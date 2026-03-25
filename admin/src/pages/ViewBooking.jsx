@@ -26,7 +26,7 @@ export default function ViewBooking() {
 
   return (
     <Box sx={{ width: '100%', bgcolor: '#F1F3F4', minHeight: '100vh', boxSizing: 'border-box' }}>
-      <Box sx={{ width: '100%', p: '24px', boxSizing: 'border-box' }}>
+      <Box sx={{ width: '100%', p: { xs: '16px', md: '24px' }, boxSizing: 'border-box' }}>
         
         {/* TOP BAR */}
         <Box sx={{ mb: '24px' }}>
@@ -37,7 +37,7 @@ export default function ViewBooking() {
             sx={{ 
               color: '#1A73E8', textTransform: 'uppercase', fontFamily: 'Roboto', 
               fontWeight: 500, fontSize: '13px', letterSpacing: '1.25px', padding: 0,
-              minWidth: 0, 
+              minWidth: 0, minHeight: { xs: 44, md: 36 },
               '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
             }}
           >
@@ -52,8 +52,8 @@ export default function ViewBooking() {
           <Paper sx={{ flex: 1, bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px', boxShadow: 'none' }}>
             
             {/* Card Header */}
-            <Box sx={{ px: '24px', py: '20px', borderBottom: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
+            <Box sx={{ px: { xs: '16px', md: '24px' }, py: '20px', borderBottom: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '18px', md: '20px' }, color: '#202124' }}>
                 Reserva #{resData.reservation_id || id}
               </Typography>
               <Box sx={{ bgcolor: statusColors.bg, color: statusColors.text, borderRadius: '4px', px: '12px', py: '6px' }}>
@@ -64,34 +64,34 @@ export default function ViewBooking() {
             </Box>
 
             {/* Card Body */}
-            <Box sx={{ p: '24px' }}>
+            <Box sx={{ p: { xs: '16px', md: '24px' } }}>
               
               {/* Section 1 - Detalles */}
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '16px' }}>
                 Detalles de la reserva
               </Typography>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0' }}>
-                <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pr: '12px' }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: '0' }}>
+                <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pr: { md: '12px' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Fecha y hora</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
                     {resData.date || 'N/A'} · {resData.time || 'N/A'}
                   </Typography>
                 </Box>
-                <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pl: '12px' }}>
+                <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pl: { md: '12px' }, pt: { xs: '20px', md: 0 } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Número de personas</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
                     {resData.guests || 0} personas
                   </Typography>
                 </Box>
                 
-                <Box sx={{ pb: '20px', pt: '20px', pr: '12px' }}>
+                <Box sx={{ pb: { xs: '20px', md: 0 }, pt: '20px', pr: { md: '12px' }, borderBottom: { xs: '1px solid #E0E0E0', md: 'none' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Sala</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
                     {resData.table_type || 'General'}
                   </Typography>
                 </Box>
-                <Box sx={{ pb: '20px', pt: '20px', pl: '12px' }}>
+                <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Estado</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px', textTransform: 'capitalize' }}>
                     {resData.status || 'Pending'}
@@ -100,7 +100,7 @@ export default function ViewBooking() {
               </Box>
 
               {/* Section 2 - Notas especiales */}
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mt: '8px', mb: '16px' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mt: { xs: '24px', md: '32px' }, mb: '16px' }}>
                 Notas especiales
               </Typography>
               <Box sx={{ bgcolor: '#F8F9FA', borderRadius: '4px', p: '12px' }}>
@@ -116,10 +116,10 @@ export default function ViewBooking() {
               </Box>
 
               {/* Card Footer */}
-              <Box sx={{ borderTop: '1px solid #E0E0E0', pt: '16px', mt: '8px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <Box sx={{ borderTop: '1px solid #E0E0E0', pt: '16px', mt: '24px', display: 'flex', flexDirection: { xs: 'column-reverse', md: 'row' }, justifyContent: 'flex-end', gap: '8px' }}>
                  <Button 
                    variant="outlined"
-                   sx={{ height: 36, borderRadius: '4px', border: '1px solid #D93025', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px' }}
+                   sx={{ width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 }, borderRadius: '4px', border: '1px solid #D93025', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px' }}
                  >
                    Cancelar Reserva
                  </Button>
@@ -127,7 +127,7 @@ export default function ViewBooking() {
                    variant="contained"
                    onClick={() => navigate(`/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
                    disabled={!resData.id}
-                   sx={{ height: 36, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', boxShadow: 'none', px: '16px', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' } }}
+                   sx={{ width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 }, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', boxShadow: 'none', px: '16px', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' } }}
                  >
                    <span className="material-icons" style={{ fontSize: 16, marginRight: 8 }}>edit</span>
                    Editar Reserva
@@ -158,20 +158,16 @@ export default function ViewBooking() {
                         {resData.customer.name}
                       </Typography>
                       {resData.customer.email && (
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>
-                          {resData.customer.email}
-                        </Typography>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>{resData.customer.email}</Typography>
                       )}
                       {resData.customer.phone && (
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>
-                          {resData.customer.phone}
-                        </Typography>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>{resData.customer.phone}</Typography>
                       )}
                     </Box>
                   </Box>
                   <Button 
                     disableRipple
-                    sx={{ mt: '16px', p: 0, minWidth: 0, color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none', '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
+                    sx={{ mt: '16px', p: 0, minHeight: { xs: 44, md: 'auto' }, minWidth: 0, color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none', '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
                   >
                     Ver perfil completo →
                   </Button>
@@ -179,12 +175,10 @@ export default function ViewBooking() {
               ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <span className="material-icons" style={{ fontSize: 32, color: '#BDBDBD' }}>person_off</span>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px', textAlign: 'center' }}>
-                    Sin cliente asignado
-                  </Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px', textAlign: 'center' }}>Sin cliente asignado</Typography>
                   <Button 
                     variant="outlined"
-                    sx={{ mt: '12px', height: 36, borderRadius: '4px', borderColor: '#1A73E8', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px' }}
+                    sx={{ mt: '12px', width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 }, borderRadius: '4px', borderColor: '#1A73E8', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px' }}
                   >
                     Asignar Cliente
                   </Button>
@@ -199,40 +193,24 @@ export default function ViewBooking() {
             <Box sx={{ p: '16px' }}>
               {resData.created_at ? (
                 <Box sx={{ position: 'relative', pl: '16px' }}>
-                  {/* Vertical Line */}
                   <Box sx={{ position: 'absolute', left: 3, top: 4, bottom: 4, width: '1px', bgcolor: '#E0E0E0' }} />
-                  
-                  {/* Event Node */}
                   <Box sx={{ position: 'relative', mb: '16px' }}>
                     <Box sx={{ position: 'absolute', left: '-16px', top: '5px', width: 8, height: 8, borderRadius: '50%', bgcolor: '#1A73E8' }} />
-                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#202124' }}>
-                      Reserva creada
-                    </Typography>
-                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>
-                      {resData.created_at}
-                    </Typography>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#202124' }}>Reserva creada</Typography>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>{resData.created_at}</Typography>
                   </Box>
-                  
-                  {/* Mock Event 2 (shows how list handles gap) */}
                   <Box sx={{ position: 'relative' }}>
                     <Box sx={{ position: 'absolute', left: '-16px', top: '5px', width: 8, height: 8, borderRadius: '50%', bgcolor: '#1A73E8' }} />
-                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#202124' }}>
-                      Estado cambiado a {resData.status || 'Pending'}
-                    </Typography>
-                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>
-                      {resData.created_at}
-                    </Typography>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#202124' }}>Estado cambiado a {resData.status || 'Pending'}</Typography>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>{resData.created_at}</Typography>
                   </Box>
                 </Box>
               ) : (
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>
-                  Sin actividad registrada
-                </Typography>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>Sin actividad registrada</Typography>
               )}
             </Box>
 
           </Paper>
-
         </Box>
       </Box>
     </Box>
