@@ -161,6 +161,20 @@ class ReservationController extends Controller
     // Admin: Full update of reservation details
     public function update(Request $request, $id)
     {
+        $reservation = Reservation::findOrFail($id);
+
+        // Allow partial PATCH for status only
+        if ($request->isMethod('patch') && $request->has('status') && count($request->all()) === 1) {
+            $validated = $request->validate([
+                'status' => 'required|in:pending,confirmed,cancelled,no_show'
+            ]);
+            $reservation->update(['status' => $validated['status']]);
+            return response()->json([
+                'success' => true,
+                'data' => $reservation->load('customer')
+            ]);
+        }
+
         $validated = $request->validate([
             'date' => 'required|date',
             'time' => 'required|string',
