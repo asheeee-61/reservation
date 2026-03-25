@@ -35,8 +35,9 @@ export default function NewBooking() {
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [newBooking, setNewBooking] = useState({
-    name: '', phone: '', date: todayStr, time: '', guests: 2, notes: ''
+    name: '', phone: '', date: todayStr, time: '', guests: 2, notes: '', table_type_id: ''
   });
+  const [tableTypes, setTableTypes] = useState([]);
 
   // DatePicker state
   const [anchorEl, setAnchorEl] = useState(null);
@@ -45,7 +46,21 @@ export default function NewBooking() {
 
   useEffect(() => {
     fetchGlobalHours();
+    fetchTableTypes();
   }, [fetchGlobalHours]);
+
+  const fetchTableTypes = async () => {
+    try {
+      const data = await apiClient('/admin/table-types');
+      const active = data.filter(t => t.is_active);
+      setTableTypes(active);
+      if (active.length > 0) {
+        setNewBooking(prev => ({ ...prev, table_type_id: active[0].id }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Set default guests when loaded
   useEffect(() => {
@@ -92,8 +107,9 @@ export default function NewBooking() {
   const isDateInvalid = !newBooking.date || isBlockedDay;
   const isNameInvalid = !newBooking.name.trim();
   const isTimeInvalid = !newBooking.time || !allAvailableSlots.includes(newBooking.time);
+  const isTableTypeInvalid = !newBooking.table_type_id;
 
-  const isFormValid = !isGuestsInvalid && !isDateInvalid && !isTimeInvalid && !isNameInvalid;
+  const isFormValid = !isGuestsInvalid && !isDateInvalid && !isTimeInvalid && !isNameInvalid && !isTableTypeInvalid;
 
   const handleAddBooking = async () => {
     if (!isFormValid) return;
@@ -115,7 +131,8 @@ export default function NewBooking() {
             phone: newBooking.phone,
             email: '',
             specialRequests: newBooking.notes
-          }
+          },
+          table_type_id: newBooking.table_type_id
         })
       });
 
@@ -380,6 +397,28 @@ export default function NewBooking() {
                  InputProps={{ sx: { minHeight: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
                />
             </Box>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Box sx={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column' }}>
+              <FormControl fullWidth>
+                <InputLabel sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>Tipo de Mesa *</InputLabel>
+                <Select
+                  required
+                  value={newBooking.table_type_id}
+                  label="Tipo de Mesa *"
+                  onChange={e => setNewBooking({...newBooking, table_type_id: e.target.value})}
+                  sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}
+                >
+                  {tableTypes.map(type => (
+                    <MenuItem key={type.id} value={type.id} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
+                      {type.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ flex: 1 }} />
           </Box>
           
           <TextField 

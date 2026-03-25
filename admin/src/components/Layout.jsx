@@ -12,6 +12,7 @@ export default function Layout() {
     { text: 'Dashboard', icon: 'dashboard', path: '/' },
     { text: 'Reservations', icon: 'event', path: '/reservations' },
     { text: 'Customers', icon: 'group', path: '/customers' },
+    { text: 'Tipos de Mesa', icon: 'table_restaurant', path: '/table-types' },
     { text: 'Calendar', icon: 'calendar_month', path: '/calendar' },
     { text: 'Settings', icon: 'settings', path: '/settings' }
   ];
@@ -25,6 +26,7 @@ export default function Layout() {
     if (path === '/') return 'Dashboard';
     if (path.startsWith('/reservations')) return 'Reservations';
     if (path.startsWith('/customers')) return 'Customers';
+    if (path.startsWith('/table-types')) return 'Tipos de Mesa';
     if (path.startsWith('/calendar')) return 'Calendar';
     if (path.startsWith('/settings')) return 'Settings';
     return 'Restaurant Admin';

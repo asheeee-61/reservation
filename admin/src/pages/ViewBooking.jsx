@@ -128,9 +128,9 @@ export default function ViewBooking() {
                 </Box>
                 
                 <Box sx={{ pb: { xs: '20px', md: 0 }, pt: '20px', pr: { md: '12px' }, borderBottom: { xs: '1px solid #E0E0E0', md: 'none' } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Sala</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Tipo de Mesa</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
-                    {resData.table_type || 'General'}
+                    {resData.table_type?.name || 'Sin tipo asignado'}
                   </Typography>
                 </Box>
                 <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>

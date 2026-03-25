@@ -142,6 +142,7 @@ export default function Reservations() {
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>ID</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Customer</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Date & Time</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Tipo de Mesa</TableCell>
               <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Guests</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Status</TableCell>
               <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Actions</TableCell>
@@ -171,6 +172,9 @@ export default function Reservations() {
                 <TableCell>
                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.date}</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' }}>{res.time}</Typography>
+                </TableCell>
+                <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
+                  {res.table_type?.name || 'Sin tipo'}
                 </TableCell>
                 <TableCell align="center" sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.guests}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
@@ -269,7 +273,7 @@ export default function Reservations() {
                 {res.date} · {res.time}
               </Typography>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>
-                {res.guests} personas · {res.table_type || 'General'}
+                {res.guests} personas · {res.table_type?.name || 'Sin tipo'}
               </Typography>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#1A73E8', mt: '4px' }}>
                 Cliente: {res.customer?.name || 'N/A'} →

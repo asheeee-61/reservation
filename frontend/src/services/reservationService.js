@@ -59,3 +59,13 @@ export const createReservation = async (reservationData) => {
     return { success: false, message: e.message || 'API error' };
   }
 };
+export const getTableTypes = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/table-types`);
+    if (!res.ok) throw new Error('Failed to fetch table types');
+    return res.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};

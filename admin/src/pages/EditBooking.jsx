@@ -26,8 +26,22 @@ export default function EditBooking() {
     time: resData.time || '', 
     guests: resData.guests || 2, 
     special_requests: resData.special_requests || '',
-    status: resData.status || 'pending'
+    status: resData.status || 'pending',
+    table_type_id: resData.table_type_id || ''
   });
+  const [tableTypes, setTableTypes] = useState([]);
+
+  useState(() => {
+    const fetchTableTypes = async () => {
+      try {
+        const data = await apiClient('/admin/table-types');
+        setTableTypes(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchTableTypes();
+  }, []);
 
   const handleSaveBooking = async () => {
     setLoading(true);
@@ -137,6 +151,22 @@ export default function EditBooking() {
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
             InputProps={{ sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' } }}
           />
+
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>Tipo de Mesa *</InputLabel>
+            <Select
+              value={editBooking.table_type_id}
+              label="Tipo de Mesa *"
+              onChange={e => setEditBooking({...editBooking, table_type_id: e.target.value})}
+              sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
+            >
+              {tableTypes.map(type => (
+                <MenuItem key={type.id} value={type.id} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
+                  {type.name} {!type.is_active && '(Inactivo)'}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           
           <TextField 
             fullWidth label="Notes / Special Requests" multiline rows={3}
@@ -156,7 +186,7 @@ export default function EditBooking() {
             <Button 
               variant="contained" 
               onClick={handleSaveBooking} 
-              disabled={loading || !editBooking.name || !editBooking.date || !editBooking.time}
+              disabled={loading || !editBooking.name || !editBooking.date || !editBooking.time || !editBooking.table_type_id}
               sx={{ 
                 height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
                 fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
