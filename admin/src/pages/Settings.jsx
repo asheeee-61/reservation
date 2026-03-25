@@ -20,6 +20,11 @@ const TIME_OPTIONS = (() => {
 const DAY_LABELS = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' };
 
 export default function Settings() {
+  const toMinutes = (time) => {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  };
+
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -70,20 +75,21 @@ export default function Settings() {
   const handleSaveGlobalHours = () => {
     const newConflicts = [];
     if (config?.schedule) {
-      const gOpen = Number(localGlobal.openingTime.replace(':', ''));
-      const gClose = Number(localGlobal.closingTime.replace(':', ''));
-      const adjustedGClose = gClose === 0 ? 2400 : gClose;
+      const gOpenMins = toMinutes(localGlobal.openingTime);
+      let gCloseMins = toMinutes(localGlobal.closingTime);
+      if (gCloseMins <= gOpenMins) gCloseMins += 1440;
 
       Object.keys(config.schedule).forEach(day => {
         const dayConfig = config.schedule[day];
         if (dayConfig.shifts) {
           dayConfig.shifts.forEach((shift, idx) => {
-            const sOpen = Number(shift.openingTime.replace(':', ''));
-            let sClose = Number(shift.closingTime.replace(':', ''));
-            if (sClose === 0) sClose = 2400;
+            const sOpenMins = toMinutes(shift.openingTime);
+            let sCloseMins = toMinutes(shift.closingTime);
+            if (sCloseMins <= sOpenMins) sCloseMins += 1440;
 
-            if (sOpen < gOpen || sClose > adjustedGClose || sClose < sOpen) {
-              newConflicts.push({ day, shiftId: shift.id, text: `${DAY_LABELS[day]} Turno ${idx + 1}: ${shift.openingTime} – ${shift.closingTime}` });
+            if (sOpenMins < gOpenMins || sCloseMins > gCloseMins) {
+              const suffix = toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? ' (+1)' : '';
+              newConflicts.push({ day, shiftId: shift.id, text: `${DAY_LABELS[day]} Turno ${idx + 1}: ${shift.openingTime} – ${shift.closingTime}${suffix}` });
             }
           });
         }
@@ -263,14 +269,29 @@ export default function Settings() {
                 onChange={(e) => setLocalGlobal({ ...localGlobal, closingTime: e.target.value })}
                 sx={{ height: { xs: 52, sm: 40 }, borderRadius: '4px', fontFamily: 'Roboto', fontSize: { xs: '16px', sm: '14px' }, color: '#202124' }}
               >
-                {TIME_OPTIONS.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                {TIME_OPTIONS.map(t => {
+                  const isNextDay = toMinutes(t) <= toMinutes(localGlobal.openingTime);
+                  return (
+                    <MenuItem key={t} value={t}>
+                      {t}
+                    </MenuItem>
+                  );
+                })}
               </Select>
             </FormControl>
-            {Number(localGlobal.closingTime.replace(':', '')) !== 0 && Number(localGlobal.closingTime.replace(':', '')) <= Number(localGlobal.openingTime.replace(':', '')) && (
-              <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', mt: '4px', position: { sm: 'absolute' } }}>
-                El cierre debe ser posterior a la apertura
-              </Typography>
-            )}
+            {(() => {
+              let cMins = toMinutes(localGlobal.closingTime);
+              if (cMins <= toMinutes(localGlobal.openingTime)) cMins += 1440;
+              const span = cMins - toMinutes(localGlobal.openingTime);
+              if (span < 60) {
+                return (
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', mt: '4px', position: { sm: 'absolute' } }}>
+                    El horario debe abarcar al menos 1 hora
+                  </Typography>
+                );
+              }
+              return null;
+            })()}
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Intervalo base</Typography>
@@ -288,12 +309,12 @@ export default function Settings() {
 
         <Box sx={{ mt: { xs: '24px', sm: '12px' }, p: '12px', bgcolor: '#E8F0FE', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', mb: '24px' }}>
           <span className="material-icons" style={{ fontSize: 16, color: '#1A73E8' }}>info</span>
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#1A73E8' }}>Los turnos en el calendario no podrán configurarse fuera de este horario.</Typography>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#1A73E8' }}>Horario permitido: {localGlobal.openingTime} – {localGlobal.closingTime} {toMinutes(localGlobal.closingTime) <= toMinutes(localGlobal.openingTime) ? '(+1)' : ''}</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button 
-            variant="contained" onClick={handleSaveGlobalHours} disabled={savingGlobal || (Number(localGlobal.closingTime.replace(':', '')) !== 0 && Number(localGlobal.closingTime.replace(':', '')) <= Number(localGlobal.openingTime.replace(':', '')))}
+            variant="contained" onClick={handleSaveGlobalHours} disabled={savingGlobal || (() => { let c = toMinutes(localGlobal.closingTime); if (c <= toMinutes(localGlobal.openingTime)) c += 1440; return (c - toMinutes(localGlobal.openingTime)) < 60; })()}
             sx={{ 
               width: { xs: '100%', sm: 'auto' }, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
               fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',

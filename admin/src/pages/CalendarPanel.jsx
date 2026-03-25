@@ -23,6 +23,17 @@ const TIME_OPTIONS = (() => {
 })();
 
 export default function CalendarPanel() {
+  const toMinutes = (time) => {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  };
+  const toTimeString = (minutes) => {
+    const normalized = minutes % 1440;
+    const h = Math.floor(normalized / 60);
+    const m = normalized % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+
   const globalHours = useSettingsStore(state => state.globalHours);
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const [loading, setLoading] = useState(true);
@@ -95,18 +106,26 @@ export default function CalendarPanel() {
     for (const day of DAYS) {
       const shifts = config.schedule[day].shifts;
       for (const shift of shifts) {
-        const [oH, oM] = shift.openingTime.split(':').map(Number);
-        const [cH, cM] = shift.closingTime.split(':').map(Number);
-        if (cH * 60 + cM <= oH * 60 + oM) {
-          setToastMessage(`El turno en ${DAY_LABELS[day]} tiene horas inválidas.`);
+        const oMins = toMinutes(shift.openingTime);
+        let cMins = toMinutes(shift.closingTime);
+        if (cMins <= oMins) cMins += 1440;
+        if (cMins - oMins < 30) {
+          setToastMessage(`El turno en ${DAY_LABELS[day]} debe durar al menos 30 minutos.`);
           setToastOpen(true);
           return;
         }
       }
       if (shifts.length === 2) {
-        const c1 = Number(shifts[0].closingTime.split(':')[0]) * 60 + Number(shifts[0].closingTime.split(':')[1]);
-        const o2 = Number(shifts[1].openingTime.split(':')[0]) * 60 + Number(shifts[1].openingTime.split(':')[1]);
-        if (o2 <= c1) {
+        let s1Open  = toMinutes(shifts[0].openingTime);
+        let s1Close = toMinutes(shifts[0].closingTime);
+        let s2Open  = toMinutes(shifts[1].openingTime);
+        let s2Close = toMinutes(shifts[1].closingTime);
+
+        if (s1Close <= s1Open) s1Close += 1440;
+        if (s2Close <= s2Open) s2Close += 1440;
+        if (s2Open < s1Open) { s2Open += 1440; s2Close += 1440; }
+
+        if (s2Open < s1Close) {
           setToastMessage(`Hay turnos solapados en ${DAY_LABELS[day]}. Corrígelos antes de guardar.`);
           setToastOpen(true);
           return;
@@ -203,16 +222,13 @@ export default function CalendarPanel() {
       const dayConf = prev.schedule[day];
       const shift = dayConf.shifts.find(s => s.id === shiftId);
       
-      const [openH, openM] = shift.openingTime.split(':').map(Number);
-      const [closeH, closeM] = shift.closingTime.split(':').map(Number);
-      const openMin = openH * 60 + openM;
-      const closeMin = closeH * 60 + closeM;
+      const openMin = toMinutes(shift.openingTime);
+      let closeMin = toMinutes(shift.closingTime);
+      if (closeMin <= openMin) closeMin += 1440;
       
       const newSlots = {};
       for (let t = openMin; t <= closeMin; t += shift.interval) {
-        const h = String(Math.floor(t / 60)).padStart(2, '0');
-        const m = String(t % 60).padStart(2, '0');
-        newSlots[`${h}:${m}`] = true;
+        newSlots[toTimeString(t)] = true;
       }
       
       setRegenMsg({ day, shiftId, msg: `✓ ${Object.keys(newSlots).length} franjas generadas (${shift.interval} min)` });
@@ -226,15 +242,12 @@ export default function CalendarPanel() {
   const copyMondayToAll = () => {
     const monShifts = config.schedule.monday.shifts;
     const generateSlots = (shift) => {
-      const [openH, openM] = shift.openingTime.split(':').map(Number);
-      const [closeH, closeM] = shift.closingTime.split(':').map(Number);
-      const openMin = openH * 60 + openM;
-      const closeMin = closeH * 60 + closeM;
+      const openMin = toMinutes(shift.openingTime);
+      let closeMin = toMinutes(shift.closingTime);
+      if (closeMin <= openMin) closeMin += 1440;
       const newSlots = {};
       for (let t = openMin; t <= closeMin; t += shift.interval) {
-        const h = String(Math.floor(t / 60)).padStart(2, '0');
-        const m = String(t % 60).padStart(2, '0');
-        newSlots[`${h}:${m}`] = true;
+        newSlots[toTimeString(t)] = true;
       }
       return { ...shift, slots: newSlots };
     };
@@ -457,7 +470,7 @@ export default function CalendarPanel() {
               <Box key={shift.id} sx={{ mb: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', mr: 2 }}>
-                    Turno {idx + 1} ({shift.openingTime} – {shift.closingTime})
+                    Turno {idx + 1} ({shift.openingTime} – {shift.closingTime} {toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? '(+1)' : ''})
                   </Typography>
                   <Box sx={{ flexGrow: 1, height: '1px', bgcolor: '#E0E0E0' }}></Box>
                 </Box>
@@ -513,13 +526,20 @@ export default function CalendarPanel() {
             {DAYS.map(day => {
               const dayConfig = config.schedule[day];
               const totalOpenCount = dayConfig.shifts.reduce((acc, s) => acc + Object.values(s.slots).filter(Boolean).length, 0);
-              const summaryRanges = dayConfig.shifts.map(s => `${s.openingTime}–${s.closingTime}`).join(' · ');
+              const summaryRanges = dayConfig.shifts.map(s => `${s.openingTime}–${s.closingTime}${toMinutes(s.closingTime) <= toMinutes(s.openingTime) ? ' (+1)' : ''}`).join(' · ');
               const sameInterval = dayConfig.shifts.length > 0 && dayConfig.shifts.every(s => s.interval === dayConfig.shifts[0].interval);
               const summaryInterval = sameInterval && dayConfig.shifts.length > 0 ? `${dayConfig.shifts[0].interval}min` : 'Mix';
               const hasOverlap = dayConfig.shifts.length === 2 && (() => {
-                const c1 = Number(dayConfig.shifts[0].closingTime.split(':')[0]) * 60 + Number(dayConfig.shifts[0].closingTime.split(':')[1]);
-                const o2 = Number(dayConfig.shifts[1].openingTime.split(':')[0]) * 60 + Number(dayConfig.shifts[1].openingTime.split(':')[1]);
-                return o2 <= c1;
+                  let s1Open  = toMinutes(dayConfig.shifts[0].openingTime);
+                  let s1Close = toMinutes(dayConfig.shifts[0].closingTime);
+                  let s2Open  = toMinutes(dayConfig.shifts[1].openingTime);
+                  let s2Close = toMinutes(dayConfig.shifts[1].closingTime);
+
+                  if (s1Close <= s1Open) s1Close += 1440;
+                  if (s2Close <= s2Open) s2Close += 1440;
+                  if (s2Open < s1Open) { s2Open += 1440; s2Close += 1440; }
+
+                  return s2Open < s1Close;
               })();
 
               return (
@@ -565,14 +585,15 @@ export default function CalendarPanel() {
                     ) : (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {dayConfig.shifts.map((shift, idx) => {
-                          const [oH, oM] = shift.openingTime.split(':').map(Number);
-                          const [cH, cM] = shift.closingTime.split(':').map(Number);
-                          const isValid = (cH * 60 + cM) > (oH * 60 + oM);
+                          const oMins = toMinutes(shift.openingTime);
+                          let cMins = toMinutes(shift.closingTime);
+                          if (cMins <= oMins) cMins += 1440;
+                          const isValid = (cMins - oMins) >= 30;
 
                           return (
                             <Box key={shift.id} sx={{ bgcolor: '#FFF', border: `1px solid ${!isValid ? '#D93025' : '#E0E0E0'}`, borderRadius: '4px', p: { xs: '12px', md: '16px' } }}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#70757A' }}>Turno {idx + 1}</Typography>
+                                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#70757A' }}>Turno {idx + 1} &nbsp;&nbsp; {shift.openingTime} – {shift.closingTime} <span style={{fontSize: '11px'}}>{toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? '(+1)' : ''}</span></Typography>
                                 {idx === 1 && (
                                   <IconButton size="small" onClick={() => removeShift(day, shift.id)}>
                                     <span className="material-icons" style={{ fontSize: 18, color: '#70757A' }}>close</span>
@@ -592,11 +613,13 @@ export default function CalendarPanel() {
                                     <FormControl size="small" sx={{ width: '100%' }}>
                                       <Select value={shift.openingTime} onChange={(e) => updateShiftConfig(day, shift.id, 'openingTime', e.target.value)} sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
                                         {TIME_OPTIONS.filter(t => {
-                                          const tNum = Number(t.replace(':', ''));
-                                          const gOpen = Number(globalHours.openingTime.replace(':', ''));
-                                          let gClose = Number(globalHours.closingTime.replace(':', ''));
-                                          if (gClose === 0) gClose = 2400;
-                                          return tNum >= gOpen && tNum < gClose;
+                                          const tMins = toMinutes(t);
+                                          const gOpenMins = toMinutes(globalHours.openingTime);
+                                          let gCloseMins = toMinutes(globalHours.closingTime);
+                                          if (gCloseMins <= gOpenMins) gCloseMins += 1440;
+                                          let effT = tMins;
+                                          if (tMins < gOpenMins) effT += 1440;
+                                          return effT >= gOpenMins && effT < gCloseMins;
                                         }).map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
                                       </Select>
                                     </FormControl>
@@ -605,13 +628,16 @@ export default function CalendarPanel() {
                                     <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Cierre</Typography>
                                     <FormControl size="small" sx={{ width: '100%' }}>
                                       <Select value={shift.closingTime} onChange={(e) => updateShiftConfig(day, shift.id, 'closingTime', e.target.value)} sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
-                                        {TIME_OPTIONS.filter(t => {
-                                          const tNum = Number(t.replace(':', ''));
-                                          const sOpen = Number(shift.openingTime.replace(':', ''));
-                                          let gClose = Number(globalHours.closingTime.replace(':', ''));
-                                          if (gClose === 0) gClose = 2400;
-                                          return (tNum === 0 ? 2400 : tNum) > sOpen && (tNum === 0 ? 2400 : tNum) <= gClose;
-                                        }).map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                                        {TIME_OPTIONS.map(t => {
+                                          const tMins = toMinutes(t);
+                                          const sOpenMins = toMinutes(shift.openingTime);
+                                          const isNextDay = tMins <= sOpenMins;
+                                          return (
+                                            <MenuItem key={t} value={t}>
+                                              {t}
+                                            </MenuItem>
+                                          );
+                                        })}
                                       </Select>
                                     </FormControl>
                                   </Box>
@@ -638,7 +664,7 @@ export default function CalendarPanel() {
                                   </Box>
                                 </Box>
                                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A', mt: '8px' }}>
-                                  Horario permitido: {globalHours.openingTime} – {globalHours.closingTime}
+                                  Horario permitido: {globalHours.openingTime} – {globalHours.closingTime} {toMinutes(globalHours.closingTime) <= toMinutes(globalHours.openingTime) ? '(+1)' : ''}
                                 </Typography>
                                 {regenMsg?.day === day && regenMsg?.shiftId === shift.id && (
                                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#1A73E8', mt: '8px' }}>{regenMsg.msg}</Typography>
