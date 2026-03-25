@@ -13,6 +13,9 @@ Route::post('/reservations', [ReservationController::class, 'store']);
 Route::get('/slots', [ReservationController::class, 'availableSlots']);
 // Endpoint for config
 Route::get('/config', [SettingsController::class, 'index']);
+// Endpoint for table types
+use App\Http\Controllers\TableTypeController;
+Route::get('/table-types', [TableTypeController::class, 'publicIndex']);
 
 // Admin Authentication
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -27,6 +30,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/customers/{customer}', [CustomerController::class, 'show']);
     Route::put('/customers/{customer}', [CustomerController::class, 'update']);
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy']);
+
+    Route::get('/table-types', [TableTypeController::class, 'index']);
+    Route::post('/table-types', [TableTypeController::class, 'store']);
+    Route::put('/table-types/{tableType}', [TableTypeController::class, 'update']);
+    Route::delete('/table-types/{tableType}', [TableTypeController::class, 'destroy']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);

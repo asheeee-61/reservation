@@ -17,10 +17,16 @@ class Reservation extends Model
         'guests',
         'special_requests',
         'status',
+        'table_type_id',
     ];
 
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function tableType()
+    {
+        return $this->belongsTo(TableType::class);
     }
 }

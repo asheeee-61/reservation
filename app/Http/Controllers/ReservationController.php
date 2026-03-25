@@ -13,7 +13,7 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         // We will remove pagination for now and return all to avoid breaking React unless we implement pagination
-        $query = Reservation::with('customer')->orderBy('date', 'asc')->get();
+        $query = Reservation::with(['customer', 'tableType'])->orderBy('date', 'asc')->get();
         return response()->json($query);
     }
 
@@ -107,7 +107,8 @@ class ReservationController extends Controller
             'user.name' => 'required|string|max:255',
             'user.email' => 'nullable|email|max:255',
             'user.phone' => 'nullable|string|max:20',
-            'user.specialRequests' => 'nullable|string'
+            'user.specialRequests' => 'nullable|string',
+            'table_type_id' => 'required|exists:table_types,id'
         ]);
 
         $resId = '#' . rand(1000, 9999);
@@ -143,7 +144,8 @@ class ReservationController extends Controller
             'time' => $validated['slot']['time'],
             'guests' => $validated['guests'],
             'special_requests' => $validated['user']['specialRequests'] ?? null,
-            'status' => 'confirmed'
+            'status' => 'confirmed',
+            'table_type_id' => $validated['table_type_id'],
         ]);
 
         // Simulated WhatsApp logging as requested by user
@@ -183,7 +185,8 @@ class ReservationController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'special_requests' => 'nullable|string',
-            'status' => 'required|in:pending,confirmed,cancelled,no_show'
+            'status' => 'required|in:pending,confirmed,cancelled,no_show',
+            'table_type_id' => 'required|exists:table_types,id'
         ]);
 
         $reservation = Reservation::findOrFail($id);
@@ -217,7 +220,8 @@ class ReservationController extends Controller
             'time' => $validated['time'],
             'guests' => $validated['guests'],
             'special_requests' => $validated['special_requests'],
-            'status' => $validated['status']
+            'status' => $validated['status'],
+            'table_type_id' => $validated['table_type_id']
         ]);
 
         return response()->json([
