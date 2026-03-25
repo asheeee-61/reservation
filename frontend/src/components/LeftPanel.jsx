@@ -14,10 +14,10 @@ const formatDateLabel = (dateString) => {
   const tomorrow = new Date();
   tomorrow.setDate(today.getDate() + 1);
   
-  if (selectedDate.toDateString() === today.toDateString()) return "Today";
-  if (selectedDate.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  if (selectedDate.toDateString() === today.toDateString()) return "Hoy";
+  if (selectedDate.toDateString() === tomorrow.toDateString()) return "Mañana";
   
-  return selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return selectedDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 };
 
 export default function LeftPanel({ onContinue }) {
@@ -80,20 +80,20 @@ export default function LeftPanel({ onContinue }) {
         </Typography>
       </Box>
 
-      <Box sx={{ p: { xs: 2, sm: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 4, sm: 6 } }}>
+      <Box sx={{ p: { xs: 2, sm: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4 } }}>
         <Box>
-          <Typography variant="body2" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2, color: '#70757A', fontSize: '14px' }}>
             {config.restaurant.address}
           </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            Select your party size, date, and time.
+          <Typography variant="body2" sx={{ mb: 1, color: '#202124', fontSize: '15px', fontWeight: 500 }}>
+            Elija el número de personas, la fecha y la hora.
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Box sx={{ flexGrow: 1, flexBasis: { xs: '100%', sm: '45%' } }}>
-            <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
-              Guests
+            <Typography variant="body1" sx={{ fontWeight: 500, mb: 1.5, fontSize: '14px', color: '#70757A' }}>
+              Personas
             </Typography>
             <FormControl fullWidth>
               <Select
@@ -101,11 +101,11 @@ export default function LeftPanel({ onContinue }) {
                 onChange={(e) => setGuests(e.target.value)}
                 IconComponent={(props) => <span {...props} className={"material-icons " + props.className} style={{ color: '#70757A' }}>arrow_drop_down</span>}
                 sx={{ 
-                  height: 36,
+                  height: 48,
                   borderRadius: '4px',
                   bgcolor: '#FFFFFF',
                   color: '#202124',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#DADCE0', borderWidth: '1px' },
                   '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#DADCE0' },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1A73E8', borderWidth: '2px' }
@@ -119,8 +119,8 @@ export default function LeftPanel({ onContinue }) {
           </Box>
 
           <Box sx={{ flexGrow: 1, flexBasis: { xs: '100%', sm: '45%' }, position: 'relative' }}>
-            <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
-              Date
+            <Typography variant="body1" sx={{ fontWeight: 500, mb: 1.5, fontSize: '14px', color: '#70757A' }}>
+              Fecha
             </Typography>
             <Button
               variant="outlined"
@@ -128,7 +128,7 @@ export default function LeftPanel({ onContinue }) {
               endIcon={<span className="material-icons" style={{ color: '#70757A' }}>arrow_drop_down</span>}
               sx={{ 
                 width: '100%', 
-                height: 36,
+                height: 48,
                 justifyContent: 'space-between',
                 borderColor: '#DADCE0',
                 color: '#202124',
@@ -136,7 +136,7 @@ export default function LeftPanel({ onContinue }) {
                 borderRadius: '4px',
                 py: 0,
                 px: 3,
-                fontSize: '14px',
+                fontSize: '16px',
                 fontWeight: 400,
                 textTransform: 'none',
                 '&:hover': {
@@ -165,12 +165,12 @@ export default function LeftPanel({ onContinue }) {
         <Divider sx={{ my: 0, borderColor: '#E0E0E0' }} />
 
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="body1" sx={{ fontWeight: 500, mb: 2 }}>
-            Available Times
+          <Typography variant="body1" sx={{ fontWeight: 500, mb: 1.5, fontSize: '14px', color: '#70757A' }}>
+            Horarios Disponibles
           </Typography>
           {date && (
-            <Typography variant="subtitle2" sx={{ mb: 3 }}>
-              {new Date(date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase()}
+            <Typography sx={{ mb: 3, fontSize: '12px', fontWeight: 500, color: '#70757A', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              {new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase()}
             </Typography>
           )}
 
@@ -219,7 +219,7 @@ export default function LeftPanel({ onContinue }) {
           const visibleSlots = slots.filter(slot => masterSlots[slot.time] !== false);
 
           if (visibleSlots.length === 0) {
-            return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">No slots available for this date.</Typography>;
+            return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">No hay horarios disponibles para esta fecha.</Typography>;
           }
 
           const todayObj = new Date();
@@ -232,7 +232,7 @@ export default function LeftPanel({ onContinue }) {
           const currentTimeString = `${currentHour}:${currentMin}`;
 
           return (
-            <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
               {visibleSlots.map((slot, sIdx) => {
                 const isSelected = selectedSlot?.time === slot.time;
                 const isPast = isToday && slot.time <= currentTimeString;
@@ -247,12 +247,12 @@ export default function LeftPanel({ onContinue }) {
                         disabled={isFull}
                         onClick={() => setSelectedSlot({ time: slot.time })}
                         sx={{ 
-                          height: 36,
+                          height: 48,
                           minWidth: 72,
                           borderRadius: '4px',
                           textTransform: 'none',
                           fontWeight: 500,
-                          fontSize: '14px',
+                          fontSize: '16px',
                           p: 0,
                           ...(isSelected ? {
                             border: '2px solid #1A73E8',
@@ -295,9 +295,9 @@ export default function LeftPanel({ onContinue }) {
             disabled={!selectedSlot}
             onClick={onContinue}
             disableElevation
-            sx={{ height: 48 }}
+            sx={{ height: 56, borderRadius: '4px', fontSize: '15px', fontWeight: 600, textTransform: 'uppercase' }}
           >
-            Continue
+            CONTINUAR
           </Button>
         </Box>
       </Box>

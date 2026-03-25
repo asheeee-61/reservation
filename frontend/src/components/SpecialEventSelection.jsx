@@ -93,11 +93,11 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
         height: 56, px: { xs: 1, sm: 2 }, 
         borderBottom: '1px solid #E0E0E0'
       }}>
-        <IconButton onClick={onBack} sx={{ color: '#70757A' }}>
+        <IconButton onClick={onBack} sx={{ color: '#70757A', width: 48, height: 48 }}>
           <span className="material-icons">arrow_back</span>
         </IconButton>
         <Typography sx={{ flexGrow: 1, mr: 5, textAlign: 'center', fontWeight: 500, fontSize: '16px', color: '#202124', fontFamily: 'Roboto' }}>
-          {config?.restaurant?.name || 'Hotaru Madrid'}
+          Ocasión especial
         </Typography>
       </Box>
 
@@ -180,12 +180,12 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
           onClick={onContinue}
           disableElevation
           sx={{
-            height: 48,
+            height: 56,
             borderRadius: 0,
             bgcolor: '#1A73E8',
             color: '#FFFFFF',
-            fontWeight: 500,
-            fontSize: '14px',
+            fontWeight: 600,
+            fontSize: '15px',
             textTransform: 'uppercase',
             fontFamily: 'Roboto',
             '&.Mui-disabled': {

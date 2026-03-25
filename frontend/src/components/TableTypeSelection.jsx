@@ -42,15 +42,13 @@ export default function TableTypeSelection({ onBack, onContinue }) {
     }}>
       <Box sx={{ 
         display: 'flex', alignItems: 'center', 
-        height: 56, px: { xs: 2, sm: 4 }, 
+        height: 56, px: { xs: 1, sm: 2 }, 
         borderBottom: '1px solid #E0E0E0'
       }}>
-        <Button 
-          onClick={onBack}
-          startIcon={<span className="material-icons">arrow_back</span>}
-          sx={{ minWidth: 0, p: 1, color: '#70757A' }}
-        />
-        <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center', pr: 4 }}>
+        <IconButton onClick={onBack} sx={{ color: '#70757A', width: 48, height: 48 }}>
+          <span className="material-icons">arrow_back</span>
+        </IconButton>
+        <Typography sx={{ flexGrow: 1, mr: 5, textAlign: 'center', fontWeight: 500, fontSize: '16px', color: '#202124', fontFamily: 'Roboto' }}>
           Selecciona tipo de mesa
         </Typography>
       </Box>
@@ -106,7 +104,7 @@ export default function TableTypeSelection({ onBack, onContinue }) {
         </List>
       </Box>
 
-      <Box sx={{ p: { xs: 2, sm: 4 }, borderTop: '1px solid #E0E0E0' }}>
+      <Box sx={{ mt: 'auto' }}>
         <Button 
           variant="contained" 
           fullWidth 
@@ -114,15 +112,17 @@ export default function TableTypeSelection({ onBack, onContinue }) {
           onClick={onContinue}
           disableElevation
           sx={{ 
-            height: 48, 
+            height: 56, 
             bgcolor: '#1A73E8',
             '&:hover': { bgcolor: '#1557B0' },
-            textTransform: 'none',
-            fontSize: '16px',
-            fontWeight: 500
+            textTransform: 'uppercase',
+            fontSize: '15px',
+            fontWeight: 600,
+            borderRadius: 0,
+            fontFamily: 'Roboto'
           }}
         >
-          Continuar
+          CONTINUAR
         </Button>
       </Box>
     </Box>

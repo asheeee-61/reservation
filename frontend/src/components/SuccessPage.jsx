@@ -35,8 +35,10 @@ export default function SuccessPage() {
           fullWidth
           onClick={reset}
           sx={{ 
-            borderRadius: '4px', height: 48,
+            borderRadius: '4px', height: 56,
             color: '#1A73E8', borderColor: '#1A73E8',
+            fontWeight: 600, textTransform: 'uppercase',
+            fontSize: '15px',
             '&:hover': { borderColor: '#1557B0', bgcolor: 'rgba(26, 115, 232, 0.04)' }
           }}
         >
