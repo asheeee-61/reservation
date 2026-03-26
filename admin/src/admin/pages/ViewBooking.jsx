@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider } from '@mui/material';
+import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider, IconButton } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
@@ -250,17 +250,6 @@ export default function ViewBooking() {
 
                   {/* Communication Actions */}
                   <Stack direction="row" spacing={1} sx={{ mt: '20px' }}>
-                    {/* EDIT */}
-                    <IconButton 
-                      onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
-                      sx={{ 
-                        width: 32, height: 32, borderRadius: '4px', border: '1px solid #DADCE0', bgcolor: '#FFFFFF', color: '#70757A',
-                        '&:hover': { bgcolor: '#F1F3F4' }
-                      }}
-                    >
-                      <span className="material-icons" style={{ fontSize: 18 }}>edit</span>
-                    </IconButton>
-
                     {/* WHATSAPP */}
                     {(() => {
                       const phone = resData.customer?.phone?.replace(/\D/g, '');

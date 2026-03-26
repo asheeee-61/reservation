@@ -719,9 +719,9 @@ export default function NewBooking() {
                 >
                   {tableTypesLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
                   {tableTypesError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
-                  {tableTypes.map(t => (
+                  {tableTypes.length > 0 ? tableTypes.map(t => (
                     <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-                  ))}
+                  )) : <MenuItem value={tableTypeId} sx={{ display: 'none' }} />}
                 </Select>
                 {tableTypeId && (
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -745,9 +745,9 @@ export default function NewBooking() {
                 >
                   {specialEventsLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
                   {specialEventsError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
-                  {specialEvents.map(e => (
+                  {specialEvents.length > 0 ? specialEvents.map(e => (
                     <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>
-                  ))}
+                  )) : <MenuItem value={specialEventId} sx={{ display: 'none' }} />}
                 </Select>
                 {specialEventId && (
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

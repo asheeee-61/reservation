@@ -70,7 +70,7 @@ export default function EditBooking() {
       <Box>
         <Button 
           startIcon={<span className="material-icons">arrow_back</span>} 
-          onClick={() => navigate('/reservations')} 
+          onClick={() => navigate('/admin/reservations')} 
           sx={{ color: '#70757A', textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}
         >
           Back to Reservations
@@ -167,11 +167,11 @@ export default function EditBooking() {
                 onChange={e => setEditBooking({...editBooking, table_type_id: e.target.value})}
                 sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
               >
-                {tableTypes.map(type => (
+                {tableTypes.length > 0 ? tableTypes.map(type => (
                   <MenuItem key={type.id} value={type.id} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
                     {type.name} {!type.is_active && '(Inactivo)'}
                   </MenuItem>
-                ))}
+                )) : <MenuItem value={editBooking.table_type_id} sx={{ display: 'none' }} />}
               </Select>
             </FormControl>
 
