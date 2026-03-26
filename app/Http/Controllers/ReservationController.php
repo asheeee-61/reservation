@@ -56,7 +56,7 @@ class ReservationController extends Controller
         $totalCapacity = $config['totalCapacity'] ?? 40;
 
         $reservedGuestsForSlots = \App\Models\Reservation::where('date', $date)
-            ->whereIn('status', ['confirmed', 'pending'])
+            ->whereIn('status', [Reservation::STATUS_CONFIRMED, Reservation::STATUS_PENDING])
             ->selectRaw('time, SUM(guests) as total_guests')
             ->groupBy('time')
             ->pluck('total_guests', 'time');
@@ -134,7 +134,7 @@ class ReservationController extends Controller
             'time' => $validated['slot']['time'],
             'guests' => $validated['guests'],
             'special_requests' => $validated['special_requests'] ?? null,
-            'status' => 'confirmed',
+            'status' => Reservation::STATUS_PENDING,
             'table_type_id' => $validated['table_type_id'],
             'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
@@ -159,8 +159,13 @@ class ReservationController extends Controller
         // Allow partial PATCH for status only
         if ($request->isMethod('patch') && $request->has('status') && count($request->all()) === 1) {
             $validated = $request->validate([
-                'status' => 'required|in:pending,confirmed,cancelled,no_show'
+                'status' => 'required|in:PENDING,CONFIRMED,COMPLETED,NO_SHOW'
             ]);
+
+            if (!$this->canTransition($reservation->status, $validated['status'])) {
+                return response()->json(['error' => 'Invalid status transition from ' . $reservation->status . ' to ' . $validated['status']], 422);
+            }
+
             $reservation->update(['status' => $validated['status']]);
             return response()->json([
                 'success' => true,
@@ -176,7 +181,7 @@ class ReservationController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'special_requests' => 'nullable|string',
-            'status' => 'required|in:pending,confirmed,cancelled,no_show',
+            'status' => 'required|in:PENDING,CONFIRMED,COMPLETED,NO_SHOW',
             'table_type_id' => 'required|exists:table_types,id',
             'special_event_id' => 'nullable|exists:special_events,id'
         ]);
@@ -206,12 +211,19 @@ class ReservationController extends Controller
             ]);
         }
 
+        // Check if status is changing and enforce transition rules
+        if ($reservation->status !== $validated['status']) {
+            if (!$this->canTransition($reservation->status, $validated['status'])) {
+                return response()->json(['error' => 'Invalid status transition from ' . $reservation->status . ' to ' . $validated['status']], 422);
+            }
+        }
+
         $reservation->update([
             'customer_id' => $customer->id,
             'date' => $validated['date'],
             'time' => $validated['time'],
             'guests' => $validated['guests'],
-            'special_requests' => $validated['special_requests'],
+            'special_requests' => $validated['special_requests'] ?? '',
             'status' => $validated['status'],
             'table_type_id' => $validated['table_type_id'],
             'special_event_id' => $validated['special_event_id'] ?? null,
@@ -226,12 +238,32 @@ class ReservationController extends Controller
     // Admin: Update status only (quick action)
     public function updateStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|in:pending,confirmed,cancelled,no_show']);
+        $request->validate(['status' => 'required|in:PENDING,CONFIRMED,COMPLETED,NO_SHOW']);
         
         $reservation = Reservation::findOrFail($id);
+
+        if (!$this->canTransition($reservation->status, $request->status)) {
+            return response()->json(['error' => 'Invalid status transition from ' . $reservation->status . ' to ' . $request->status], 422);
+        }
+
         $reservation->status = $request->status;
         $reservation->save();
 
         return response()->json(['success' => true, 'data' => $reservation]);
+    }
+
+    private function canTransition($from, $to)
+    {
+        $from = strtoupper($from);
+        $to = strtoupper($to);
+
+        $map = [
+            Reservation::STATUS_PENDING   => [Reservation::STATUS_CONFIRMED, Reservation::STATUS_NO_SHOW],
+            Reservation::STATUS_CONFIRMED => [Reservation::STATUS_COMPLETED, Reservation::STATUS_NO_SHOW],
+            Reservation::STATUS_COMPLETED => [],
+            Reservation::STATUS_NO_SHOW   => []
+        ];
+
+        return in_array($to, $map[$from] ?? []);
     }
 }
