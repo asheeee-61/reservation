@@ -154,7 +154,7 @@ export default function NewBooking() {
         throw new Error(data.message || 'Failed to book');
       }
 
-      navigate('/reservations');
+      navigate('/admin/reservations');
     } catch (e) {
       setErrorMsg(e.message || 'Error saving booking');
     } finally {
@@ -457,7 +457,7 @@ export default function NewBooking() {
 
           <Box sx={{ mt: '8px', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
             <Button 
-              onClick={() => navigate('/reservations')} 
+              onClick={() => navigate('/admin/reservations')} 
               disabled={loading}
               sx={{ color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minWidth: 100 }}
             >

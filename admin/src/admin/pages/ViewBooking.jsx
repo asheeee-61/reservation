@@ -74,7 +74,7 @@ export default function ViewBooking() {
         <Box sx={{ mb: '24px' }}>
           <Button 
             startIcon={<span className="material-icons" style={{ fontSize: 16 }}>arrow_back</span>} 
-            onClick={() => navigate('/reservations')} 
+            onClick={() => navigate('/admin/reservations')} 
             disableRipple
             sx={{ 
               color: '#1A73E8', textTransform: 'uppercase', fontFamily: 'Roboto', 
@@ -189,7 +189,7 @@ export default function ViewBooking() {
                  </Tooltip>
                  <Button 
                    variant="contained"
-                   onClick={() => navigate(`/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
+                   onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
                    disabled={!resData.id || currentStatus === 'cancelled'}
                    sx={{ 
                      width: { xs: '100%', md: 'auto' }, 

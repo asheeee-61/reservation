@@ -1,7 +1,7 @@
 import { Box, Typography, Button, Tooltip, IconButton } from '@mui/material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/useAuthStore';
-import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
+import { useAuthStore } from './store/useAuthStore';
+import { MOBILE, TABLET, DESKTOP } from './utils/breakpoints';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -9,28 +9,28 @@ export default function Layout() {
   const logout = useAuthStore(state => state.logout);
 
   const menuItems = [
-    { text: 'Dashboard', icon: 'dashboard', path: '/' },
-    { text: 'Reservations', icon: 'event', path: '/reservations' },
-    { text: 'Clientes', icon: 'people', path: '/customers' },
-    { text: 'Tipos de Mesa', icon: 'table_restaurant', path: '/table-types' },
-    { text: 'Eventos Especiales', icon: 'celebration', path: '/special-events' },
-    { text: 'Calendario', icon: 'calendar_month', path: '/calendar' },
-    { text: 'Settings', icon: 'settings', path: '/settings' }
+    { text: 'Dashboard', icon: 'dashboard', path: '/admin' },
+    { text: 'Reservations', icon: 'event', path: '/admin/reservations' },
+    { text: 'Clientes', icon: 'people', path: '/admin/customers' },
+    { text: 'Tipos de Mesa', icon: 'table_restaurant', path: '/admin/table-types' },
+    { text: 'Eventos Especiales', icon: 'celebration', path: '/admin/special-events' },
+    { text: 'Calendario', icon: 'calendar_month', path: '/admin/calendar' },
+    { text: 'Settings', icon: 'settings', path: '/admin/settings' }
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   const getPageTitle = (path) => {
-    if (path === '/') return 'Dashboard';
-    if (path.startsWith('/reservations')) return 'Reservations';
-    if (path.startsWith('/customers')) return 'Clientes';
-    if (path.startsWith('/table-types')) return 'Tipos de Mesa';
-    if (path.startsWith('/special-events')) return 'Eventos Especiales';
-    if (path.startsWith('/calendar')) return 'Calendario';
-    if (path.startsWith('/settings')) return 'Settings';
+    if (path === '/admin' || path === '/admin/') return 'Dashboard';
+    if (path.startsWith('/admin/reservations')) return 'Reservations';
+    if (path.startsWith('/admin/customers')) return 'Clientes';
+    if (path.startsWith('/admin/table-types')) return 'Tipos de Mesa';
+    if (path.startsWith('/admin/special-events')) return 'Eventos Especiales';
+    if (path.startsWith('/admin/calendar')) return 'Calendario';
+    if (path.startsWith('/admin/settings')) return 'Settings';
     return 'Restaurant Admin';
   };
 

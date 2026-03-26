@@ -57,7 +57,7 @@ export default function EditBooking() {
         method: 'PUT',
         body: JSON.stringify(editBooking)
       });
-      navigate('/reservations');
+      navigate('/admin/reservations');
     } catch (e) {
       setErrorMsg(e.message || 'Error updating booking');
     } finally {
@@ -202,7 +202,7 @@ export default function EditBooking() {
 
           <Box sx={{ mt: '8px', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
             <Button 
-              onClick={() => navigate('/reservations')} 
+              onClick={() => navigate('/admin/reservations')} 
               disabled={loading}
               sx={{ color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', minWidth: 100 }}
             >

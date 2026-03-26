@@ -158,7 +158,7 @@ export default function Reservations() {
               <TableRow 
                 key={res.id} 
                 hover
-                onClick={() => navigate(`/reservations/view/${res.id}`, { state: { reservation: res } })}
+                onClick={() => navigate(`/admin/reservations/view/${res.id}`, { state: { reservation: res } })}
                 sx={{ cursor: 'pointer' }}
               >
                 <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.reservation_id}</TableCell>
@@ -228,7 +228,7 @@ export default function Reservations() {
                         color="primary"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/reservations/edit/${res.id}`, { state: { reservation: res } });
+                          navigate(`/admin/reservations/edit/${res.id}`, { state: { reservation: res } });
                         }}
                       >
                         <span className="material-icons" style={{ fontSize: 20 }}>edit</span>
@@ -256,7 +256,7 @@ export default function Reservations() {
           return (
             <Paper 
               key={res.id}
-              onClick={() => navigate(`/reservations/view/${res.id}`, { state: { reservation: res } })}
+              onClick={() => navigate(`/admin/reservations/view/${res.id}`, { state: { reservation: res } })}
               sx={{ 
                 p: '16px', borderRadius: '4px', border: '1px solid #E0E0E0', 
                 bgcolor: '#FFFFFF', boxShadow: 'none', cursor: 'pointer',
@@ -291,7 +291,7 @@ export default function Reservations() {
         color="primary" 
         aria-label="add" 
         sx={{ position: 'fixed', bottom: 24, right: 24, bgcolor: '#1A73E8', '&:hover': { bgcolor: '#1557B0' }, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-        onClick={() => navigate('/reservations/new')}
+        onClick={() => navigate('/admin/reservations/new')}
       >
         <span className="material-icons">add</span>
       </Fab>
