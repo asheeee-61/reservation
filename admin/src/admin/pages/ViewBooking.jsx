@@ -34,22 +34,34 @@ export default function ViewBooking() {
   const location = useLocation();
   const { id } = useParams();
   
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  const [resData, setResData] = useState(location.state?.reservation || {});
+  const [resData, setResData] = useState(location.state?.reservation || null);
+  const [loading, setLoading] = useState(!location.state?.reservation);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [errorToast, setErrorToast] = useState(false);
-  
-  const [activities, setActivities] = useState([
-    { id: 2, text: `Estado actual: ${STATUS_LABELS[resData.status?.toUpperCase()] || resData.status || 'PENDIENTE'}`, time: resData.created_at },
-    { id: 1, text: 'Reserva creada', time: resData.created_at }
-  ]);
+  const [activities, setActivities] = useState([]);
 
-  const currentStatus = resData.status?.toUpperCase() || 'PENDIENTE';
-  const statusColors = STATUS_COLORS[currentStatus] || { bg: '#F1F3F4', text: '#202124' };
+  useEffect(() => {
+    const fetchReservation = async () => {
+      try {
+        const data = await apiClient(`/admin/reservations/${id}`);
+        setResData(data);
+        if (data.activities) {
+          setActivities(data.activities.map(a => ({
+            id: a.id,
+            text: a.description,
+            time: a.created_at
+          })));
+        }
+      } catch (e) {
+        console.error('Failed to fetch reservation:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReservation();
+  }, [id]);
 
   const getInitials = (name) => {
     if (!name) return '';
@@ -59,19 +71,21 @@ export default function ViewBooking() {
   };
 
   const handleStatusUpdate = async (newStatus) => {
-    const fromStatus = currentStatus;
+    const fromStatus = resData?.status?.toUpperCase() || 'PENDIENTE';
     try {
-      await apiClient(`/admin/reservations/${resData.id}/status`, {
+      const response = await apiClient(`/admin/reservations/${resData.id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
       });
       
-      setResData(prev => ({ ...prev, status: newStatus }));
-      setActivities(prev => [{ 
-        id: Date.now(), 
-        text: `Estado cambiado de ${fromStatus} a ${newStatus}`, 
-        time: new Date().toISOString() 
-      }, ...prev]);
+      setResData(response.data);
+      if (response.data.activities) {
+        setActivities(response.data.activities.map(a => ({
+          id: a.id,
+          text: a.description,
+          time: a.created_at
+        })));
+      }
     } catch (e) {
       setErrorToast(true);
     }
@@ -80,7 +94,7 @@ export default function ViewBooking() {
   const handleCancelClick = async () => {
     setCancelLoading(true);
     try {
-      await handleStatusUpdate('NO_SHOW');
+      await handleStatusUpdate('NO_ASISTIÓ');
       setCancelModalOpen(false);
     } catch (e) {
       // Error handled in handleStatusUpdate
@@ -88,6 +102,17 @@ export default function ViewBooking() {
       setCancelLoading(false);
     }
   };
+
+  if (loading || !resData) {
+    return (
+      <Box sx={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#F1F3F4' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const currentStatus = resData.status?.toUpperCase() || 'PENDIENTE';
+  const statusColors = STATUS_COLORS[currentStatus] || { bg: '#F1F3F4', text: '#202124' };
 
   return (
     <Box sx={{ width: '100%', bgcolor: '#F1F3F4', minHeight: '100vh', boxSizing: 'border-box' }}>
@@ -117,53 +142,79 @@ export default function ViewBooking() {
           <Paper sx={{ flex: 1, bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px', boxShadow: 'none' }}>
             
             {/* Card Header */}
-            <Box sx={{ px: { xs: '16px', md: '24px' }, py: '20px', borderBottom: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '18px', md: '20px' }, color: '#202124' }}>
+            <Box sx={{ px: { xs: '16px', md: '24px' }, py: '20px', borderBottom: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '18px', md: '20px' }, color: '#202124', flexGrow: 1 }}>
                 Reserva #{resData.reservation_id || id}
               </Typography>
-              <FormControl size="small" variant="standard" sx={{ minWidth: 140 }}>
-                <Select
-                  value={currentStatus}
-                  onChange={(e) => handleStatusUpdate(e.target.value)}
-                  disableUnderline
+              
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Button 
+                  variant="outlined"
+                  onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
+                  disabled={!resData.id}
                   sx={{ 
-                    '& .MuiSelect-select': { 
-                      py: '6px', px: '16px', 
-                      borderRadius: '4px',
-                      bgcolor: statusColors.bg,
-                      color: statusColors.text,
-                      textAlign: 'center',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      fontFamily: 'Roboto',
-                      textTransform: 'uppercase'
-                    },
-                    '& .MuiSvgIcon-root': { color: statusColors.text }
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        mt: 0.5,
-                        border: '1px solid #DADCE0',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        '& .MuiMenuItem-root': {
-                          fontFamily: 'Roboto',
-                          fontSize: '13px',
-                          textTransform: 'uppercase',
-                          '&:hover': { bgcolor: '#F1F3F4' },
-                          '&.Mui-selected': { bgcolor: '#E8F0FE' }
-                        }
-                      }
-                    }
+                    height: 36, 
+                    borderRadius: '4px', 
+                    border: '1px solid #DADCE0', 
+                    color: '#70757A', 
+                    fontFamily: 'Roboto', 
+                    fontWeight: 500, 
+                    fontSize: '13px', 
+                    textTransform: 'uppercase', 
+                    px: '16px', 
+                    display: { xs: 'none', md: 'flex' },
+                    '&:hover': { bgcolor: '#F1F3F4', border: '1px solid #DADCE0' },
+                    '&.Mui-disabled': { color: '#BDBDBD', border: '1px solid #E0E0E0' }
                   }}
                 >
-                  {Object.keys(STATUS_COLORS).map(s => (
-                    <MenuItem key={s} value={s}>
-                      {STATUS_LABELS[s]}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  <span className="material-icons" style={{ fontSize: 16, marginRight: 8 }}>edit</span>
+                  Editar
+                </Button>
+
+                <FormControl size="small" variant="standard" sx={{ minWidth: 140 }}>
+                  <Select
+                    value={currentStatus}
+                    onChange={(e) => handleStatusUpdate(e.target.value)}
+                    disableUnderline
+                    sx={{ 
+                      '& .MuiSelect-select': { 
+                        py: '6px', px: '16px', 
+                        borderRadius: '4px',
+                        bgcolor: statusColors.bg,
+                        color: statusColors.text,
+                        textAlign: 'center',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        fontFamily: 'Roboto',
+                        textTransform: 'uppercase'
+                      },
+                      '& .MuiSvgIcon-root': { color: statusColors.text }
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          mt: 0.5,
+                          border: '1px solid #DADCE0',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          '& .MuiMenuItem-root': {
+                            fontFamily: 'Roboto',
+                            fontSize: '13px',
+                            textTransform: 'uppercase',
+                            '&:hover': { bgcolor: '#F1F3F4' },
+                            '&.Mui-selected': { bgcolor: '#E8F0FE' }
+                          }
+                        }
+                      }
+                    }}
+                  >
+                    {Object.keys(STATUS_COLORS).map(s => (
+                      <MenuItem key={s} value={s}>
+                        {STATUS_LABELS[s]}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
             </Box>
 
             {/* Card Body */}
@@ -188,20 +239,14 @@ export default function ViewBooking() {
                   </Typography>
                 </Box>
                 
-                <Box sx={{ pb: { xs: '20px', md: 0 }, pt: '20px', pr: { md: '12px' }, borderBottom: { xs: '1px solid #E0E0E0', md: 'none' } }}>
+                <Box sx={{ pb: 0, pt: '20px', pr: { md: '12px' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>EVENTO ESPECIAL</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>{resData.special_event?.name || 'Sin evento asignado'}</Typography>
                 </Box>
-                <Box sx={{ pb: { xs: '20px', md: 0 }, pt: '20px', pl: { md: '12px' }, borderBottom: { xs: '1px solid #E0E0E0', md: 'none' } }}>
+                <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Tipo de Mesa</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
                     {resData.table_type?.name || 'Sin tipo asignado'}
-                  </Typography>
-                </Box>
-                <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Estado</Typography>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
-                    {STATUS_LABELS[currentStatus] || currentStatus}
                   </Typography>
                 </Box>
               </Box>
@@ -222,15 +267,14 @@ export default function ViewBooking() {
                 )}
               </Box>
 
-              {/* Card Footer */}
-              <Box sx={{ borderTop: '1px solid #E0E0E0', pt: '16px', mt: '24px', display: 'flex', flexDirection: { xs: 'column-reverse', md: 'row' }, justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+              <Box sx={{ borderTop: '1px solid #E0E0E0', pt: '16px', mt: '24px', display: { xs: 'block', md: 'none' } }}>
                   <Button 
                     variant="contained"
+                    fullWidth
                     onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
                     disabled={!resData.id}
                     sx={{ 
-                      width: { xs: '100%', md: 'auto' }, 
-                      height: { xs: 44, md: 36 }, 
+                      height: 44, 
                       borderRadius: '4px', 
                       bgcolor: '#1A73E8', 
                       color: '#FFFFFF', 
@@ -239,7 +283,6 @@ export default function ViewBooking() {
                       fontSize: '13px', 
                       textTransform: 'uppercase', 
                       boxShadow: 'none', 
-                      px: '24px', 
                       '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
                       '&.Mui-disabled': { bgcolor: '#E0E0E0', color: '#BDBDBD' }
                     }}
@@ -336,6 +379,7 @@ export default function ViewBooking() {
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px', textAlign: 'center' }}>Sin cliente asignado</Typography>
                   <Button 
                     variant="outlined"
+                    onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
                     sx={{ mt: '12px', width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 }, borderRadius: '4px', borderColor: '#1A73E8', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px' }}
                   >
                     Asignar Cliente
