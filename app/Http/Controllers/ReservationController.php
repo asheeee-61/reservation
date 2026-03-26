@@ -56,7 +56,7 @@ class ReservationController extends Controller
         $totalCapacity = $config['totalCapacity'] ?? 40;
 
         $reservedGuestsForSlots = \App\Models\Reservation::where('date', $date)
-            ->whereIn('status', [Reservation::STATUS_CONFIRMED, Reservation::STATUS_PENDING])
+            ->whereIn('status', [Reservation::STATUS_CONFIRMADA, Reservation::STATUS_PENDIENTE])
             ->selectRaw('time, SUM(guests) as total_guests')
             ->groupBy('time')
             ->pluck('total_guests', 'time');
@@ -134,7 +134,7 @@ class ReservationController extends Controller
             'time' => $validated['slot']['time'],
             'guests' => $validated['guests'],
             'special_requests' => $validated['special_requests'] ?? null,
-            'status' => Reservation::STATUS_PENDING,
+            'status' => Reservation::STATUS_PENDIENTE,
             'table_type_id' => $validated['table_type_id'],
             'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
@@ -238,14 +238,9 @@ class ReservationController extends Controller
     // Admin: Update status only (quick action)
     public function updateStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|in:PENDING,CONFIRMED,COMPLETED,NO_SHOW']);
+        $request->validate(['status' => 'required|string']);
         
         $reservation = Reservation::findOrFail($id);
-
-        if (!$this->canTransition($reservation->status, $request->status)) {
-            return response()->json(['error' => 'Invalid status transition from ' . $reservation->status . ' to ' . $request->status], 422);
-        }
-
         $reservation->status = $request->status;
         $reservation->save();
 
@@ -254,16 +249,6 @@ class ReservationController extends Controller
 
     private function canTransition($from, $to)
     {
-        $from = strtoupper($from);
-        $to = strtoupper($to);
-
-        $map = [
-            Reservation::STATUS_PENDING   => [Reservation::STATUS_CONFIRMED, Reservation::STATUS_NO_SHOW],
-            Reservation::STATUS_CONFIRMED => [Reservation::STATUS_COMPLETED, Reservation::STATUS_NO_SHOW],
-            Reservation::STATUS_COMPLETED => [],
-            Reservation::STATUS_NO_SHOW   => []
-        ];
-
-        return in_array($to, $map[$from] ?? []);
+        return true; // No restrictions
     }
 }

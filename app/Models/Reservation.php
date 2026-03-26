@@ -9,10 +9,10 @@ class Reservation extends Model
 {
     use HasFactory;
 
-    const STATUS_PENDING   = 'PENDING';
-    const STATUS_CONFIRMED = 'CONFIRMED';
-    const STATUS_COMPLETED = 'COMPLETED';
-    const STATUS_NO_SHOW   = 'NO_SHOW';
+    const STATUS_PENDIENTE   = 'PENDIENTE';
+    const STATUS_CONFIRMADA  = 'CONFIRMADA';
+    const STATUS_ASISTIO     = 'ASISTIÓ';
+    const STATUS_NO_ASISTIO  = 'NO_ASISTIÓ';
 
     protected $fillable = [
         'reservation_id',
