@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Container } from '@mui/material';
+import { Box, Typography, Button, Container, Divider } from '@mui/material';
 import { useReservationStore } from '../store/useReservationStore';
 
 export default function SuccessPage() {
@@ -34,17 +34,13 @@ export default function SuccessPage() {
           Te esperamos el {formattedDate} a las {selectedSlot?.time}
         </Typography>
 
-        <Typography variant="body2" sx={{ mb: 4, p: 2.5, bgcolor: '#F8F9FA', borderRadius: '8px', border: '1px solid #E0E0E0', fontSize: '13px', color: '#70757A', textAlign: 'center', lineHeight: 1.5 }}>
-          <strong>¿Ha cambiado de planes?</strong><br/>
-          Por favor, avísenos si decide no venir para que podamos liberar la mesa para otros clientes.
-        </Typography>
+        <Box sx={{ mb: 6, p: 2.5, bgcolor: '#F8F9FA', borderRadius: '8px', border: '1px solid #E0E0E0', width: '100%' }}>
+          <Typography variant="body2" sx={{ fontSize: '13px', color: '#70757A', textAlign: 'center', lineHeight: 1.5, mb: showCancellation ? 2 : 0 }}>
+            <strong>¿Ha cambiado de planes?</strong><br/>
+            Por favor, avísenos si decide no venir para que podamos liberar la mesa para otros clientes.
+          </Typography>
 
-        {showCancellation && (
-          <Box sx={{ width: '100%', mb: 6 }}>
-            <Divider sx={{ mb: 2.5, borderColor: '#E0E0E0' }} />
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', textAlign: 'center', mb: 1.5 }}>
-              ¿Necesitas cancelar tu reserva?
-            </Typography>
+          {showCancellation && (
             <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
               {whatsappPhone && (
                 <Button
@@ -61,7 +57,7 @@ export default function SuccessPage() {
                   }}
                   startIcon={<span className="material-icons" style={{ fontSize: 20 }}>chat</span>}
                 >
-                  Cancelar por WhatsApp
+                  WhatsApp
                 </Button>
               )}
               {instagramUsername && (
@@ -83,12 +79,12 @@ export default function SuccessPage() {
                     </svg>
                   }
                 >
-                  Cancelar por Instagram
+                  Instagram
                 </Button>
               )}
             </Box>
-          </Box>
-        )}
+          )}
+        </Box>
 
         <Button 
           variant="outlined" 
