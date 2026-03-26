@@ -4,10 +4,24 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
 const STATUS_COLORS = {
-  'pending': { bg: '#FEF7E0', text: '#7D4A00' },
-  'confirmed': { bg: '#E6F4EA', text: '#137333' },
-  'cancelled': { bg: '#FDECEA', text: '#C5221F' },
-  'no_show': { bg: '#FDECEA', text: '#C5221F' }
+  'PENDING': { bg: '#FEF7E0', text: '#7D4A00' },
+  'CONFIRMED': { bg: '#E8F0FE', text: '#1A73E8' },
+  'COMPLETED': { bg: '#E6F4EA', text: '#137333' },
+  'NO_SHOW': { bg: '#FDECEA', text: '#C5221F' }
+};
+
+const STATUS_LABELS = {
+  'PENDING': 'Pendiente',
+  'CONFIRMED': 'Confirmada',
+  'COMPLETED': 'Asistió',
+  'NO_SHOW': 'No asistió'
+};
+
+const ALLOWED_TRANSITIONS = {
+  'PENDING': ['CONFIRMED', 'NO_SHOW'],
+  'CONFIRMED': ['COMPLETED', 'NO_SHOW'],
+  'COMPLETED': [],
+  'NO_SHOW': []
 };
 
 const formatTimestamp = (isoString) => {
@@ -41,7 +55,7 @@ export default function ViewBooking() {
     { id: 1, text: 'Reserva creada', time: resData.created_at }
   ]);
 
-  const currentStatus = resData.status?.toLowerCase() || 'pending';
+  const currentStatus = resData.status?.toUpperCase() || 'PENDING';
   const statusColors = STATUS_COLORS[currentStatus] || { bg: '#F1F3F4', text: '#202124' };
 
   const getInitials = (name) => {
@@ -61,7 +75,7 @@ export default function ViewBooking() {
       setResData(prev => ({ ...prev, status: newStatus }));
       setActivities(prev => [{ 
         id: Date.now(), 
-        text: `Estado cambiado a ${newStatus.replace('_', ' ').charAt(0).toUpperCase() + newStatus.replace('_', ' ').slice(1)}`, 
+        text: `Estado cambiado a ${STATUS_LABELS[newStatus] || newStatus}`, 
         time: new Date().toISOString() 
       }, ...prev]);
     } catch (e) {
@@ -72,7 +86,7 @@ export default function ViewBooking() {
   const handleCancelClick = async () => {
     setCancelLoading(true);
     try {
-      await handleStatusUpdate('cancelled');
+      await handleStatusUpdate('NO_SHOW');
       setCancelModalOpen(false);
     } catch (e) {
       // Error handled in handleStatusUpdate
@@ -128,13 +142,14 @@ export default function ViewBooking() {
                       fontSize: '13px',
                       fontWeight: 500,
                       fontFamily: 'Roboto',
-                      textTransform: 'capitalize'
+                      textTransform: 'uppercase'
                     }
                   }}
                 >
-                  {Object.keys(STATUS_COLORS).map(s => (
-                    <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize', fontFamily: 'Roboto', fontSize: '13px' }}>
-                      {s.replace('_', ' ')}
+                  <MenuItem value={currentStatus} sx={{ display: 'none' }}>{STATUS_LABELS[currentStatus] || currentStatus}</MenuItem>
+                  {ALLOWED_TRANSITIONS[currentStatus].map(s => (
+                    <MenuItem key={s} value={s} sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontSize: '13px' }}>
+                      {STATUS_LABELS[s] || s}
                     </MenuItem>
                   ))}
                 </Select>
@@ -175,8 +190,8 @@ export default function ViewBooking() {
                 </Box>
                 <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Estado</Typography>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px', textTransform: 'capitalize' }}>
-                    {currentStatus === 'cancelled' ? 'Cancelada' : resData.status || 'Pending'}
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
+                    {STATUS_LABELS[currentStatus] || currentStatus}
                   </Typography>
                 </Box>
               </Box>
@@ -198,54 +213,81 @@ export default function ViewBooking() {
               </Box>
 
               {/* Card Footer */}
-              <Box sx={{ borderTop: '1px solid #E0E0E0', pt: '16px', mt: '24px', display: 'flex', flexDirection: { xs: 'column-reverse', md: 'row' }, justifyContent: 'flex-end', gap: '8px' }}>
-                 <Tooltip title={currentStatus === 'cancelled' ? "Reserva ya cancelada" : ""} arrow placement="top">
-                   <span>
-                     <Button 
-                       variant="outlined"
-                       onClick={() => setCancelModalOpen(true)}
-                       disabled={currentStatus === 'cancelled'}
-                       sx={{ 
-                         width: { xs: '100%', md: 'auto' }, 
-                         height: { xs: 44, md: 36 }, 
-                         borderRadius: '4px', 
-                         border: '1px solid #D93025', 
-                         color: '#D93025', 
-                         fontFamily: 'Roboto', 
-                         fontWeight: 500, 
-                         fontSize: '13px', 
-                         textTransform: 'uppercase', 
-                         px: '16px', 
-                         '&.Mui-disabled': { bgcolor: '#E0E0E0', color: '#BDBDBD', border: '1px solid #E0E0E0' }
-                       }}
-                     >
-                       Cancelar Reserva
-                     </Button>
-                   </span>
-                 </Tooltip>
-                 <Button 
-                   variant="contained"
-                   onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
-                   disabled={!resData.id || currentStatus === 'cancelled'}
-                   sx={{ 
-                     width: { xs: '100%', md: 'auto' }, 
-                     height: { xs: 44, md: 36 }, 
-                     borderRadius: '4px', 
-                     bgcolor: '#1A73E8', 
-                     color: '#FFFFFF', 
-                     fontFamily: 'Roboto', 
-                     fontWeight: 500, 
-                     fontSize: '13px', 
-                     textTransform: 'uppercase', 
-                     boxShadow: 'none', 
-                     px: '16px', 
-                     '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
-                     '&.Mui-disabled': { bgcolor: '#E0E0E0', color: '#BDBDBD' }
-                   }}
-                 >
-                   <span className="material-icons" style={{ fontSize: 16, marginRight: 8 }}>edit</span>
-                   Editar Reserva
-                 </Button>
+              <Box sx={{ borderTop: '1px solid #E0E0E0', pt: '16px', mt: '24px', display: 'flex', flexDirection: { xs: 'column-reverse', md: 'row' }, justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+                  <Button 
+                    variant="outlined"
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={currentStatus === 'COMPLETED' || currentStatus === 'NO_SHOW'}
+                    sx={{ 
+                      width: { xs: '100%', md: 'auto' }, 
+                      height: { xs: 44, md: 36 }, 
+                      borderRadius: '4px', 
+                      border: '1px solid #D93025', 
+                      color: '#D93025', 
+                      fontFamily: 'Roboto', 
+                      fontWeight: 500, 
+                      fontSize: '13px', 
+                      textTransform: 'uppercase', 
+                      px: '16px', 
+                      '&.Mui-disabled': { bgcolor: '#E0E0E0', color: '#BDBDBD', border: '1px solid #E0E0E0' }
+                    }}
+                  >
+                    No asistió
+                  </Button>
+                  
+                  <Button 
+                    variant="contained"
+                    onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
+                    disabled={!resData.id || currentStatus === 'COMPLETED' || currentStatus === 'NO_SHOW'}
+                    sx={{ 
+                      width: { xs: '100%', md: 'auto' }, 
+                      height: { xs: 44, md: 36 }, 
+                      borderRadius: '4px', 
+                      bgcolor: '#1A73E8', 
+                      color: '#FFFFFF', 
+                      fontFamily: 'Roboto', 
+                      fontWeight: 500, 
+                      fontSize: '13px', 
+                      textTransform: 'uppercase', 
+                      boxShadow: 'none', 
+                      px: '16px', 
+                      '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
+                      '&.Mui-disabled': { bgcolor: '#E0E0E0', color: '#BDBDBD' }
+                    }}
+                  >
+                    <span className="material-icons" style={{ fontSize: 16, marginRight: 8 }}>edit</span>
+                    Editar Reserva
+                  </Button>
+
+                  {currentStatus === 'PENDING' && (
+                    <Button 
+                      variant="contained"
+                      onClick={() => handleStatusUpdate('CONFIRMED')}
+                      sx={{ 
+                        width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 },
+                        bgcolor: '#1A73E8', color: '#ffffff', borderRadius: '4px',
+                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px',
+                        boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+                      }}
+                    >
+                      Confirmar Reserva
+                    </Button>
+                  )}
+
+                  {currentStatus === 'CONFIRMED' && (
+                    <Button 
+                      variant="contained"
+                      onClick={() => handleStatusUpdate('COMPLETED')}
+                      sx={{ 
+                        width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 },
+                        bgcolor: '#137333', color: '#ffffff', borderRadius: '4px',
+                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px',
+                        boxShadow: 'none', '&:hover': { bgcolor: '#0F5D2A', boxShadow: 'none' }
+                      }}
+                    >
+                      Marcar como asistido
+                    </Button>
+                  )}
               </Box>
 
             </Box>
@@ -398,7 +440,7 @@ export default function ViewBooking() {
           Cancelar reserva
         </Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px' }}>
-          ¿Estás seguro de que quieres cancelar la reserva #{resData.reservation_id || id}?<br/>
+          ¿Estás seguro de que quieres marcar la reserva #{resData.reservation_id || id} como NO ASISTIDA?<br/>
           Esta acción no se puede deshacer.
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
@@ -424,7 +466,7 @@ export default function ViewBooking() {
               '&:hover': { bgcolor: '#B3261E', boxShadow: 'none' }
             }}
           >
-            {cancelLoading ? 'Cancelando...' : 'Cancelar Reserva'}
+            {cancelLoading ? 'Guardando...' : 'Confirmar No Asistió'}
           </Button>
         </Box>
       </Dialog>
@@ -432,9 +474,9 @@ export default function ViewBooking() {
       {/* Error Toast */}
       <Snackbar
         open={errorToast}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={() => setErrorToast(false)}
-        message="Error al cancelar la reserva"
+        message="Error al actualizar el estado"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         ContentProps={{
           sx: {

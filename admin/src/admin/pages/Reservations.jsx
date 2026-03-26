@@ -1,9 +1,10 @@
+// Force Vite reload — Status refactor cleanup
 import { useState, useEffect } from 'react';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, MenuItem, Select, FormControl,
   IconButton, Tooltip, Stack, TextField, InputAdornment, 
-  Fab, CircularProgress
+  Fab, CircularProgress, Divider
 } from '@mui/material';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { useNavigate } from 'react-router-dom';
@@ -11,17 +12,17 @@ import { apiClient } from '../services/apiClient';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
 const STATUS_COLORS = {
-  'pending': 'warning',
-  'confirmed': 'info',
-  'cancelled': 'error',
-  'no_show': 'secondary'
+  'PENDING': { bg: '#FEF7E0', text: '#7D4A00' },
+  'CONFIRMED': { bg: '#E8F0FE', text: '#1A73E8' },
+  'COMPLETED': { bg: '#E6F4EA', text: '#137333' },
+  'NO_SHOW': { bg: '#FDECEA', text: '#C5221F' }
 };
 
-const CHIP_COLORS = {
-  'pending': { bg: '#FEF7E0', text: '#7D4A00' },
-  'confirmed': { bg: '#E6F4EA', text: '#137333' },
-  'cancelled': { bg: '#FDECEA', text: '#C5221F' },
-  'no_show': { bg: '#FDECEA', text: '#C5221F' }
+const STATUS_LABELS = {
+  'PENDING': 'Pendiente',
+  'CONFIRMED': 'Confirmada',
+  'COMPLETED': 'Asistió',
+  'NO_SHOW': 'No asistió'
 };
 
 export default function Reservations() {
@@ -125,7 +126,7 @@ export default function Reservations() {
           >
             <MenuItem value="all">All Statuses</MenuItem>
             {Object.keys(STATUS_COLORS).map(s => (
-              <MenuItem key={s} value={s}>{s.toUpperCase()}</MenuItem>
+              <MenuItem key={s} value={s}>{STATUS_LABELS[s] || s}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -182,34 +183,69 @@ export default function Reservations() {
                 </TableCell>
                 <TableCell align="center" sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.guests}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <FormControl size="small" variant="standard">
-                    <Select
-                      value={res.status}
-                      onChange={(e) => handleStatusChange(res.id, e.target.value)}
-                      disableUnderline
-                      sx={{ 
-                        '& .MuiSelect-select': { 
-                          py: 0.5, px: 1, 
-                          borderRadius: '4px',
-                          bgcolor: STATUS_COLORS[res.status] ? `${STATUS_COLORS[res.status]}.light` : 'grey.200',
-                          color: STATUS_COLORS[res.status] ? `${STATUS_COLORS[res.status]}.dark` : 'grey.800',
-                          minWidth: 90,
-                          textAlign: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500,
-                          fontFamily: 'Roboto',
-                          textTransform: 'uppercase'
-                        }
-                      }}
-                    >
-                      {Object.keys(STATUS_COLORS).map(s => (
-                        <MenuItem key={s} value={s}>{s.toUpperCase()}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  {(() => {
+                    const sKey = res.status?.toUpperCase() || 'PENDING';
+                    const colors = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#5F6368' };
+                    return (
+                      <Box sx={{ 
+                        bgcolor: colors.bg, color: colors.text, 
+                        borderRadius: '4px', px: '8px', py: '4px',
+                        display: 'inline-block', minWidth: '80px', textAlign: 'center'
+                      }}>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', textTransform: 'uppercase' }}>
+                          {STATUS_LABELS[sKey] || sKey}
+                        </Typography>
+                      </Box>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                  <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">
+                    
+                    {/* QUICK STATUS ACTIONS */}
+                    {res.status === 'PENDING' && (
+                      <>
+                        <Tooltip title="Confirmar">
+                          <IconButton 
+                            onClick={() => handleStatusChange(res.id, 'CONFIRMED')}
+                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#E8F0FE', color: '#1A73E8', '&:hover': { bgcolor: '#D2E3FC' } }}
+                          >
+                            <span className="material-icons" style={{ fontSize: 18 }}>check_circle</span>
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="No asistió">
+                          <IconButton 
+                            onClick={() => handleStatusChange(res.id, 'NO_SHOW')}
+                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#FDECEA', color: '#C5221F', '&:hover': { bgcolor: '#FAD2CF' } }}
+                          >
+                            <span className="material-icons" style={{ fontSize: 18 }}>person_off</span>
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
+
+                    {res.status === 'CONFIRMED' && (
+                      <>
+                        <Tooltip title="Marcar como llegado">
+                          <IconButton 
+                            onClick={() => handleStatusChange(res.id, 'COMPLETED')}
+                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#E6F4EA', color: '#137333', '&:hover': { bgcolor: '#CEEAD6' } }}
+                          >
+                            <span className="material-icons" style={{ fontSize: 18 }}>how_to_reg</span>
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="No asistió">
+                          <IconButton 
+                            onClick={() => handleStatusChange(res.id, 'NO_SHOW')}
+                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#FDECEA', color: '#C5221F', '&:hover': { bgcolor: '#FAD2CF' } }}
+                          >
+                            <span className="material-icons" style={{ fontSize: 18 }}>person_off</span>
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
+
+                    <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 24, alignSelf: 'center' }} />
                     {/* EDIT */}
                     <IconButton 
                       onClick={() => navigate(`/admin/reservations/edit/${res.id}`, { state: { reservation: res } })}
@@ -284,7 +320,8 @@ export default function Reservations() {
         ) : filteredReservations.length === 0 ? (
           <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No reservations found.</Typography></Box>
         ) : filteredReservations.map(res => {
-          const chipColor = CHIP_COLORS[res.status?.toLowerCase()] || { bg: '#F1F3F4', text: '#202124' };
+          const sKey = res.status?.toUpperCase() || 'PENDING';
+          const chipColor = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#202124' };
           return (
             <Paper 
               key={res.id}
@@ -301,7 +338,7 @@ export default function Reservations() {
                 </Typography>
                 <Box sx={{ bgcolor: chipColor.bg, color: chipColor.text, borderRadius: '4px', px: '8px', py: '4px' }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {res.status || 'Pending'}
+                    {STATUS_LABELS[sKey] || res.status || 'PENDIENTE'}
                   </Typography>
                 </Box>
               </Box>

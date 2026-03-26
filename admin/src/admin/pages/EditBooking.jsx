@@ -6,7 +6,19 @@ import {
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
-const STATUS_OPTIONS = ['pending', 'confirmed', 'cancelled', 'no_show'];
+const STATUS_LABELS = {
+  'PENDING': 'Pendiente',
+  'CONFIRMED': 'Confirmada',
+  'COMPLETED': 'Asistió',
+  'NO_SHOW': 'No asistió'
+};
+
+const ALLOWED_TRANSITIONS = {
+  'PENDING': ['CONFIRMED', 'NO_SHOW'],
+  'CONFIRMED': ['COMPLETED', 'NO_SHOW'],
+  'COMPLETED': [],
+  'NO_SHOW': []
+};
 
 export default function EditBooking() {
   const navigate = useNavigate();
@@ -26,7 +38,7 @@ export default function EditBooking() {
     time: resData.time || '', 
     guests: resData.guests || 2, 
     special_requests: resData.special_requests || '',
-    status: resData.status || 'pending',
+    status: resData.status?.toUpperCase() || 'PENDING',
     table_type_id: resData.table_type_id || '',
     special_event_id: resData.special_event_id || ''
   });
@@ -108,9 +120,13 @@ export default function EditBooking() {
                 label="Status"
                 onChange={e => setEditBooking({...editBooking, status: e.target.value})}
                 sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
+                disabled={ALLOWED_TRANSITIONS[editBooking.status]?.length === 0}
               >
-                {STATUS_OPTIONS.map(status => (
-                  <MenuItem key={status} value={status} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>{status}</MenuItem>
+                <MenuItem value={editBooking.status}>{STATUS_LABELS[editBooking.status] || editBooking.status}</MenuItem>
+                {(ALLOWED_TRANSITIONS[editBooking.status] || []).map(status => (
+                  <MenuItem key={status} value={status} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
+                    {STATUS_LABELS[status] || status}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
