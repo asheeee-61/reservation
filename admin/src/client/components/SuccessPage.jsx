@@ -2,7 +2,7 @@ import { Box, Typography, Button, Container, Divider } from '@mui/material';
 import { useReservationStore } from '../store/useReservationStore';
 
 export default function SuccessPage() {
-  const { reservationId, date, selectedSlot, reset, config } = useReservationStore();
+  const { reservationId, date, selectedSlot, config } = useReservationStore();
 
   const formattedDate = date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
 
@@ -10,10 +10,6 @@ export default function SuccessPage() {
   const instagramUsername = config?.instagram_username;
   const showCancellation = whatsappPhone || instagramUsername;
 
-  const handleVolverAlInicio = () => {
-    reset();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   return (
     <Container maxWidth="xs" sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -86,20 +82,6 @@ export default function SuccessPage() {
           )}
         </Box>
 
-        <Button 
-          variant="outlined" 
-          fullWidth
-          onClick={handleVolverAlInicio}
-          sx={{ 
-            borderRadius: '4px', height: 56,
-            color: '#1A73E8', borderColor: '#1A73E8',
-            fontWeight: 600, textTransform: 'uppercase',
-            fontSize: '15px',
-            '&:hover': { borderColor: '#1557B0', bgcolor: 'rgba(26, 115, 232, 0.04)' }
-          }}
-        >
-          Volver al inicio
-        </Button>
       </Box>
     </Container>
   );

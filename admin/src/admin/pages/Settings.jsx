@@ -176,7 +176,7 @@ export default function Settings() {
         instagram_username: localContact.instagramUsername
       });
 
-      setToastMessage("Contacto guardado");
+      setToastMessage("Información de contacto guardada");
       setToastOpen(true);
       setTimeout(() => setToastOpen(false), 2000);
     } catch (e) {
@@ -292,8 +292,8 @@ export default function Settings() {
 
       {/* Contacto para Cancelaciones Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Contacto para Cancelaciones</Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Los clientes verán estos enlaces en su confirmación para poder cancelar su reserva.</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Información de Contacto</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Enlaces para que los clientes puedan contactar con el restaurante.</Typography>
         
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mb: '24px' }}>
           <Box>
@@ -349,7 +349,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingContact ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR CONTACTO'}
+            {savingContact ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR INFORMACIÓN'}
           </Button>
         </Box>
       </Paper>
