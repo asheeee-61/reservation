@@ -533,12 +533,6 @@ export default function NewBooking() {
                         <Typography sx={{ fontSize: '13px' }}>No se encontró '{customerSearch}'</Typography>
                       </ListItem>
                     )}
-                    <ListItem button onClick={handleCreateAsNew} sx={{ borderTop: '1px solid #E0E0E0', py: 1.5 }}>
-                      <span className="material-icons" style={{ fontSize: 20, color: '#1A73E8', marginRight: 8 }}>person_add</span>
-                      <ListItemText 
-                        primary={<Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#1A73E8' }}>Use "{customerSearch}" as new customer</Typography>}
-                      />
-                    </ListItem>
                   </List>
                 </Paper>
               )}
