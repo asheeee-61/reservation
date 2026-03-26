@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider, IconButton } from '@mui/material';
+import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider, IconButton, Select, MenuItem, FormControl } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
@@ -51,20 +51,31 @@ export default function ViewBooking() {
     return name.substring(0, 2).toUpperCase();
   };
 
+  const handleStatusUpdate = async (newStatus) => {
+    try {
+      await apiClient(`/admin/reservations/${resData.id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      setResData(prev => ({ ...prev, status: newStatus }));
+      setActivities(prev => [{ 
+        id: Date.now(), 
+        text: `Estado cambiado a ${newStatus.replace('_', ' ').charAt(0).toUpperCase() + newStatus.replace('_', ' ').slice(1)}`, 
+        time: new Date().toISOString() 
+      }, ...prev]);
+    } catch (e) {
+      setErrorToast(true);
+    }
+  };
+
   const handleCancelClick = async () => {
     setCancelLoading(true);
     try {
-      await apiClient(`/admin/reservations/${resData.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: 'cancelled' })
-      });
-      
-      setResData(prev => ({ ...prev, status: 'cancelled' }));
-      setActivities(prev => [{ id: Date.now(), text: 'Estado cambiado a Cancelada', time: new Date().toISOString() }, ...prev]);
+      await handleStatusUpdate('cancelled');
       setCancelModalOpen(false);
     } catch (e) {
-      setErrorToast(true);
-      setCancelModalOpen(false);
+      // Error handled in handleStatusUpdate
     } finally {
       setCancelLoading(false);
     }
@@ -102,11 +113,32 @@ export default function ViewBooking() {
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '18px', md: '20px' }, color: '#202124' }}>
                 Reserva #{resData.reservation_id || id}
               </Typography>
-              <Box sx={{ bgcolor: statusColors.bg, color: statusColors.text, borderRadius: '4px', px: '12px', py: '6px' }}>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'capitalize' }}>
-                  {currentStatus === 'cancelled' ? 'Cancelada' : resData.status || 'Pending'}
-                </Typography>
-              </Box>
+              <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+                <Select
+                  value={currentStatus}
+                  onChange={(e) => handleStatusUpdate(e.target.value)}
+                  disableUnderline
+                  sx={{ 
+                    '& .MuiSelect-select': { 
+                      py: '6px', px: '12px', 
+                      borderRadius: '4px',
+                      bgcolor: statusColors.bg,
+                      color: statusColors.text,
+                      textAlign: 'center',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      fontFamily: 'Roboto',
+                      textTransform: 'capitalize'
+                    }
+                  }}
+                >
+                  {Object.keys(STATUS_COLORS).map(s => (
+                    <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize', fontFamily: 'Roboto', fontSize: '13px' }}>
+                      {s.replace('_', ' ')}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
 
             {/* Card Body */}
