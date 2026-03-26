@@ -12,6 +12,9 @@ export default function SuccessPage() {
         display: 'flex', flexDirection: 'column', alignItems: 'center', 
         textAlign: 'center', py: 4, width: '100%'
       }}>
+        <Typography variant="subtitle2" color="primary" sx={{ mb: 3 }}>
+          {useReservationStore.getState().config?.restaurant?.name || 'Hotaru Madrid'}
+        </Typography>
         <span className="material-icons" style={{ fontSize: 48, marginBottom: 16, color: '#1A73E8' }}>check_circle</span>
         
         <Typography variant="h6" sx={{ fontSize: '20px', fontWeight: 500, color: '#202124', mb: 1 }}>

@@ -61,58 +61,66 @@ export default function TableTypeSelection({ onBack, onContinue }) {
         </Typography>
       </Box>
 
-      <Box sx={{ p: { xs: 2, sm: 4 }, flexGrow: 1 }}>
-        <Typography variant="body2" sx={{ mb: 4, color: '#70757A' }}>
-          Elige dónde prefieres disfrutar de tu experiencia en {config?.restaurant?.name || 'nuestro restaurante'}.
+      <Box sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1 }}>
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, fontSize: '20px', color: '#202124' }}>
+          ¿Qué tipo de mesa prefiere?
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 3, color: '#70757A', fontSize: '14px' }}>
+          Seleccione una de las siguientes opciones:
         </Typography>
 
-        <List sx={{ width: '100%', bgcolor: 'background.paper', p: 0 }}>
+        <Box sx={{ width: '100%' }}>
           {(cachedTypes || []).map((type) => {
             const isSelected = selectedTableType?.id === type.id;
             return (
               <Paper 
                 key={type.id} 
                 elevation={0}
+                onClick={() => {
+                  setSelectedTableType(type);
+                  setTimeout(() => onContinue(), 150);
+                }}
                 sx={{ 
-                  mb: 2, 
-                  border: isSelected ? '2px solid #1A73E8' : '1px solid #DADCE0',
-                  borderRadius: '8px',
-                  overflow: 'hidden',
+                  mb: 2,
+                  p: 3,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: isSelected ? '2px solid #1A73E8' : '1px solid #E0E0E0',
                   bgcolor: isSelected ? '#E8F0FE' : '#FFFFFF',
+                  borderRadius: '12px',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <ListItemButton 
-                  onClick={() => {
-                    setSelectedTableType(type);
-                    setTimeout(() => onContinue(), 150);
-                  }}
-                  sx={{ p: 3, alignItems: 'flex-start' }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
-                    <Radio
-                      checked={isSelected}
-                      value={type.id}
-                      sx={{ p: 0, color: isSelected ? '#1A73E8' : '#70757A' }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#202124' }}>
-                        {type.name}
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography sx={{ mt: 0.5, fontSize: '14px', color: '#70757A' }}>
-                        {type.description}
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
+                <Box sx={{ 
+                  mr: 3, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  width: 48, height: 48,
+                  borderRadius: '50%',
+                  bgcolor: isSelected ? '#FFFFFF' : '#F1F3F4',
+                  color: isSelected ? '#1A73E8' : '#70757A'
+                }}>
+                  <span className="material-icons" style={{ fontSize: 24 }}>restaurant</span>
+                </Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="body1" fontWeight={isSelected ? 600 : 500} sx={{ color: '#202124', fontSize: '16px' }}>
+                    {type.name}
+                  </Typography>
+                  {type.description && (
+                    <Typography variant="body2" sx={{ color: '#70757A', display: 'block', mt: 0.5, fontSize: '13px' }}>
+                      {type.description}
+                    </Typography>
+                  )}
+                </Box>
+                {isSelected && (
+                  <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>check_circle</span>
+                )}
               </Paper>
             );
           })}
-        </List>
+        </Box>
       </Box>
 
       {/* Manual continue button removed for simpler auto-advance flow */}

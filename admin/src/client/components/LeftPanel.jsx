@@ -100,7 +100,7 @@ export default function LeftPanel({ onContinue }) {
         </Typography>
       </Box>
 
-      <Box sx={{ p: { xs: 2, sm: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4 } }}>
+      <Box sx={{ p: { xs: 3, sm: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4 } }}>
         <Box>
           <Typography variant="body2" sx={{ mb: 2, color: '#70757A', fontSize: '14px' }}>
             {config.restaurant.address}
@@ -252,7 +252,7 @@ export default function LeftPanel({ onContinue }) {
           const currentTimeString = `${currentHour}:${currentMin}`;
 
           return (
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid container spacing={2} sx={{ mb: 0 }}>
               {visibleSlots.map((slot, sIdx) => {
                 const isSelected = selectedSlot?.time === slot.time;
                 const isPast = isToday && slot.time <= currentTimeString;

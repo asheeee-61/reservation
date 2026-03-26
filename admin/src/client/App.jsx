@@ -97,88 +97,52 @@ function App() {
     );
   }
 
+  const isStepWithMap = !['/confirmar', '/exito'].includes(location.pathname);
+  
+  // Adjusted for potential /reservacion prefix in master router
+  const currentSubPath = location.pathname.replace('/reservacion', '');
+  const isMapVisible = !['/confirmar', '/exito'].includes(currentSubPath) && currentSubPath !== '/confirmar' && currentSubPath !== '/exito';
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ position: 'relative', width: '100%', minHeight: '100vh', overflowX: 'hidden' }}>
-        <Routes>
-          <Route path="/" element={<HomeStep navigate={navigate} />} />
-          {/* Legacy /reservar support inside client app context */}
-          <Route path="/reservar" element={<HomeStep navigate={navigate} />} />
-          <Route path="/mesa" element={<TableStep navigate={navigate} />} />
-          <Route path="/evento" element={<EventStep navigate={navigate} />} />
-          <Route path="/confirmar" element={<ConfirmStep navigate={navigate} />} />
-          <Route path="/exito" element={<SuccessStep navigate={navigate} />} />
-        </Routes>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, width: '100%', minHeight: '100vh', overflow: 'hidden' }}>
+        
+        {/* Left Side: Scrollable content */}
+        <Box sx={{ 
+          flex: isMapVisible ? { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' } : '1 1 100%',
+          height: '100vh',
+          overflowY: 'auto',
+          position: 'relative',
+          bgcolor: isMapVisible ? '#FFFFFF' : 'grey.50'
+        }}>
+          <Routes>
+            <Route path="/" element={<LeftPanel onContinue={() => navigate('mesa')} />} />
+            <Route path="/reservar" element={<LeftPanel onContinue={() => navigate('mesa')} />} />
+            <Route path="/mesa" element={<TableTypeSelection onBack={() => navigate(-1)} onContinue={() => navigate('/reservacion/evento')} />} />
+            <Route path="/evento" element={<SpecialEventSelection onBack={() => navigate(-1)} onContinue={() => navigate('/reservacion/confirmar')} />} />
+            <Route path="/confirmar" element={<ReservationCheckout onBack={() => navigate(-1)} onSuccess={() => navigate('/reservacion/exito')} />} />
+            <Route path="/exito" element={<SuccessPage />} />
+          </Routes>
+        </Box>
+
+        {/* Right Side: Persistent Map (Hidden on mobile) */}
+        {isMapVisible && (
+          <Box sx={{ 
+            display: { xs: 'none', md: 'block' }, 
+            flex: '1 1 auto', 
+            height: '100vh',
+            borderLeft: '1px solid #E0E0E0'
+          }}>
+            <RightPanelMap />
+          </Box>
+        )}
       </Box>
     </ThemeProvider>
   );
 }
 
-// Wrapper components for layout consistency
-function HomeStep({ navigate }) {
-  return (
-    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
-      <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
-        <LeftPanel onContinue={() => navigate('/reservacion/mesa')} />
-      </Box>
-      <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
-        <RightPanelMap />
-      </Box>
-    </Box>
-  );
-}
-
-function TableStep({ navigate }) {
-  return (
-    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
-      <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
-        <TableTypeSelection 
-          onBack={() => navigate(-1)}
-          onContinue={() => navigate('/reservacion/evento')} 
-        />
-      </Box>
-      <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
-        <RightPanelMap />
-      </Box>
-    </Box>
-  );
-}
-
-function EventStep({ navigate }) {
-  return (
-    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
-      <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
-        <SpecialEventSelection 
-          onBack={() => navigate(-1)}
-          onContinue={() => navigate('/reservacion/confirmar')} 
-        />
-      </Box>
-      <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
-        <RightPanelMap />
-      </Box>
-    </Box>
-  );
-}
-
-function ConfirmStep({ navigate }) {
-  return (
-    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'grey.50' }}>
-      <ReservationCheckout 
-        onBack={() => navigate(-1)} 
-        onSuccess={() => navigate('/reservacion/exito')} 
-      />
-    </Box>
-  );
-}
-
-function SuccessStep() {
-  return (
-    <Box sx={{ width: '100%', height: '100%', bgcolor: '#FFFFFF' }}>
-      <SuccessPage />
-    </Box>
-  );
-}
+// Step-specific wrappers are now handled by the main layout in App()
 
 export default App;
 

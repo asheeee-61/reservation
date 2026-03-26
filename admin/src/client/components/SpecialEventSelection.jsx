@@ -110,8 +110,8 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
         </Typography>
       </Box>
 
-      <Box sx={{ p: { xs: 2, sm: 4 }, flexGrow: 1 }}>
-        <Typography sx={{ mt: 1, mb: 4, fontSize: '14px', color: '#70757A', fontFamily: 'Roboto' }}>
+      <Box sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1 }}>
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, fontSize: '20px', color: '#202124' }}>
           ¿Alguna ocasión especial?
         </Typography>
 
@@ -128,47 +128,47 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
                 <Paper
                   key={event.id}
                   elevation={0}
+                  onClick={() => {
+                    setSelectedSpecialEvent(event);
+                    setTimeout(() => onContinue(), 150);
+                  }}
                   sx={{
                     mb: 2,
-                    borderRadius: '4px',
-                    border: isSelected ? '2px solid #1A73E8' : '1px solid #DADCE0',
+                    p: 3,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: isSelected ? '2px solid #1A73E8' : '1px solid #E0E0E0',
                     bgcolor: isSelected ? '#E8F0FE' : '#FFFFFF',
-                    transition: 'all 0.2s ease',
-                    '&:hover': !isSelected ? {
-                      bgcolor: '#F8F9FA',
-                      borderColor: '#1A73E8'
-                    } : {}
+                    borderRadius: '12px',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <ListItemButton 
-                    onClick={() => {
-                      setSelectedSpecialEvent(event);
-                      setTimeout(() => onContinue(), 150);
-                    }}
-                    sx={{ p: '16px', display: 'flex', alignItems: 'flex-start' }}
-                  >
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Typography sx={{ 
-                        fontWeight: 500, fontSize: '15px', 
-                        color: isSelected ? '#1A73E8' : '#202124',
-                        fontFamily: 'Roboto'
-                      }}>
-                        {event.name}
+                  <Box sx={{
+                    mr: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 48, height: 48,
+                    borderRadius: '50%',
+                    bgcolor: isSelected ? '#FFFFFF' : '#F1F3F4',
+                    color: isSelected ? '#1A73E8' : '#70757A'
+                  }}>
+                    <span className="material-icons" style={{ fontSize: 24 }}>celebration</span>
+                  </Box>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="body1" fontWeight={isSelected ? 600 : 500} sx={{ color: '#202124', fontSize: '16px' }}>
+                      {event.name}
+                    </Typography>
+                    {event.description && (
+                      <Typography variant="body2" sx={{ color: '#70757A', display: 'block', mt: 0.5, fontSize: '13px' }}>
+                        {event.description}
                       </Typography>
-                      {event.description && (
-                        <Typography sx={{ 
-                          mt: '4px', fontSize: '14px', 
-                          color: isSelected ? '#1565C0' : '#70757A',
-                          fontFamily: 'Roboto'
-                        }}>
-                          {event.description}
-                        </Typography>
-                      )}
-                    </Box>
-                    {isSelected && (
-                      <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>check_circle</span>
                     )}
-                  </ListItemButton>
+                  </Box>
+                  {isSelected && (
+                    <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>check_circle</span>
+                  )}
                 </Paper>
               );
             })}
