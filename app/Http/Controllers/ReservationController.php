@@ -122,12 +122,11 @@ class ReservationController extends Controller
         if ($request->filled('customer_id')) {
             $customer = Customer::findOrFail($request->customer_id);
         } else {
-            $customer = Customer::firstOrCreate(
+            $customer = Customer::updateOrCreate(
                 ['phone' => $request->user['phone']],
                 [
                     'name'  => $request->user['name'],
                     'email' => $request->user['email'] ?? null,
-                    'phone' => $request->user['phone'],
                 ]
             );
         }
@@ -206,12 +205,12 @@ class ReservationController extends Controller
         $customer = null;
 
         if ($email) {
-            $customer = Customer::firstOrCreate(
+            $customer = Customer::updateOrCreate(
                 ['email' => $email],
                 ['name' => $name, 'phone' => $phone]
             );
         } elseif ($phone) {
-            $customer = Customer::firstOrCreate(
+            $customer = Customer::updateOrCreate(
                 ['phone' => $phone],
                 ['name' => $name, 'email' => null]
             );
