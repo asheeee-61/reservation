@@ -85,4 +85,33 @@ class SettingsController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function blockedDates(Request $request)
+    {
+        $perPage = max(1, (int) $request->query('per_page', 10));
+        $page    = max(1, (int) $request->query('page', 1));
+
+        $all = [];
+        if (Storage::exists('config.json')) {
+            $config = json_decode(Storage::get('config.json'), true) ?? [];
+            $all = $config['blockedDays'] ?? [];
+        }
+
+        sort($all); // ensure ascending chronological order
+
+        $total     = count($all);
+        $lastPage  = max(1, (int) ceil($total / $perPage));
+        $safePage  = min($page, $lastPage);
+        $items     = array_slice($all, ($safePage - 1) * $perPage, $perPage);
+
+        return response()->json([
+            'data' => array_values($items),
+            'meta' => [
+                'total'        => $total,
+                'per_page'     => $perPage,
+                'current_page' => $safePage,
+                'last_page'    => $lastPage,
+            ],
+        ]);
+    }
 }

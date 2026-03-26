@@ -47,4 +47,5 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);
+    Route::get('/blocked-dates', [SettingsController::class, 'blockedDates']);
 });
