@@ -16,6 +16,7 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
   } = useReservationStore();
   
   const [loading, setLoading] = useState(!cachedEvents);
+  const [continuing, setContinuing] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -44,20 +45,10 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
     return () => { active = false; };
   }, [cachedEvents, setCachedEvents, setSelectedSpecialEvent, selectedSpecialEvent]);
 
-  if (loading) {
+  if (loading && !cachedEvents) {
     return (
-      <Box sx={{ 
-        display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#FFFFFF',
-        borderRight: '1px solid #E0E0E0'
-      }}>
-        <Box sx={{ height: 56, display: 'flex', alignItems: 'center', px: 2, borderBottom: '1px solid #E0E0E0' }}>
-           <Skeleton width="100%" height={32} />
-        </Box>
-        <Box sx={{ p: 4 }}>
-          {[1,2,3].map(i => (
-            <Skeleton key={i} variant="rectangular" height={80} sx={{ mb: 2, borderRadius: '4px' }} />
-          ))}
-        </Box>
+      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', height: '100%', alignItems: 'center' }}>
+        <CircularProgress />
       </Box>
     );
   }
@@ -130,7 +121,6 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
                   elevation={0}
                   onClick={() => {
                     setSelectedSpecialEvent(event);
-                    setTimeout(() => onContinue(), 150);
                   }}
                   sx={{
                     mb: 2,
@@ -176,8 +166,22 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
         )}
       </Box>
 
-      {/* Footer Continue Button */}
-      {/* Manual continue button removed for simpler auto-advance flow */}
+      <Box sx={{ mt: 'auto', p: { xs: 3, sm: 4 }, pt: 0 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          disabled={continuing}
+          onClick={onContinue}
+          sx={{ 
+            height: 56, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF',
+            fontFamily: 'Roboto', fontWeight: 500, fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1.25px',
+            boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
+            '&.Mui-disabled': { bgcolor: '#F1F3F4', color: '#BDBDBD' }
+          }}
+        >
+          {continuing ? <CircularProgress size={24} color="inherit" /> : 'CONTINUAR'}
+        </Button>
+      </Box>
     </Box>
   );
 }

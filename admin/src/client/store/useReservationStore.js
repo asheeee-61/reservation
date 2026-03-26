@@ -12,7 +12,7 @@ export const useReservationStore = create((set) => ({
     phone: '',
     specialRequests: ''
   },
-  step: 'selection', // 'selection' | 'table_selection' | 'confirmation' | 'success'
+  step: 'selection', // 'selection' | 'table_selection' | 'special_event' | 'confirmation' | 'success'
   reservationId: null,
   config: null,
   tableTypes: null,

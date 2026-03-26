@@ -14,6 +14,7 @@ export default function TableTypeSelection({ onBack, onContinue }) {
     tableTypes: cachedTypes, setTableTypes: setCachedTypes
   } = useReservationStore();
   const [loading, setLoading] = useState(!cachedTypes);
+  const [continuing, setContinuing] = useState(false);
 
   useEffect(() => {
     if (cachedTypes) return;
@@ -31,9 +32,9 @@ export default function TableTypeSelection({ onBack, onContinue }) {
     });
   }, [cachedTypes, setCachedTypes, setSelectedTableType, selectedTableType]);
 
-  if (loading) {
+  if (loading && !cachedTypes) {
     return (
-      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', height: '100%', alignItems: 'center' }}>
         <CircularProgress />
       </Box>
     );
@@ -78,7 +79,6 @@ export default function TableTypeSelection({ onBack, onContinue }) {
                 elevation={0}
                 onClick={() => {
                   setSelectedTableType(type);
-                  setTimeout(() => onContinue(), 150);
                 }}
                 sx={{ 
                   mb: 2,
@@ -123,7 +123,22 @@ export default function TableTypeSelection({ onBack, onContinue }) {
         </Box>
       </Box>
 
-      {/* Manual continue button removed for simpler auto-advance flow */}
+      <Box sx={{ mt: 'auto', p: { xs: 3, sm: 4 }, pt: 0 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          disabled={!selectedTableType || continuing}
+          onClick={onContinue}
+          sx={{ 
+            height: 56, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF',
+            fontFamily: 'Roboto', fontWeight: 500, fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1.25px',
+            boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
+            '&.Mui-disabled': { bgcolor: '#F1F3F4', color: '#BDBDBD' }
+          }}
+        >
+          {continuing ? <CircularProgress size={24} color="inherit" /> : 'CONTINUAR'}
+        </Button>
+      </Box>
     </Box>
   );
 }

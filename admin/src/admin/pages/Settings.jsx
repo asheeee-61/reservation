@@ -35,7 +35,9 @@ export default function Settings() {
   const globalHours = useSettingsStore(state => state.globalHours);
   
   const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
+  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '' });
   const [savingGlobal, setSavingGlobal] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
   const [conflictModalOpen, setConflictModalOpen] = useState(false);
   const [conflicts, setConflicts] = useState([]);
   const [toastMessage, setToastMessage] = useState('');
@@ -47,7 +49,15 @@ export default function Settings() {
 
   useEffect(() => {
     if (globalHours) {
-      setLocalGlobal(globalHours);
+      setLocalGlobal({
+        openingTime: globalHours.openingTime,
+        closingTime: globalHours.closingTime,
+        defaultInterval: globalHours.defaultInterval
+      });
+      setLocalContact({
+        whatsappPhone: globalHours.whatsapp_phone || '',
+        instagramUsername: globalHours.instagram_username || ''
+      });
     }
   }, [globalHours]);
 
@@ -122,11 +132,17 @@ export default function Settings() {
           ...newConfig,
           global_opening_time: localGlobal.openingTime,
           global_closing_time: localGlobal.closingTime,
-          default_interval: localGlobal.defaultInterval
+          default_interval: localGlobal.defaultInterval,
+          whatsapp_phone: localContact.whatsappPhone,
+          instagram_username: localContact.instagramUsername
         })
       });
 
-      useSettingsStore.getState().setGlobalHours(localGlobal);
+      useSettingsStore.getState().setGlobalHours({
+        ...localGlobal,
+        whatsapp_phone: localContact.whatsappPhone,
+        instagram_username: localContact.instagramUsername
+      });
       
       setToastMessage("Horario global guardado");
       setToastOpen(true);
@@ -136,6 +152,37 @@ export default function Settings() {
       console.error(e);
     } finally {
       setSavingGlobal(false);
+    }
+  };
+
+  const handleSaveContact = async () => {
+    setSavingContact(true);
+    try {
+      await apiClient('/admin/config', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...config,
+          global_opening_time: localGlobal.openingTime,
+          global_closing_time: localGlobal.closingTime,
+          default_interval: localGlobal.defaultInterval,
+          whatsapp_phone: localContact.whatsappPhone,
+          instagram_username: localContact.instagramUsername
+        })
+      });
+
+      useSettingsStore.getState().setGlobalHours({
+        ...localGlobal,
+        whatsapp_phone: localContact.whatsappPhone,
+        instagram_username: localContact.instagramUsername
+      });
+
+      setToastMessage("Contacto guardado");
+      setToastOpen(true);
+      setTimeout(() => setToastOpen(false), 2000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSavingContact(false);
     }
   };
 
@@ -239,6 +286,70 @@ export default function Settings() {
             }}
           >
             {savingSettings ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR DETALLES'}
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Contacto para Cancelaciones Card */}
+      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Contacto para Cancelaciones</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Los clientes verán estos enlaces en su confirmación para poder cancelar su reserva.</Typography>
+        
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mb: '24px' }}>
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '6px', textTransform: 'uppercase' }}>NÚMERO DE WHATSAPP</Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="34612345678"
+              value={localContact.whatsappPhone}
+              onChange={(e) => setLocalContact({ ...localContact, whatsappPhone: e.target.value.replace(/\D/g, '') })}
+              helperText="Solo dígitos, sin +. Ejemplo: 34612345678"
+              InputProps={{ 
+                sx: { 
+                  height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px',
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: '2px' }
+                } 
+              }}
+              FormHelperTextProps={{ sx: { fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' } }}
+            />
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '6px', textTransform: 'uppercase' }}>USUARIO DE INSTAGRAM</Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="hotaru.madrid"
+              value={localContact.instagramUsername}
+              onChange={(e) => setLocalContact({ ...localContact, instagramUsername: e.target.value.replace('@', '') })}
+              helperText="Solo el nombre de usuario, sin @"
+              InputProps={{ 
+                sx: { 
+                  height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px',
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: '2px' }
+                } 
+              }}
+              FormHelperTextProps={{ sx: { fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' } }}
+            />
+            {localContact.instagramUsername && (
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#1A73E8', mt: '4px' }}>
+                instagram.com/{localContact.instagramUsername}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button 
+            variant="contained" onClick={handleSaveContact} disabled={savingContact}
+            sx={{ 
+              width: { xs: '100%', sm: 'auto' }, height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
+          >
+            {savingContact ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR CONTACTO'}
           </Button>
         </Box>
       </Paper>

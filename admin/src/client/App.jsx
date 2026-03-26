@@ -64,11 +64,9 @@ const theme = createTheme({
 });
 
 function App() {
-  const { config, setConfig, showTerms } = useReservationStore();
+  const { config, setConfig, showTerms, step, setStep } = useReservationStore();
   const [initLoading, setInitLoading] = useState(true);
-  const navigate = useNavigate();
-  const location = useLocation();
-
+  
   useEffect(() => {
     if (config) {
       setInitLoading(false);
@@ -97,11 +95,20 @@ function App() {
     );
   }
 
-  const isStepWithMap = !['/confirmar', '/exito'].includes(location.pathname);
-  
-  // Adjusted for potential /reservacion prefix in master router
-  const currentSubPath = location.pathname.replace('/reservacion', '');
-  const isMapVisible = !['/confirmar', '/exito'].includes(currentSubPath) && currentSubPath !== '/confirmar' && currentSubPath !== '/exito';
+  const isMapVisible = step !== 'confirmation' && step !== 'success';
+
+  const renderStep = (targetStep, Component, props = {}) => (
+    <Box sx={{ 
+      display: step === targetStep ? 'block' : 'none',
+      opacity: step === targetStep ? 1 : 0,
+      visibility: step === targetStep ? 'visible' : 'hidden',
+      transition: 'opacity 200ms ease',
+      height: '100%',
+      width: '100%'
+    }}>
+      <Component {...props} />
+    </Box>
+  );
 
   return (
     <ThemeProvider theme={theme}>
@@ -114,7 +121,7 @@ function App() {
         overflow: { xs: 'auto', md: 'hidden' } 
       }}>
         
-        {/* Left Side: Scrollable content */}
+        {/* Left Side: Step Content */}
         <Box sx={{ 
           flex: isMapVisible ? { xs: '1 1 auto', md: '0 0 40%', lg: '0 0 35%' } : '1 1 auto',
           height: { xs: 'auto', md: '100vh' },
@@ -122,14 +129,11 @@ function App() {
           position: 'relative',
           bgcolor: isMapVisible ? '#FFFFFF' : 'grey.50'
         }}>
-          <Routes>
-            <Route path="/" element={<LeftPanel onContinue={() => navigate('mesa')} />} />
-            <Route path="/reservar" element={<LeftPanel onContinue={() => navigate('mesa')} />} />
-            <Route path="/mesa" element={<TableTypeSelection onBack={() => navigate(-1)} onContinue={() => navigate('/reservacion/evento')} />} />
-            <Route path="/evento" element={<SpecialEventSelection onBack={() => navigate(-1)} onContinue={() => navigate('/reservacion/confirmar')} />} />
-            <Route path="/confirmar" element={<ReservationCheckout onBack={() => navigate(-1)} onSuccess={() => navigate('/reservacion/exito')} />} />
-            <Route path="/exito" element={<SuccessPage />} />
-          </Routes>
+          {renderStep('selection', LeftPanel, { onContinue: () => setStep('table_selection') })}
+          {renderStep('table_selection', TableTypeSelection, { onBack: () => setStep('selection'), onContinue: () => setStep('special_event') })}
+          {renderStep('special_event', SpecialEventSelection, { onBack: () => setStep('table_selection'), onContinue: () => setStep('confirmation') })}
+          {renderStep('confirmation', ReservationCheckout, { onBack: () => setStep('special_event'), onSuccess: () => setStep('success') })}
+          {renderStep('success', SuccessPage)}
         </Box>
 
         {/* Right Side: Persistent Map (Hidden on mobile) */}
