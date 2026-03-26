@@ -56,7 +56,13 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
       <Container maxWidth="md" disableGutters sx={{ px: { xs: 0, sm: 2, md: 3 } }}>
 
         <Paper sx={{ overflow: 'hidden', borderRadius: { xs: 0, sm: 4 }, minHeight: { xs: '100vh', sm: 'auto' } }}>
-          <Box sx={{ p: { xs: 3, sm: 4, md: 6 }, bgcolor: '#FFFFFF' }}>
+          <Box sx={{ p: { xs: 3, sm: 4, md: 6 }, bgcolor: '#FFFFFF', position: 'relative' }}>
+            <IconButton 
+              onClick={onBack}
+              sx={{ position: 'absolute', top: 16, left: 16, color: '#70757A' }}
+            >
+              <span className="material-icons">arrow_back</span>
+            </IconButton>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography variant="subtitle2" color="primary" sx={{ mb: 1.5, fontSize: '14px', letterSpacing: '2px' }}>{config?.restaurant?.name || 'Restaurante'}</Typography>
               <Typography variant="h5" fontWeight="bold" sx={{ fontSize: '24px', color: '#202124' }}>
@@ -90,6 +96,14 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
                     {selectedTableType?.name || 'Mesa estándar'}
                   </Typography>
                 </Box>
+                {selectedSpecialEvent && (
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 24 }}>auto_awesome</span>
+                    <Typography variant="h6" sx={{ fontSize: '18px', color: '#202124' }}>
+                      {selectedSpecialEvent.name}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
 
@@ -110,28 +124,33 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               />
             </Box>
             
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, mb: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, mb: 1.5 }}>
               <TextField
                 fullWidth label="Correo electrónico" type="email"
+                placeholder="nombre@ejemplo.com"
                 value={userData.email}
                 onChange={(e) => setUserData({ email: e.target.value })}
                 error={userData.email.length > 0 && !isEmailValid(userData.email)}
                 InputProps={{ sx: { height: 56, fontSize: '16px' } }}
               />
               <TextField
-                fullWidth label="Teléfono"
+                fullWidth label="Teléfono (Preferiblemente WhatsApp)"
+                placeholder="+34 600 000 000"
                 value={userData.phone}
                 onChange={(e) => setUserData({ phone: e.target.value })}
                 InputProps={{ sx: { height: 56, fontSize: '16px' } }}
               />
             </Box>
+            <Typography variant="body2" sx={{ mb: 4, color: '#1A73E8', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center' }}>
+              <span className="material-icons" style={{ fontSize: 16, marginRight: 8 }}>info</span>
+              Le enviaremos una confirmación por email o WhatsApp. Verifique sus datos.
+            </Typography>
 
             <Box sx={{ mb: 4 }}>
               <TextField
                 fullWidth label="¿Algo más que debamos saber? (Opcional)" multiline rows={2}
                 value={userData.specialRequests}
                 onChange={(e) => setUserData({ specialRequests: e.target.value })}
-                placeholder="Alergias, silla de ruedas, trona, o notas sobre su celebración..."
                 helperText="Por ejemplo: alergias alimentarias, necesidad de trona o detalles especiales para su evento."
                 InputProps={{ sx: { fontSize: '16px' } }}
               />
@@ -154,24 +173,6 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               mt: 4,
               pb: { xs: 4, sm: 0 } 
             }}>
-              <Button 
-                variant="outlined" 
-                onClick={onBack}
-                disabled={submitting}
-                fullWidth={false}
-                sx={{ 
-                  borderRadius: '4px', 
-                  height: 56, 
-                  color: '#1A73E8', 
-                  borderColor: '#1A73E8',
-                  minWidth: { xs: '100%', sm: 120 },
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  fontSize: '14px'
-                }}
-              >
-                Editar
-              </Button>
               <Button 
                 variant="contained" 
                 onClick={handleConfirm} 
