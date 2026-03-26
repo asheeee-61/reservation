@@ -12,17 +12,17 @@ import { apiClient } from '../services/apiClient';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
 const STATUS_COLORS = {
-  'PENDING': { bg: '#FEF7E0', text: '#7D4A00' },
-  'CONFIRMED': { bg: '#E8F0FE', text: '#1A73E8' },
-  'COMPLETED': { bg: '#E6F4EA', text: '#137333' },
-  'NO_SHOW': { bg: '#FDECEA', text: '#C5221F' }
+  'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
+  'CONFIRMADA': { bg: '#E8F0FE', text: '#1A73E8' },
+  'ASISTIÓ': { bg: '#E6F4EA', text: '#137333' },
+  'NO_ASISTIÓ': { bg: '#FDECEA', text: '#C5221F' }
 };
 
 const STATUS_LABELS = {
-  'PENDING': 'Pendiente',
-  'CONFIRMED': 'Confirmada',
-  'COMPLETED': 'Asistió',
-  'NO_SHOW': 'No asistió'
+  'PENDIENTE': 'Pendiente',
+  'CONFIRMADA': 'Confirmada',
+  'ASISTIÓ': 'Asistió',
+  'NO_ASISTIÓ': 'No asistió'
 };
 
 export default function Reservations() {
@@ -31,6 +31,7 @@ export default function Reservations() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [toastOpen, setToastOpen] = useState(false);
 
   useEffect(() => {
     fetchReservations();
@@ -58,6 +59,7 @@ export default function Reservations() {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
       });
+      setToastOpen(true);
     } catch (e) {
       alert('Failed to update status');
       setReservations(previous);
@@ -184,66 +186,60 @@ export default function Reservations() {
                 <TableCell align="center" sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.guests}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   {(() => {
-                    const sKey = res.status?.toUpperCase() || 'PENDING';
+                    const sKey = res.status?.toUpperCase() || 'PENDIENTE';
                     const colors = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#5F6368' };
                     return (
-                      <Box sx={{ 
-                        bgcolor: colors.bg, color: colors.text, 
-                        borderRadius: '4px', px: '8px', py: '4px',
-                        display: 'inline-block', minWidth: '80px', textAlign: 'center'
-                      }}>
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', textTransform: 'uppercase' }}>
-                          {STATUS_LABELS[sKey] || sKey}
-                        </Typography>
-                      </Box>
+                      <FormControl size="small" variant="standard" sx={{ m: 0, p: 0 }}>
+                        <Select
+                          value={sKey}
+                          onChange={(e) => handleStatusChange(res.id, e.target.value)}
+                          disableUnderline
+                          sx={{ 
+                            bgcolor: colors.bg, 
+                            color: colors.text, 
+                            borderRadius: '4px', 
+                            px: '8px', 
+                            py: '2px',
+                            minWidth: '110px',
+                            fontFamily: 'Roboto', 
+                            fontWeight: 500, 
+                            fontSize: '12px',
+                            '& .MuiSelect-select': { 
+                              paddingTop: '4px !important',
+                              paddingBottom: '4px !important',
+                              textAlign: 'center',
+                              textTransform: 'uppercase'
+                            },
+                            '& .MuiSvgIcon-root': { color: colors.text, right: 2 }
+                          }}
+                          MenuProps={{
+                             PaperProps: {
+                               sx: {
+                                 mt: 0.5,
+                                 border: '1px solid #DADCE0',
+                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                 '& .MuiMenuItem-root': {
+                                   fontFamily: 'Roboto',
+                                   fontSize: '13px',
+                                   '&:hover': { bgcolor: '#F1F3F4' },
+                                   '&.Mui-selected': { bgcolor: '#E8F0FE' }
+                                 }
+                               }
+                             }
+                          }}
+                        >
+                          {Object.keys(STATUS_COLORS).map(status => (
+                            <MenuItem key={status} value={status}>
+                              {STATUS_LABELS[status]}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     );
-                  })()}
+                  })() || <Box component="span" sx={{ color: '#BDBDBD' }}>—</Box>}
                 </TableCell>
                 <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">
-                    
-                    {/* QUICK STATUS ACTIONS */}
-                    {res.status === 'PENDING' && (
-                      <>
-                        <Tooltip title="Confirmar">
-                          <IconButton 
-                            onClick={() => handleStatusChange(res.id, 'CONFIRMED')}
-                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#E8F0FE', color: '#1A73E8', '&:hover': { bgcolor: '#D2E3FC' } }}
-                          >
-                            <span className="material-icons" style={{ fontSize: 18 }}>check_circle</span>
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="No asistió">
-                          <IconButton 
-                            onClick={() => handleStatusChange(res.id, 'NO_SHOW')}
-                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#FDECEA', color: '#C5221F', '&:hover': { bgcolor: '#FAD2CF' } }}
-                          >
-                            <span className="material-icons" style={{ fontSize: 18 }}>person_off</span>
-                          </IconButton>
-                        </Tooltip>
-                      </>
-                    )}
-
-                    {res.status === 'CONFIRMED' && (
-                      <>
-                        <Tooltip title="Marcar como llegado">
-                          <IconButton 
-                            onClick={() => handleStatusChange(res.id, 'COMPLETED')}
-                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#E6F4EA', color: '#137333', '&:hover': { bgcolor: '#CEEAD6' } }}
-                          >
-                            <span className="material-icons" style={{ fontSize: 18 }}>how_to_reg</span>
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="No asistió">
-                          <IconButton 
-                            onClick={() => handleStatusChange(res.id, 'NO_SHOW')}
-                            sx={{ width: 32, height: 32, borderRadius: '4px', bgcolor: '#FDECEA', color: '#C5221F', '&:hover': { bgcolor: '#FAD2CF' } }}
-                          >
-                            <span className="material-icons" style={{ fontSize: 18 }}>person_off</span>
-                          </IconButton>
-                        </Tooltip>
-                      </>
-                    )}
 
                     <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 24, alignSelf: 'center' }} />
                     {/* EDIT */}
@@ -320,7 +316,7 @@ export default function Reservations() {
         ) : filteredReservations.length === 0 ? (
           <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No reservations found.</Typography></Box>
         ) : filteredReservations.map(res => {
-          const sKey = res.status?.toUpperCase() || 'PENDING';
+          const sKey = res.status?.toUpperCase() || 'PENDIENTE';
           const chipColor = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#202124' };
           return (
             <Paper 
@@ -355,6 +351,14 @@ export default function Reservations() {
           );
         })}
       </Box>
+
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={3000}
+        onClose={() => setToastOpen(false)}
+        message="Estado actualizado"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
 
       <Fab 
         color="primary" 

@@ -7,17 +7,10 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
 const STATUS_LABELS = {
-  'PENDING': 'Pendiente',
-  'CONFIRMED': 'Confirmada',
-  'COMPLETED': 'Asistió',
-  'NO_SHOW': 'No asistió'
-};
-
-const ALLOWED_TRANSITIONS = {
-  'PENDING': ['CONFIRMED', 'NO_SHOW'],
-  'CONFIRMED': ['COMPLETED', 'NO_SHOW'],
-  'COMPLETED': [],
-  'NO_SHOW': []
+  'PENDIENTE': 'Pendiente',
+  'CONFIRMADA': 'Confirmada',
+  'ASISTIÓ': 'Asistió',
+  'NO_ASISTIÓ': 'No asistió'
 };
 
 export default function EditBooking() {
@@ -38,7 +31,7 @@ export default function EditBooking() {
     time: resData.time || '', 
     guests: resData.guests || 2, 
     special_requests: resData.special_requests || '',
-    status: resData.status?.toUpperCase() || 'PENDING',
+    status: resData.status?.toUpperCase() || 'PENDIENTE',
     table_type_id: resData.table_type_id || '',
     special_event_id: resData.special_event_id || ''
   });
@@ -120,12 +113,10 @@ export default function EditBooking() {
                 label="Status"
                 onChange={e => setEditBooking({...editBooking, status: e.target.value})}
                 sx={{ height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px' }}
-                disabled={ALLOWED_TRANSITIONS[editBooking.status]?.length === 0}
               >
-                <MenuItem value={editBooking.status}>{STATUS_LABELS[editBooking.status] || editBooking.status}</MenuItem>
-                {(ALLOWED_TRANSITIONS[editBooking.status] || []).map(status => (
+                {Object.keys(STATUS_LABELS).map(status => (
                   <MenuItem key={status} value={status} sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
-                    {STATUS_LABELS[status] || status}
+                    {STATUS_LABELS[status]}
                   </MenuItem>
                 ))}
               </Select>

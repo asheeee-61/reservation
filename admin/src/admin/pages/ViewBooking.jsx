@@ -4,24 +4,17 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
 const STATUS_COLORS = {
-  'PENDING': { bg: '#FEF7E0', text: '#7D4A00' },
-  'CONFIRMED': { bg: '#E8F0FE', text: '#1A73E8' },
-  'COMPLETED': { bg: '#E6F4EA', text: '#137333' },
-  'NO_SHOW': { bg: '#FDECEA', text: '#C5221F' }
+  'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
+  'CONFIRMADA': { bg: '#E8F0FE', text: '#1A73E8' },
+  'ASISTIÓ': { bg: '#E6F4EA', text: '#137333' },
+  'NO_ASISTIÓ': { bg: '#FDECEA', text: '#C5221F' }
 };
 
 const STATUS_LABELS = {
-  'PENDING': 'Pendiente',
-  'CONFIRMED': 'Confirmada',
-  'COMPLETED': 'Asistió',
-  'NO_SHOW': 'No asistió'
-};
-
-const ALLOWED_TRANSITIONS = {
-  'PENDING': ['CONFIRMED', 'NO_SHOW'],
-  'CONFIRMED': ['COMPLETED', 'NO_SHOW'],
-  'COMPLETED': [],
-  'NO_SHOW': []
+  'PENDIENTE': 'Pendiente',
+  'CONFIRMADA': 'Confirmada',
+  'ASISTIÓ': 'Asistió',
+  'NO_ASISTIÓ': 'No asistió'
 };
 
 const formatTimestamp = (isoString) => {
@@ -51,11 +44,11 @@ export default function ViewBooking() {
   const [errorToast, setErrorToast] = useState(false);
   
   const [activities, setActivities] = useState([
-    { id: 2, text: `Estado cambiado a ${resData.status || 'Pending'}`, time: resData.created_at },
+    { id: 2, text: `Estado actual: ${STATUS_LABELS[resData.status?.toUpperCase()] || resData.status || 'PENDIENTE'}`, time: resData.created_at },
     { id: 1, text: 'Reserva creada', time: resData.created_at }
   ]);
 
-  const currentStatus = resData.status?.toUpperCase() || 'PENDING';
+  const currentStatus = resData.status?.toUpperCase() || 'PENDIENTE';
   const statusColors = STATUS_COLORS[currentStatus] || { bg: '#F1F3F4', text: '#202124' };
 
   const getInitials = (name) => {
@@ -66,6 +59,7 @@ export default function ViewBooking() {
   };
 
   const handleStatusUpdate = async (newStatus) => {
+    const fromStatus = currentStatus;
     try {
       await apiClient(`/admin/reservations/${resData.id}/status`, {
         method: 'PATCH',
@@ -75,7 +69,7 @@ export default function ViewBooking() {
       setResData(prev => ({ ...prev, status: newStatus }));
       setActivities(prev => [{ 
         id: Date.now(), 
-        text: `Estado cambiado a ${STATUS_LABELS[newStatus] || newStatus}`, 
+        text: `Estado cambiado de ${fromStatus} a ${newStatus}`, 
         time: new Date().toISOString() 
       }, ...prev]);
     } catch (e) {
@@ -127,29 +121,45 @@ export default function ViewBooking() {
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '18px', md: '20px' }, color: '#202124' }}>
                 Reserva #{resData.reservation_id || id}
               </Typography>
-              <FormControl size="small" variant="standard" sx={{ minWidth: 120 }}>
+              <FormControl size="small" variant="standard" sx={{ minWidth: 140 }}>
                 <Select
                   value={currentStatus}
                   onChange={(e) => handleStatusUpdate(e.target.value)}
                   disableUnderline
                   sx={{ 
                     '& .MuiSelect-select': { 
-                      py: '6px', px: '12px', 
+                      py: '6px', px: '16px', 
                       borderRadius: '4px',
                       bgcolor: statusColors.bg,
                       color: statusColors.text,
                       textAlign: 'center',
                       fontSize: '13px',
-                      fontWeight: 500,
+                      fontWeight: 600,
                       fontFamily: 'Roboto',
                       textTransform: 'uppercase'
+                    },
+                    '& .MuiSvgIcon-root': { color: statusColors.text }
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        mt: 0.5,
+                        border: '1px solid #DADCE0',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        '& .MuiMenuItem-root': {
+                          fontFamily: 'Roboto',
+                          fontSize: '13px',
+                          textTransform: 'uppercase',
+                          '&:hover': { bgcolor: '#F1F3F4' },
+                          '&.Mui-selected': { bgcolor: '#E8F0FE' }
+                        }
+                      }
                     }
                   }}
                 >
-                  <MenuItem value={currentStatus} sx={{ display: 'none' }}>{STATUS_LABELS[currentStatus] || currentStatus}</MenuItem>
-                  {ALLOWED_TRANSITIONS[currentStatus].map(s => (
-                    <MenuItem key={s} value={s} sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontSize: '13px' }}>
-                      {STATUS_LABELS[s] || s}
+                  {Object.keys(STATUS_COLORS).map(s => (
+                    <MenuItem key={s} value={s}>
+                      {STATUS_LABELS[s]}
                     </MenuItem>
                   ))}
                 </Select>
@@ -215,30 +225,9 @@ export default function ViewBooking() {
               {/* Card Footer */}
               <Box sx={{ borderTop: '1px solid #E0E0E0', pt: '16px', mt: '24px', display: 'flex', flexDirection: { xs: 'column-reverse', md: 'row' }, justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
                   <Button 
-                    variant="outlined"
-                    onClick={() => setCancelModalOpen(true)}
-                    disabled={currentStatus === 'COMPLETED' || currentStatus === 'NO_SHOW'}
-                    sx={{ 
-                      width: { xs: '100%', md: 'auto' }, 
-                      height: { xs: 44, md: 36 }, 
-                      borderRadius: '4px', 
-                      border: '1px solid #D93025', 
-                      color: '#D93025', 
-                      fontFamily: 'Roboto', 
-                      fontWeight: 500, 
-                      fontSize: '13px', 
-                      textTransform: 'uppercase', 
-                      px: '16px', 
-                      '&.Mui-disabled': { bgcolor: '#E0E0E0', color: '#BDBDBD', border: '1px solid #E0E0E0' }
-                    }}
-                  >
-                    No asistió
-                  </Button>
-                  
-                  <Button 
                     variant="contained"
                     onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
-                    disabled={!resData.id || currentStatus === 'COMPLETED' || currentStatus === 'NO_SHOW'}
+                    disabled={!resData.id}
                     sx={{ 
                       width: { xs: '100%', md: 'auto' }, 
                       height: { xs: 44, md: 36 }, 
@@ -250,7 +239,7 @@ export default function ViewBooking() {
                       fontSize: '13px', 
                       textTransform: 'uppercase', 
                       boxShadow: 'none', 
-                      px: '16px', 
+                      px: '24px', 
                       '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
                       '&.Mui-disabled': { bgcolor: '#E0E0E0', color: '#BDBDBD' }
                     }}
@@ -258,36 +247,6 @@ export default function ViewBooking() {
                     <span className="material-icons" style={{ fontSize: 16, marginRight: 8 }}>edit</span>
                     Editar Reserva
                   </Button>
-
-                  {currentStatus === 'PENDING' && (
-                    <Button 
-                      variant="contained"
-                      onClick={() => handleStatusUpdate('CONFIRMED')}
-                      sx={{ 
-                        width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 },
-                        bgcolor: '#1A73E8', color: '#ffffff', borderRadius: '4px',
-                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px',
-                        boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
-                      }}
-                    >
-                      Confirmar Reserva
-                    </Button>
-                  )}
-
-                  {currentStatus === 'CONFIRMED' && (
-                    <Button 
-                      variant="contained"
-                      onClick={() => handleStatusUpdate('COMPLETED')}
-                      sx={{ 
-                        width: { xs: '100%', md: 'auto' }, height: { xs: 44, md: 36 },
-                        bgcolor: '#137333', color: '#ffffff', borderRadius: '4px',
-                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', px: '16px',
-                        boxShadow: 'none', '&:hover': { bgcolor: '#0F5D2A', boxShadow: 'none' }
-                      }}
-                    >
-                      Marcar como asistido
-                    </Button>
-                  )}
               </Box>
 
             </Box>
