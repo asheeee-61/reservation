@@ -24,7 +24,9 @@ export const useSettingsStore = create((set) => ({
         globalHours: {
           openingTime: data.global_opening_time || '09:00',
           closingTime: data.global_closing_time || '00:00',
-          defaultInterval: data.default_interval || 30
+          defaultInterval: data.default_interval || 30,
+          whatsapp_phone: data.whatsapp_phone || '',
+          instagram_username: data.instagram_username || ''
         },
         globalSettings: {
           minGuests: data.minGuests || 1,
