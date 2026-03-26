@@ -54,8 +54,8 @@ export default function EditBooking() {
           apiClient('/admin/table-types'),
           apiClient('/admin/special-events')
         ]);
-        setTableTypes(types);
-        setSpecialEvents(events);
+        setTableTypes(types?.data ?? types);
+        setSpecialEvents(events?.data ?? events);
       } catch (err) {
         console.error(err);
       }

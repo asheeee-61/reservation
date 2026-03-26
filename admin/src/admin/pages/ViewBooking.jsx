@@ -257,7 +257,7 @@ export default function ViewBooking() {
               </Typography>
               <Box sx={{ bgcolor: '#F8F9FA', borderRadius: '4px', p: '12px' }}>
                 {resData.special_requests ? (
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124' }}>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                     {resData.special_requests}
                   </Typography>
                 ) : (

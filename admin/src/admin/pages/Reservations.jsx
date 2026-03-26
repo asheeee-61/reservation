@@ -190,7 +190,7 @@ export default function Reservations() {
                 <TableCell>
                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{res.customer?.name || 'N/A'}</Typography>
                   {res.special_requests && (
-                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '2px' }} display="block">
+                    <Typography noWrap sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '2px', maxWidth: 200 }} display="block">
                       Note: {res.special_requests}
                     </Typography>
                   )}
