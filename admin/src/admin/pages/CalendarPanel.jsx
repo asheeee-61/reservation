@@ -47,11 +47,29 @@ export default function CalendarPanel() {
   const [regenMsg, setRegenMsg] = useState(null);
   
   const [blockMonthStart, setBlockMonthStart] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [blockedPage, setBlockedPage] = useState(1);
+  const [blockedDates, setBlockedDates] = useState([]);
+  const [blockedMeta, setBlockedMeta] = useState(null);
+  const BLOCKED_PER_PAGE = 5;
 
   useEffect(() => {
     fetchGlobalHours();
     fetchConfig();
   }, [fetchGlobalHours]);
+
+  const fetchBlockedDates = async (page = 1) => {
+    try {
+      const data = await apiClient(`/admin/blocked-dates?page=${page}&per_page=${BLOCKED_PER_PAGE}`);
+      setBlockedDates(data.data ?? []);
+      setBlockedMeta(data.meta ?? null);
+    } catch (e) {
+      console.error('Failed to fetch blocked dates', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchBlockedDates(blockedPage);
+  }, [blockedPage]);
 
   const fetchConfig = async () => {
     try {
@@ -97,6 +115,8 @@ export default function CalendarPanel() {
         setToastMessage("Cambios guardados");
         setToastOpen(true);
       }
+      // Re-fetch blocked dates from backend to keep list in sync
+      fetchBlockedDates(blockedPage);
     } catch (e) {
       console.error("Failed to save", e);
     }
@@ -304,12 +324,11 @@ export default function CalendarPanel() {
     const dd = String(dateOb.getDate()).padStart(2, '0');
     const dateStr = `${yyyy}-${mm}-${dd}`;
 
-    setConfig(prev => {
-      let nextBlocks = [...prev.blockedDays];
-      if (nextBlocks.includes(dateStr)) nextBlocks = nextBlocks.filter(d => d !== dateStr);
-      else nextBlocks.push(dateStr);
-      return { ...prev, blockedDays: nextBlocks.sort() };
-    });
+    const newBlocks = config.blockedDays.includes(dateStr)
+      ? config.blockedDays.filter(d => d !== dateStr)
+      : [...config.blockedDays, dateStr].sort();
+
+    saveConfigState({ ...config, blockedDays: newBlocks }, false);
   };
 
   const renderMonthGrid = () => {
@@ -805,22 +824,41 @@ export default function CalendarPanel() {
                 Fechas Bloqueadas
               </Typography>
               
-              {config.blockedDays.length === 0 ? (
+              {blockedDates.length === 0 && !blockedMeta ? (
                 <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>No hay fechas bloqueadas</Typography>
               ) : (
-                <Box sx={{ border: '1px solid #E0E0E0', borderRadius: '4px', bgcolor: '#FFFFFF' }}>
-                  {config.blockedDays.map((dateStr, idx) => {
-                    const d = new Date(dateStr);
-                    const label = `${DAY_LABELS[dayNameMapping[d.getDay()]]}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
-                    return (
-                      <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '16px', height: 48, borderBottom: idx < config.blockedDays.length - 1 ? '1px solid #E0E0E0' : 'none', boxSizing: 'border-box' }}>
-                        <Typography sx={{ fontFamily: 'Roboto', color: '#202124', fontSize: '14px' }}>{label}</Typography>
-                        <IconButton size="small" onClick={() => toggleBlockDate(new Date(dateStr))} sx={{ color: '#D93025' }}>
-                          <span className="material-icons" style={{ fontSize: 20 }}>close</span>
-                        </IconButton>
-                      </Box>
-                    );
-                  })}
+                <Box>
+                  {blockedDates.length === 0 ? (
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>No hay fechas bloqueadas</Typography>
+                  ) : (
+                    <Box sx={{ border: '1px solid #E0E0E0', borderRadius: '4px', bgcolor: '#FFFFFF' }}>
+                      {blockedDates.map((dateStr, idx) => {
+                        const d = new Date(dateStr + 'T12:00:00');
+                        const label = `${DAY_LABELS[dayNameMapping[d.getDay()]]}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+                        return (
+                          <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '16px', height: 48, borderBottom: idx < blockedDates.length - 1 ? '1px solid #E0E0E0' : 'none', boxSizing: 'border-box' }}>
+                            <Typography sx={{ fontFamily: 'Roboto', color: '#202124', fontSize: '14px' }}>{label}</Typography>
+                            <IconButton size="small" onClick={() => toggleBlockDate(new Date(dateStr + 'T12:00:00'))} sx={{ color: '#D93025' }}>
+                              <span className="material-icons" style={{ fontSize: 20 }}>close</span>
+                            </IconButton>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  )}
+                  {blockedMeta && blockedMeta.last_page > 1 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', mt: '12px' }}>
+                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#70757A' }}>
+                        {blockedMeta.current_page} / {blockedMeta.last_page}
+                      </Typography>
+                      <IconButton size="small" disabled={blockedMeta.current_page <= 1} onClick={() => setBlockedPage(p => p - 1)} sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', '&.Mui-disabled': { borderColor: '#E0E0E0' } }}>
+                        <span className="material-icons" style={{ fontSize: 16, color: blockedMeta.current_page <= 1 ? '#BDBDBD' : '#70757A' }}>chevron_left</span>
+                      </IconButton>
+                      <IconButton size="small" disabled={blockedMeta.current_page >= blockedMeta.last_page} onClick={() => setBlockedPage(p => p + 1)} sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', '&.Mui-disabled': { borderColor: '#E0E0E0' } }}>
+                        <span className="material-icons" style={{ fontSize: 16, color: blockedMeta.current_page >= blockedMeta.last_page ? '#BDBDBD' : '#70757A' }}>chevron_right</span>
+                      </IconButton>
+                    </Box>
+                  )}
                 </Box>
               )}
             </Box>
