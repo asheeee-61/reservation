@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
-  TableHead, TableRow, Tooltip, IconButton, TextField, InputAdornment, Avatar
+  TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar
 } from '@mui/material';
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { apiClient } from '../services/apiClient';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
@@ -39,6 +38,29 @@ export default function Customers() {
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.substring(0, 2).toUpperCase();
   };
+
+  const sanitizePhone = (phone) => phone?.replace(/[\s+]/g, '').replace(/\D/g, '') || '';
+
+  // MD2 action button — matches Reservations style exactly
+  const ActionBtn = ({ icon, tooltip, onClick, disabled }) => (
+    <Tooltip title={disabled ? '' : tooltip}>
+      <Box
+        component="span"
+        onClick={disabled ? undefined : onClick}
+        sx={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 32, height: 32, borderRadius: '4px', cursor: disabled ? 'not-allowed' : 'pointer',
+          border: disabled ? '1px solid #E0E0E0' : '1px solid #DADCE0',
+          bgcolor: disabled ? 'transparent' : '#FFFFFF',
+          color: disabled ? '#BDBDBD' : '#70757A',
+          transition: 'background 0.15s',
+          '&:hover': disabled ? {} : { bgcolor: '#F1F3F4' },
+        }}
+      >
+        <span className="material-icons" style={{ fontSize: 18 }}>{icon}</span>
+      </Box>
+    </Tooltip>
+  );
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -118,16 +140,20 @@ export default function Customers() {
                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{c.last_visit || 'Never'}</Typography>
                 </TableCell>
                 <TableCell align="right">
-                  <Tooltip title="Send WhatsApp">
-                    <IconButton size="small" color="success" onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${c.phone}`, '_blank'); }}>
-                      <WhatsAppIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Send Email">
-                    <IconButton size="small" color="primary" onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${c.email}`; }}>
-                      <span className="material-icons" style={{ fontSize: 20 }}>mail</span>
-                    </IconButton>
-                  </Tooltip>
+                  <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <ActionBtn
+                      icon="chat"
+                      tooltip="Send WhatsApp"
+                      disabled={!c.phone}
+                      onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${sanitizePhone(c.phone)}`, '_blank'); }}
+                    />
+                    <ActionBtn
+                      icon="mail"
+                      tooltip="Send Email"
+                      disabled={!c.email}
+                      onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${c.email}`; }}
+                    />
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
@@ -171,6 +197,20 @@ export default function Customers() {
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px' }}>
                 {c.total_reservations || 0} reservas · {c.last_visit || 'Never'}
               </Typography>
+              <Box sx={{ display: 'flex', gap: '8px', mt: '8px' }}>
+                <ActionBtn
+                  icon="chat"
+                  tooltip="Send WhatsApp"
+                  disabled={!c.phone}
+                  onClick={() => window.open(`https://wa.me/${sanitizePhone(c.phone)}`, '_blank')}
+                />
+                <ActionBtn
+                  icon="mail"
+                  tooltip="Send Email"
+                  disabled={!c.email}
+                  onClick={() => { window.location.href = `mailto:${c.email}`; }}
+                />
+              </Box>
             </Box>
           </Paper>
         ))}
