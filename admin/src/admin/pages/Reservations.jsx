@@ -146,7 +146,7 @@ export default function Reservations() {
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Evento</TableCell>
               <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Guests</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Status</TableCell>
-              <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Actions</TableCell>
+              <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -208,32 +208,64 @@ export default function Reservations() {
                     </Select>
                   </FormControl>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Tooltip title="Message on WhatsApp">
-                      <IconButton 
-                        size="small" 
-                        color="success"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(`https://wa.me/${res.customer?.phone}`, '_blank');
-                        }}
-                      >
-                        <WhatsAppIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Edit Reservation">
-                      <IconButton 
-                        size="small" 
-                        color="primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/reservations/edit/${res.id}`, { state: { reservation: res } });
-                        }}
-                      >
-                        <span className="material-icons" style={{ fontSize: 20 }}>edit</span>
-                      </IconButton>
-                    </Tooltip>
+                    {/* EDIT */}
+                    <IconButton 
+                      onClick={() => navigate(`/admin/reservations/edit/${res.id}`, { state: { reservation: res } })}
+                      sx={{ 
+                        width: 32, height: 32, borderRadius: '4px', border: '1px solid #DADCE0', bgcolor: '#FFFFFF', color: '#70757A',
+                        '&:hover': { bgcolor: '#F1F3F4' }
+                      }}
+                    >
+                      <span className="material-icons" style={{ fontSize: 18 }}>edit</span>
+                    </IconButton>
+
+                    {/* WHATSAPP */}
+                    {(() => {
+                      const phone = res.customer?.phone?.replace(/\D/g, '');
+                      const isEnabled = phone && phone.length > 0;
+                      return (
+                        <IconButton 
+                          disabled={!isEnabled}
+                          onClick={() => window.open(`https://wa.me/${phone}`, '_blank')}
+                          sx={{ 
+                            width: 32, height: 32, borderRadius: '4px', 
+                            border: isEnabled ? '1px solid #DADCE0' : '1px solid #E0E0E0', 
+                            bgcolor: isEnabled ? '#FFFFFF' : 'transparent', 
+                            color: isEnabled ? '#70757A' : '#BDBDBD',
+                            cursor: isEnabled ? 'pointer' : 'not-allowed',
+                            '&:hover': isEnabled ? { bgcolor: '#F1F3F4' } : { bgcolor: 'transparent' },
+                            '&.Mui-disabled': { color: '#BDBDBD', border: '1px solid #E0E0E0' }
+                          }}
+                        >
+                          <span className="material-icons" style={{ fontSize: 18 }}>chat</span>
+                        </IconButton>
+                      );
+                    })()}
+
+                    {/* EMAIL */}
+                    {(() => {
+                      const email = res.customer?.email;
+                      const isEnabled = email && email.length > 0;
+                      return (
+                        <IconButton 
+                          disabled={!isEnabled}
+                          onClick={() => window.location.href = `mailto:${email}`}
+                          sx={{ 
+                            width: 32, height: 32, borderRadius: '4px', 
+                            border: isEnabled ? '1px solid #DADCE0' : '1px solid #E0E0E0', 
+                            bgcolor: isEnabled ? '#FFFFFF' : 'transparent', 
+                            color: isEnabled ? '#70757A' : '#BDBDBD',
+                            cursor: isEnabled ? 'pointer' : 'not-allowed',
+                            '&:hover': isEnabled ? { bgcolor: '#F1F3F4' } : { bgcolor: 'transparent' },
+                            '&.Mui-disabled': { color: '#BDBDBD', border: '1px solid #E0E0E0' }
+                          }}
+                        >
+                          <span className="material-icons" style={{ fontSize: 18 }}>mail</span>
+                        </IconButton>
+                      );
+                    })()}
                   </Stack>
                 </TableCell>
               </TableRow>

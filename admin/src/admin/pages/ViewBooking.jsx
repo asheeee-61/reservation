@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
@@ -27,14 +27,18 @@ export default function ViewBooking() {
   const location = useLocation();
   const { id } = useParams();
   
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [resData, setResData] = useState(location.state?.reservation || {});
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [errorToast, setErrorToast] = useState(false);
   
   const [activities, setActivities] = useState([
-    { id: 1, text: 'Reserva creada', time: resData.created_at },
-    { id: 2, text: `Estado cambiado a ${resData.status || 'Pending'}`, time: resData.created_at }
+    { id: 2, text: `Estado cambiado a ${resData.status || 'Pending'}`, time: resData.created_at },
+    { id: 1, text: 'Reserva creada', time: resData.created_at }
   ]);
 
   const currentStatus = resData.status?.toLowerCase() || 'pending';
@@ -56,7 +60,7 @@ export default function ViewBooking() {
       });
       
       setResData(prev => ({ ...prev, status: 'cancelled' }));
-      setActivities(prev => [...prev, { id: Date.now(), text: 'Estado cambiado a Cancelada', time: new Date().toISOString() }]);
+      setActivities(prev => [{ id: Date.now(), text: 'Estado cambiado a Cancelada', time: new Date().toISOString() }, ...prev]);
       setCancelModalOpen(false);
     } catch (e) {
       setErrorToast(true);
@@ -243,6 +247,66 @@ export default function ViewBooking() {
                       )}
                     </Box>
                   </Box>
+
+                  {/* Communication Actions */}
+                  <Stack direction="row" spacing={1} sx={{ mt: '20px' }}>
+                    {/* EDIT */}
+                    <IconButton 
+                      onClick={() => navigate(`/admin/reservations/edit/${resData.id}`, { state: { reservation: resData } })}
+                      sx={{ 
+                        width: 32, height: 32, borderRadius: '4px', border: '1px solid #DADCE0', bgcolor: '#FFFFFF', color: '#70757A',
+                        '&:hover': { bgcolor: '#F1F3F4' }
+                      }}
+                    >
+                      <span className="material-icons" style={{ fontSize: 18 }}>edit</span>
+                    </IconButton>
+
+                    {/* WHATSAPP */}
+                    {(() => {
+                      const phone = resData.customer?.phone?.replace(/\D/g, '');
+                      const isEnabled = phone && phone.length > 0;
+                      return (
+                        <IconButton 
+                          disabled={!isEnabled}
+                          onClick={() => window.open(`https://wa.me/${phone}`, '_blank')}
+                          sx={{ 
+                            width: 32, height: 32, borderRadius: '4px', 
+                            border: isEnabled ? '1px solid #DADCE0' : '1px solid #E0E0E0', 
+                            bgcolor: isEnabled ? '#FFFFFF' : 'transparent', 
+                            color: isEnabled ? '#70757A' : '#BDBDBD',
+                            cursor: isEnabled ? 'pointer' : 'not-allowed',
+                            '&:hover': isEnabled ? { bgcolor: '#F1F3F4' } : { bgcolor: 'transparent' },
+                            '&.Mui-disabled': { color: '#BDBDBD', border: '1px solid #E0E0E0' }
+                          }}
+                        >
+                          <span className="material-icons" style={{ fontSize: 18 }}>chat</span>
+                        </IconButton>
+                      );
+                    })()}
+
+                    {/* EMAIL */}
+                    {(() => {
+                      const email = resData.customer?.email;
+                      const isEnabled = email && email.length > 0;
+                      return (
+                        <IconButton 
+                          disabled={!isEnabled}
+                          onClick={() => window.location.href = `mailto:${email}`}
+                          sx={{ 
+                            width: 32, height: 32, borderRadius: '4px', 
+                            border: isEnabled ? '1px solid #DADCE0' : '1px solid #E0E0E0', 
+                            bgcolor: isEnabled ? '#FFFFFF' : 'transparent', 
+                            color: isEnabled ? '#70757A' : '#BDBDBD',
+                            cursor: isEnabled ? 'pointer' : 'not-allowed',
+                            '&:hover': isEnabled ? { bgcolor: '#F1F3F4' } : { bgcolor: 'transparent' },
+                            '&.Mui-disabled': { color: '#BDBDBD', border: '1px solid #E0E0E0' }
+                          }}
+                        >
+                          <span className="material-icons" style={{ fontSize: 18 }}>mail</span>
+                        </IconButton>
+                      );
+                    })()}
+                  </Stack>
                 </>
               ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -267,10 +331,13 @@ export default function ViewBooking() {
                 <Box sx={{ position: 'relative', pl: '16px' }}>
                   <Box sx={{ position: 'absolute', left: 3, top: 4, bottom: 4, width: '1px', bgcolor: '#E0E0E0' }} />
                   {activities.map((act, i) => (
-                    <Box sx={{ position: 'relative', mb: i === activities.length - 1 ? 0 : '16px' }} key={act.id}>
-                      <Box sx={{ position: 'absolute', left: '-16px', top: '5px', width: 8, height: 8, borderRadius: '50%', bgcolor: '#1A73E8' }} />
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#202124' }}>{act.text}</Typography>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>{formatTimestamp(act.time)}</Typography>
+                    <Box key={act.id}>
+                      <Box sx={{ position: 'relative', mb: '12px', pl: '12px' }}>
+                        <Box sx={{ position: 'absolute', left: '-16px', top: '5px', width: 8, height: 8, borderRadius: '50%', bgcolor: '#1A73E8' }} />
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#202124' }}>{act.text}</Typography>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '2px' }}>{formatTimestamp(act.time)}</Typography>
+                      </Box>
+                      {i < activities.length - 1 && <Divider sx={{ my: '12px', ml: '-16px', borderColor: '#E0E0E0' }} />}
                     </Box>
                   ))}
                 </Box>
