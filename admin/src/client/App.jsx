@@ -99,11 +99,12 @@ function App() {
       <Box sx={{ position: 'relative', width: '100%', minHeight: '100vh', overflowX: 'hidden' }}>
         <Routes>
           <Route path="/" element={<HomeStep navigate={navigate} />} />
+          {/* Legacy /reservar support inside client app context */}
           <Route path="/reservar" element={<HomeStep navigate={navigate} />} />
-          <Route path="/reservar/mesa" element={<TableStep navigate={navigate} />} />
-          <Route path="/reservar/evento" element={<EventStep navigate={navigate} />} />
-          <Route path="/reservar/confirmar" element={<ConfirmStep navigate={navigate} />} />
-          <Route path="/reservar/exito" element={<SuccessStep navigate={navigate} />} />
+          <Route path="/mesa" element={<TableStep navigate={navigate} />} />
+          <Route path="/evento" element={<EventStep navigate={navigate} />} />
+          <Route path="/confirmar" element={<ConfirmStep navigate={navigate} />} />
+          <Route path="/exito" element={<SuccessStep navigate={navigate} />} />
         </Routes>
       </Box>
     </ThemeProvider>
@@ -115,7 +116,7 @@ function HomeStep({ navigate }) {
   return (
     <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: { xs: 'column', md: 'row' }}}>
       <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
-        <LeftPanel onContinue={() => navigate('/reservar/mesa')} />
+        <LeftPanel onContinue={() => navigate('/reservacion/mesa')} />
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
         <RightPanelMap />
@@ -130,7 +131,7 @@ function TableStep({ navigate }) {
       <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
         <TableTypeSelection 
           onBack={() => navigate(-1)}
-          onContinue={() => navigate('/reservar/evento')} 
+          onContinue={() => navigate('/reservacion/evento')} 
         />
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
@@ -146,7 +147,7 @@ function EventStep({ navigate }) {
       <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' }, width: '100%', height: '100vh' }}>
         <SpecialEventSelection 
           onBack={() => navigate(-1)}
-          onContinue={() => navigate('/reservar/confirmar')} 
+          onContinue={() => navigate('/reservacion/confirmar')} 
         />
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' }, flex: '1 1 auto', height: '100vh' }}>
@@ -161,7 +162,7 @@ function ConfirmStep({ navigate }) {
     <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'grey.50' }}>
       <ReservationCheckout 
         onBack={() => navigate(-1)} 
-        onSuccess={() => navigate('/reservar/exito')} 
+        onSuccess={() => navigate('/reservacion/exito')} 
       />
     </Box>
   );

@@ -139,7 +139,10 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
                   }}
                 >
                   <ListItemButton 
-                    onClick={() => setSelectedSpecialEvent(event)}
+                    onClick={() => {
+                      setSelectedSpecialEvent(event);
+                      setTimeout(() => onContinue(), 150);
+                    }}
                     sx={{ p: '16px', display: 'flex', alignItems: 'flex-start' }}
                   >
                     <Box sx={{ flexGrow: 1 }}>
@@ -172,34 +175,7 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
       </Box>
 
       {/* Footer Continue Button */}
-      <Box sx={{ mt: 'auto' }}>
-        <Button
-          fullWidth
-          variant="contained"
-          disabled={!selectedSpecialEvent}
-          onClick={onContinue}
-          disableElevation
-          sx={{
-            height: 56,
-            borderRadius: 0,
-            bgcolor: '#1A73E8',
-            color: '#FFFFFF',
-            fontWeight: 600,
-            fontSize: '15px',
-            textTransform: 'uppercase',
-            fontFamily: 'Roboto',
-            '&.Mui-disabled': {
-              bgcolor: '#E0E0E0',
-              color: '#BDBDBD'
-            },
-            '&:hover': {
-              bgcolor: '#1557B0'
-            }
-          }}
-        >
-          CONTINUAR
-        </Button>
-      </Box>
+      {/* Manual continue button removed for simpler auto-advance flow */}
     </Box>
   );
 }

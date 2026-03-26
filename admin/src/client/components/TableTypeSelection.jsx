@@ -76,7 +76,10 @@ export default function TableTypeSelection({ onBack, onContinue }) {
                 }}
               >
                 <ListItemButton 
-                  onClick={() => setSelectedTableType(type)}
+                  onClick={() => {
+                    setSelectedTableType(type);
+                    setTimeout(() => onContinue(), 150);
+                  }}
                   sx={{ p: 3, alignItems: 'flex-start' }}
                 >
                   <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
@@ -105,27 +108,7 @@ export default function TableTypeSelection({ onBack, onContinue }) {
         </List>
       </Box>
 
-      <Box sx={{ mt: 'auto' }}>
-        <Button 
-          variant="contained" 
-          fullWidth 
-          disabled={!selectedTableType}
-          onClick={onContinue}
-          disableElevation
-          sx={{ 
-            height: 56, 
-            bgcolor: '#1A73E8',
-            '&:hover': { bgcolor: '#1557B0' },
-            textTransform: 'uppercase',
-            fontSize: '15px',
-            fontWeight: 600,
-            borderRadius: 0,
-            fontFamily: 'Roboto'
-          }}
-        >
-          CONTINUAR
-        </Button>
-      </Box>
+      {/* Manual continue button removed for simpler auto-advance flow */}
     </Box>
   );
 }

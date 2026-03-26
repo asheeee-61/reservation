@@ -245,7 +245,11 @@ export default function LeftPanel({ onContinue }) {
                         variant={isSelected ? "contained" : "outlined"}
                         color={isSelected ? "primary" : "inherit"}
                         disabled={isFull}
-                        onClick={() => setSelectedSlot({ time: slot.time })}
+                        onClick={() => {
+                          setSelectedSlot({ time: slot.time });
+                          // Auto-advance
+                          setTimeout(() => onContinue(), 150);
+                        }}
                         sx={{ 
                           height: 48,
                           minWidth: 72,
@@ -288,18 +292,7 @@ export default function LeftPanel({ onContinue }) {
         })()}
         </Box>
 
-        <Box sx={{ mt: 'auto', pt: 4 }}>
-          <Button 
-            variant="contained" 
-            fullWidth 
-            disabled={!selectedSlot}
-            onClick={onContinue}
-            disableElevation
-            sx={{ height: 56, borderRadius: '4px', fontSize: '15px', fontWeight: 600, textTransform: 'uppercase' }}
-          >
-            CONTINUAR
-          </Button>
-        </Box>
+        {/* Manual continue button removed for simpler auto-advance flow */}
       </Box>
     </Box>
   );
