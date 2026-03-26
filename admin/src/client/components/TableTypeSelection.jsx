@@ -102,7 +102,7 @@ export default function TableTypeSelection({ onBack, onContinue }) {
                   bgcolor: isSelected ? '#FFFFFF' : '#F1F3F4',
                   color: isSelected ? '#1A73E8' : '#70757A'
                 }}>
-                  <span className="material-icons" style={{ fontSize: 24 }}>restaurant</span>
+                  <span className="material-icons" style={{ fontSize: 24 }}>table_restaurant</span>
                 </Box>
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography variant="body1" fontWeight={isSelected ? 600 : 500} sx={{ color: '#202124', fontSize: '16px' }}>

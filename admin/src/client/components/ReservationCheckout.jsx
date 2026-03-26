@@ -85,7 +85,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 24 }}>restaurant</span>
+                  <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 24 }}>table_restaurant</span>
                   <Typography variant="h6" sx={{ fontSize: '18px', color: '#202124' }}>
                     {selectedTableType?.name || 'Mesa estándar'}
                   </Typography>
@@ -128,9 +128,11 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
 
             <Box sx={{ mb: 4 }}>
               <TextField
-                fullWidth label="Peticiones especiales (opcional)" multiline rows={2}
+                fullWidth label="¿Algo más que debamos saber? (Opcional)" multiline rows={2}
                 value={userData.specialRequests}
                 onChange={(e) => setUserData({ specialRequests: e.target.value })}
+                placeholder="Alergias, silla de ruedas, trona, o notas sobre su celebración..."
+                helperText="Por ejemplo: alergias alimentarias, necesidad de trona o detalles especiales para su evento."
                 InputProps={{ sx: { fontSize: '16px' } }}
               />
             </Box>

@@ -25,13 +25,7 @@ export default function SuccessPage() {
           Te esperamos el {formattedDate} a las {selectedSlot?.time}
         </Typography>
 
-        <Box sx={{ 
-          bgcolor: '#F1F3F4', py: 1, px: 2, borderRadius: '4px', mb: 6, width: '100%'
-        }}>
-          <Typography sx={{ fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-            Código: #{reservationId || 'RES-4829'}
-          </Typography>
-        </Box>
+        <Box sx={{ mb: 6 }} />
 
         <Button 
           variant="outlined" 
