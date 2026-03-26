@@ -55,7 +55,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: { xs: 0, sm: 2, md: 6 } }}>
       <Container maxWidth="md" disableGutters sx={{ px: { xs: 0, sm: 2, md: 3 } }}>
 
-        <Paper sx={{ overflow: 'hidden', borderRadius: { xs: 0, sm: 4 }, minHeight: { xs: '100vh', sm: 'auto' } }}>
+        <Paper sx={{ borderRadius: { xs: 0, sm: 4 }, minHeight: { xs: '100vh', sm: 'auto' } }}>
           <Box sx={{ p: { xs: 3, sm: 4, md: 6 }, bgcolor: '#FFFFFF', position: 'relative' }}>
             <IconButton 
               onClick={onBack}
@@ -107,9 +107,6 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               </Box>
             </Box>
 
-            <Typography variant="body2" sx={{ mb: 4, p: 2, bgcolor: '#F1F3F4', borderRadius: '4px', fontSize: '14px', color: '#70757A', textAlign: 'center' }}>
-              Por favor, avísenos si decide no venir para que podamos liberar la mesa.
-            </Typography>
 
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1, fontSize: '18px', color: '#202124' }}>
               Datos de contacto

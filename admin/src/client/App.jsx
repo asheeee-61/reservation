@@ -106,13 +106,19 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, width: '100%', minHeight: '100vh', overflow: 'hidden' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' }, 
+        width: '100%', 
+        minHeight: '100vh', 
+        overflow: { xs: 'auto', md: 'hidden' } 
+      }}>
         
         {/* Left Side: Scrollable content */}
         <Box sx={{ 
-          flex: isMapVisible ? { xs: '1 1 100%', md: '0 0 40%', lg: '0 0 35%' } : '1 1 100%',
-          height: '100vh',
-          overflowY: 'auto',
+          flex: isMapVisible ? { xs: '1 1 auto', md: '0 0 40%', lg: '0 0 35%' } : '1 1 auto',
+          height: { xs: 'auto', md: '100vh' },
+          overflowY: { xs: 'visible', md: 'auto' },
           position: 'relative',
           bgcolor: isMapVisible ? '#FFFFFF' : 'grey.50'
         }}>

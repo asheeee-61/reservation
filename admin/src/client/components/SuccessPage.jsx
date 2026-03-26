@@ -25,6 +25,11 @@ export default function SuccessPage() {
           Te esperamos el {formattedDate} a las {selectedSlot?.time}
         </Typography>
 
+        <Typography variant="body2" sx={{ mb: 6, p: 2.5, bgcolor: '#F8F9FA', borderRadius: '8px', border: '1px solid #E0E0E0', fontSize: '13px', color: '#70757A', textAlign: 'center', lineHeight: 1.5 }}>
+          <strong>¿Ha cambiado de planes?</strong><br/>
+          Por favor, avísenos si decide no venir para que podamos liberar la mesa para otros clientes.
+        </Typography>
+
         <Box sx={{ mb: 6 }} />
 
         <Button 
