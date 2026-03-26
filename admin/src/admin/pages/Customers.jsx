@@ -1,36 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
+import TablePagination from '../components/TablePagination';
 
 export default function Customers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [meta, setMeta] = useState(null);
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async (p = 1, pp = 10, search = '') => {
+    setLoading(true);
     try {
-      const data = await apiClient('/admin/customers');
-      setCustomers(data.data || []);
-      setLoading(false);
+      const params = new URLSearchParams({ page: p, per_page: pp });
+      if (search) params.append('search', search);
+      const data = await apiClient(`/admin/customers?${params.toString()}`);
+      setCustomers(data.data ?? []);
+      setMeta(data.meta ?? null);
     } catch (e) {
       console.error(e);
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filtered = customers.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (c.phone && c.phone.includes(searchTerm))
-  );
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    fetchCustomers(1, perPage, searchTerm);
+    setPage(1);
+  }, [searchTerm]);
+
+  // Fetch when page or perPage changes
+  useEffect(() => {
+    fetchCustomers(page, perPage, searchTerm);
+  }, [page, perPage]);
+
+  const handlePageChange = (newPage) => setPage(newPage);
+  const handlePerPageChange = (newPer) => { setPerPage(newPer); setPage(1); };
 
   const getInitials = (name) => {
     if (!name) return '';
@@ -110,14 +122,14 @@ export default function Customers() {
           </TableHead>
           <TableBody>
             {loading && <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>Loading...</TableCell></TableRow>}
-            {!loading && filtered.length === 0 && (
+            {!loading && customers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                   <Typography color="text.secondary" sx={{ fontFamily: 'Roboto' }}>No customers found.</Typography>
                 </TableCell>
               </TableRow>
             )}
-            {filtered.map(c => (
+            {customers.map(c => (
               <TableRow key={c.id} hover>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -159,6 +171,13 @@ export default function Customers() {
             ))}
           </TableBody>
         </Table>
+        <TablePagination
+          meta={meta}
+          page={page}
+          perPage={perPage}
+          onPageChange={handlePageChange}
+          onPerPageChange={handlePerPageChange}
+        />
       </Paper>
 
       {/* MOBILE CARD VIEW */}
@@ -166,10 +185,10 @@ export default function Customers() {
         display: 'none', flexDirection: 'column', gap: '8px',
         [MOBILE]: { display: 'flex' }
       }}>
-        {!loading && filtered.length === 0 && (
+        {!loading && customers.length === 0 && (
           <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No customers found.</Typography></Box>
         )}
-        {filtered.map(c => (
+        {customers.map(c => (
           <Paper 
             key={c.id}
             sx={{ 
@@ -214,6 +233,13 @@ export default function Customers() {
             </Box>
           </Paper>
         ))}
+        <TablePagination
+          meta={meta}
+          page={page}
+          perPage={perPage}
+          onPageChange={handlePageChange}
+          onPerPageChange={handlePerPageChange}
+        />
       </Box>
 
     </Box>

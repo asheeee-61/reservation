@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Box, Typography, Button, IconButton, Switch, 
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, FormControlLabel, CircularProgress
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
+import TablePagination from '../components/TablePagination';
 
 export default function SpecialEvents() {
   const [events, setEvents] = useState([]);
@@ -14,22 +15,25 @@ export default function SpecialEvents() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '', is_active: true });
   const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [meta, setMeta] = useState(null);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async (p = 1, pp = 10) => {
     try {
       setLoading(true);
-      const data = await apiClient('/admin/special-events');
-      setEvents(data);
+      const params = new URLSearchParams({ page: p, per_page: pp });
+      const data = await apiClient(`/admin/special-events?${params.toString()}`);
+      setEvents(data.data ?? []);
+      setMeta(data.meta ?? null);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchEvents();
   }, []);
+
+  useEffect(() => { fetchEvents(page, perPage); }, [page, perPage]);
 
   const handleOpenModal = (event = null) => {
     if (event) {
@@ -57,7 +61,7 @@ export default function SpecialEvents() {
         });
       }
       setModalOpen(false);
-      fetchEvents();
+      fetchEvents(page, perPage);
     } catch (err) {
       alert(err.message);
     } finally {
@@ -71,7 +75,8 @@ export default function SpecialEvents() {
     try {
       await apiClient(`/admin/special-events/${editingEvent.id}`, { method: 'DELETE' });
       setDeleteModalOpen(false);
-      fetchEvents();
+      fetchEvents(1, perPage);
+      setPage(1);
     } catch (err) {
       alert(err.message);
     } finally {
@@ -236,6 +241,14 @@ export default function SpecialEvents() {
           ))}
         </Box>
       )}
+
+      <TablePagination
+        meta={meta}
+        page={page}
+        perPage={perPage}
+        onPageChange={(p) => setPage(p)}
+        onPerPageChange={(pp) => { setPerPage(pp); setPage(1); }}
+      />
 
       {/* Add / Edit Modal */}
       <Dialog 

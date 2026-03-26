@@ -1,15 +1,15 @@
-// Force Vite reload — Status refactor cleanup
-import { useState, useEffect } from 'react';
+// Force Vite reload — Unified pagination
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, MenuItem, Select, FormControl,
   IconButton, Tooltip, Stack, TextField, InputAdornment, 
   Fab, CircularProgress, Divider, Snackbar
 } from '@mui/material';
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
+import TablePagination from '../components/TablePagination';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -32,21 +32,30 @@ export default function Reservations() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [toastOpen, setToastOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [meta, setMeta] = useState(null);
 
-  useEffect(() => {
-    fetchReservations();
-  }, []);
-
-  const fetchReservations = async () => {
+  const fetchReservations = useCallback(async (p = page, pp = perPage, search = searchTerm, status = statusFilter) => {
+    setLoading(true);
     try {
-      const data = await apiClient('/admin/reservations');
-      setReservations(data);
+      const params = new URLSearchParams({ page: p, per_page: pp });
+      if (search) params.append('search', search);
+      if (status && status !== 'all') params.append('status', status);
+      const data = await apiClient(`/admin/reservations?${params.toString()}`);
+      setReservations(data.data ?? []);
+      setMeta(data.meta ?? null);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Single unified fetch — reacts to any filter/page/perPage change
+  useEffect(() => {
+    fetchReservations(page, perPage, searchTerm, statusFilter);
+  }, [page, perPage, searchTerm, statusFilter]);
 
   const handleStatusChange = async (id, newStatus) => {
     const previous = [...reservations];
@@ -66,11 +75,24 @@ export default function Reservations() {
     }
   };
 
-  const filteredReservations = reservations.filter(res => {
-    const matchesSearch = res.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || res.reservation_id.includes(searchTerm);
-    const matchesStatus = statusFilter === 'all' || res.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const handleSearchChange = (e) => {
+    setPage(1);
+    setSearchTerm(e.target.value);
+  };
+
+  const handleStatusFilterChange = (e) => {
+    setPage(1);
+    setStatusFilter(e.target.value);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const handlePerPageChange = (newPer) => {
+    setPerPage(newPer);
+    setPage(1);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -97,7 +119,7 @@ export default function Reservations() {
           size="small"
           placeholder="Search by name or ID..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           InputProps={{
             startAdornment: <InputAdornment position="start"><span className="material-icons">search</span></InputAdornment>,
             sx: { 
@@ -119,7 +141,7 @@ export default function Reservations() {
         }}>
           <Select 
             value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={handleStatusFilterChange}
             displayEmpty
             sx={{ 
               borderRadius: '4px', fontFamily: 'Roboto',
@@ -155,9 +177,9 @@ export default function Reservations() {
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={8} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
-            ) : filteredReservations.length === 0 ? (
+            ) : reservations.length === 0 ? (
               <TableRow><TableCell colSpan={8} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No reservations found.</Typography></TableCell></TableRow>
-            ) : filteredReservations.map(res => (
+            ) : reservations.map(res => (
               <TableRow 
                 key={res.id} 
                 hover
@@ -304,6 +326,13 @@ export default function Reservations() {
             ))}
           </TableBody>
         </Table>
+        <TablePagination
+          meta={meta}
+          page={page}
+          perPage={perPage}
+          onPageChange={handlePageChange}
+          onPerPageChange={handlePerPageChange}
+        />
       </Paper>
 
       {/* MOBILE CARD VIEW */}
@@ -313,9 +342,9 @@ export default function Reservations() {
       }}>
         {loading ? (
           <Box display="flex" justifyContent="center" py={3}><CircularProgress /></Box>
-        ) : filteredReservations.length === 0 ? (
+        ) : reservations.length === 0 ? (
           <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No reservations found.</Typography></Box>
-        ) : filteredReservations.map(res => {
+        ) : reservations.map(res => {
           const sKey = res.status?.toUpperCase() || 'PENDIENTE';
           const chipColor = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#202124' };
           return (
@@ -350,6 +379,13 @@ export default function Reservations() {
             </Paper>
           );
         })}
+        <TablePagination
+          meta={meta}
+          page={page}
+          perPage={perPage}
+          onPageChange={handlePageChange}
+          onPerPageChange={handlePerPageChange}
+        />
       </Box>
 
       <Snackbar
