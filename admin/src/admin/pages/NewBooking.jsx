@@ -179,6 +179,13 @@ export default function NewBooking() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Sync name with as-typed search if no customer selected
+  useEffect(() => {
+    if (!selectedCustomer) {
+      setNewBooking(prev => ({ ...prev, name: customerSearch }));
+    }
+  }, [customerSearch, selectedCustomer]);
+
   const getInitials = (name) => {
     if (!name) return '??';
     const pts = name.split(' ');
@@ -250,6 +257,24 @@ export default function NewBooking() {
     setSaveStatus('loading');
     setErrorMsg(null);
     try {
+      // If existing customer: check if we need to update their profile first
+      if (selectedCustomer) {
+        const hasChanged = 
+          newBooking.phone !== (selectedCustomer.phone || '') || 
+          newBooking.email !== (selectedCustomer.email || '');
+
+        if (hasChanged) {
+          await apiClient(`/admin/customers/${selectedCustomer.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              name: selectedCustomer.name, // Keep name fixed as per chip UI
+              phone: newBooking.phone,
+              email: newBooking.email
+            })
+          });
+        }
+      }
+
       const payload = {
         // FIX: If existing customer: send their ID, otherwise send details
         ...(selectedCustomer 
@@ -656,58 +681,57 @@ export default function NewBooking() {
               </Box>
             </Box>
 
-            {/* Row 2: Guests | Table Type */}
-            <Box sx={{ display: 'flex', gap: '16px' }}>
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                  Comensales
+            {/* Row 2: Guests (Full Width) */}
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
+                Comensales
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', height: 56 }}>
+                <Button 
+                  onClick={() => setNewBooking(prev => ({ ...prev, guests: Math.max(globalSettings?.minGuests || 1, Number(prev.guests) - 1) }))}
+                  sx={{ minWidth: 32, width: 32, height: 32, p: 0, border: '1px solid #DADCE0', borderRadius: '4px', color: '#202124' }}
+                >
+                  <span className="material-icons" style={{ fontSize: 18 }}>remove</span>
+                </Button>
+                <Typography sx={{ width: 48, textAlign: 'center', fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124' }}>
+                  {newBooking.guests}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', height: 56 }}>
-                  <Button 
-                    onClick={() => setNewBooking(prev => ({ ...prev, guests: Math.max(globalSettings?.minGuests || 1, Number(prev.guests) - 1) }))}
-                    sx={{ minWidth: 32, width: 32, height: 32, p: 0, border: '1px solid #DADCE0', borderRadius: '4px', color: '#202124' }}
-                  >
-                    <span className="material-icons" style={{ fontSize: 18 }}>remove</span>
-                  </Button>
-                  <Typography sx={{ width: 48, textAlign: 'center', fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124' }}>
-                    {newBooking.guests}
-                  </Typography>
-                  <Button 
-                    onClick={() => setNewBooking(prev => ({ ...prev, guests: Math.min(globalSettings?.maxGuests || 20, Number(prev.guests) + 1) }))}
-                    sx={{ minWidth: 32, width: 32, height: 32, p: 0, border: '1px solid #DADCE0', borderRadius: '4px', color: '#202124' }}
-                  >
-                    <span className="material-icons" style={{ fontSize: 18 }}>add</span>
-                  </Button>
-                </Box>
-              </Box>
-
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                  Tipo de Mesa
-                </Typography>
-                <FormControl fullWidth>
-                  <Select
-                    value={tableTypeId}
-                    onChange={(e) => setTableTypeId(e.target.value)}
-                    disabled={tableTypesLoading || tableTypesError}
-                    sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', bgcolor: '#FFFFFF' }}
-                  >
-                    {tableTypesLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
-                    {tableTypesError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
-                    {tableTypes.map(t => (
-                      <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-                    ))}
-                  </Select>
-                  {tableTypeId && (
-                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {tableTypes.find(t => t.id === tableTypeId)?.description}
-                    </Typography>
-                  )}
-                </FormControl>
+                <Button 
+                  onClick={() => setNewBooking(prev => ({ ...prev, guests: Math.min(globalSettings?.maxGuests || 20, Number(prev.guests) + 1) }))}
+                  sx={{ minWidth: 32, width: 32, height: 32, p: 0, border: '1px solid #DADCE0', borderRadius: '4px', color: '#202124' }}
+                >
+                  <span className="material-icons" style={{ fontSize: 18 }}>add</span>
+                </Button>
               </Box>
             </Box>
 
-            {/* Row 3: Special Event */}
+            {/* Row 3: Table Type (Full Width) */}
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
+                Tipo de Mesa
+              </Typography>
+              <FormControl fullWidth>
+                <Select
+                  value={tableTypeId}
+                  onChange={(e) => setTableTypeId(e.target.value)}
+                  disabled={tableTypesLoading || tableTypesError}
+                  sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', bgcolor: '#FFFFFF' }}
+                >
+                  {tableTypesLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
+                  {tableTypesError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
+                  {tableTypes.map(t => (
+                    <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
+                  ))}
+                </Select>
+                {tableTypeId && (
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {tableTypes.find(t => t.id === tableTypeId)?.description}
+                  </Typography>
+                )}
+              </FormControl>
+            </Box>
+
+            {/* Row 4: Special Event (Full Width) */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
                 Evento Especial
@@ -733,7 +757,7 @@ export default function NewBooking() {
               </FormControl>
             </Box>
 
-            {/* Row 4: Notes */}
+            {/* Row 5: Notes */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               {!showNotes ? (
                 <Button 
