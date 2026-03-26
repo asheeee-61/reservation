@@ -9,10 +9,15 @@ use Illuminate\Support\Facades\Log;
 
 class ReservationController extends Controller
 {
-    // Admin: Get all reservations
     public function index()
     {
         return Reservation::with(['customer', 'tableType', 'specialEvent'])->latest()->get();
+    }
+
+    public function show($id)
+    {
+        $reservation = Reservation::with(['customer', 'tableType', 'specialEvent', 'activities'])->findOrFail($id);
+        return response()->json($reservation);
     }
 
     // Customer: Get available slots dynamically
@@ -144,10 +149,12 @@ class ReservationController extends Controller
             Log::info("WHATSAPP NOTIFICATION: Booking $resId confirmed for {$validated['user']['phone']}. Will be implemented later.");
         }
 
+        $this->logActivity($reservation, 'Reserva creada', 'creation');
+
         return response()->json([
             'success' => true,
             'reservationId' => $resId,
-            'data' => $reservation->load('customer')
+            'data' => $reservation->load(['customer', 'activities'])
         ], 201);
     }
 
@@ -159,17 +166,22 @@ class ReservationController extends Controller
         // Allow partial PATCH for status only
         if ($request->isMethod('patch') && $request->has('status') && count($request->all()) === 1) {
             $validated = $request->validate([
-                'status' => 'required|in:PENDING,CONFIRMED,COMPLETED,NO_SHOW'
+                'status' => 'required|string'
             ]);
 
-            if (!$this->canTransition($reservation->status, $validated['status'])) {
-                return response()->json(['error' => 'Invalid status transition from ' . $reservation->status . ' to ' . $validated['status']], 422);
-            }
-
+            $oldStatus = $reservation->status;
             $reservation->update(['status' => $validated['status']]);
+            
+            $this->logActivity(
+                $reservation, 
+                "Estado cambiado de $oldStatus a {$validated['status']}", 
+                'status_change',
+                ['from' => $oldStatus, 'to' => $validated['status']]
+            );
+
             return response()->json([
                 'success' => true,
-                'data' => $reservation->load('customer')
+                'data' => $reservation->load(['customer', 'activities'])
             ]);
         }
 
@@ -181,7 +193,7 @@ class ReservationController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'special_requests' => 'nullable|string',
-            'status' => 'required|in:PENDING,CONFIRMED,COMPLETED,NO_SHOW',
+            'status' => 'required|string',
             'table_type_id' => 'required|exists:table_types,id',
             'special_event_id' => 'nullable|exists:special_events,id'
         ]);
@@ -218,6 +230,7 @@ class ReservationController extends Controller
             }
         }
 
+        $oldStatus = $reservation->status;
         $reservation->update([
             'customer_id' => $customer->id,
             'date' => $validated['date'],
@@ -229,22 +242,53 @@ class ReservationController extends Controller
             'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
 
+        if ($oldStatus !== $reservation->status) {
+            $this->logActivity(
+                $reservation, 
+                "Estado cambiado de $oldStatus a {$reservation->status}", 
+                'status_change',
+                ['from' => $oldStatus, 'to' => $reservation->status]
+            );
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $reservation->load('customer')
+            'data' => $reservation->load(['customer', 'activities'])
         ]);
     }
 
-    // Admin: Update status only (quick action)
     public function updateStatus(Request $request, $id)
     {
         $request->validate(['status' => 'required|string']);
         
         $reservation = Reservation::findOrFail($id);
+        $oldStatus = $reservation->status;
+        
+        if ($oldStatus === $request->status) {
+            return response()->json(['success' => true, 'data' => $reservation]);
+        }
+
         $reservation->status = $request->status;
         $reservation->save();
 
-        return response()->json(['success' => true, 'data' => $reservation]);
+        $this->logActivity(
+            $reservation, 
+            "Estado cambiado de $oldStatus a {$request->status}", 
+            'status_change',
+            ['from' => $oldStatus, 'to' => $request->status]
+        );
+
+        return response()->json(['success' => true, 'data' => $reservation->load(['customer', 'tableType', 'specialEvent', 'activities'])]);
+    }
+
+    private function logActivity($reservation, $description, $type = 'status_change', $metadata = null)
+    {
+        \App\Models\ReservationActivity::create([
+            'reservation_id' => $reservation->id,
+            'description' => $description,
+            'type' => $type,
+            'metadata' => $metadata
+        ]);
     }
 
     private function canTransition($from, $to)

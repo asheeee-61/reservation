@@ -36,6 +36,11 @@ class Reservation extends Model
         return $this->belongsTo(TableType::class);
     }
 
+    public function activities()
+    {
+        return $this->hasMany(ReservationActivity::class)->orderBy('created_at', 'desc');
+    }
+
     public function specialEvent()
     {
         return $this->belongsTo(SpecialEvent::class);
