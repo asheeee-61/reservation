@@ -22,11 +22,29 @@ class SpecialEventController extends Controller
     /**
      * Admin index
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(
-            SpecialEvent::orderBy('sort_order', 'asc')->get()
-        );
+        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
+
+        $query = SpecialEvent::orderBy('sort_order', 'asc');
+
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $query->where('name', 'like', $term);
+        }
+
+        $results = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $results->items(),
+            'meta' => [
+                'current_page' => $results->currentPage(),
+                'last_page'    => $results->lastPage(),
+                'per_page'     => $results->perPage(),
+                'total'        => $results->total(),
+            ]
+        ]);
     }
 
     /**

@@ -9,9 +9,37 @@ use Illuminate\Support\Facades\Log;
 
 class ReservationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Reservation::with(['customer', 'tableType', 'specialEvent'])->latest()->get();
+        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
+
+        $query = Reservation::with(['customer', 'tableType', 'specialEvent'])->latest();
+
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('reservation_id', 'like', $term)
+                  ->orWhere('status', 'like', $term)
+                  ->orWhereHas('customer', fn($cq) => $cq->where('name', 'like', $term));
+            });
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $results = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $results->items(),
+            'meta' => [
+                'current_page' => $results->currentPage(),
+                'last_page'    => $results->lastPage(),
+                'per_page'     => $results->perPage(),
+                'total'        => $results->total(),
+            ]
+        ]);
     }
 
     public function show($id)

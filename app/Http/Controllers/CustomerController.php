@@ -8,18 +8,31 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
+        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
+
         $query = Customer::query();
 
         if ($request->filled('search')) {
             $term = '%' . $request->search . '%';
-            $query->where('name', 'like', $term)
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', $term)
                   ->orWhere('email', 'like', $term)
                   ->orWhere('phone', 'like', $term);
+            });
         }
 
-        return response()->json(
-            $query->orderBy('name')->paginate(10)
-        );
+        $results = $query->orderBy('name')->paginate($perPage);
+
+        return response()->json([
+            'data' => $results->items(),
+            'meta' => [
+                'current_page' => $results->currentPage(),
+                'last_page'    => $results->lastPage(),
+                'per_page'     => $results->perPage(),
+                'total'        => $results->total(),
+            ]
+        ]);
     }
 
     public function show(Customer $customer)
