@@ -21,29 +21,49 @@ const formatDateLabel = (dateString) => {
 };
 
 export default function LeftPanel({ onContinue }) {
-  const { date, guests, selectedSlot, config, setDate, setGuests, setSelectedSlot } = useReservationStore();
+  const { 
+    date, guests, selectedSlot, config, 
+    setDate, setGuests, setSelectedSlot,
+    slotsCache, setSlotsCache
+  } = useReservationStore();
   const [loading, setLoading] = useState(false);
   const [slots, setSlots] = useState([]);
   const dateInputRef = useRef(null);
+  const cacheKey = `${date}-${guests}`;
 
   useEffect(() => {
     let active = true;
-    if (!config) return;
+    if (!config || !date) return;
     
+    // Check cache first
+    if (slotsCache[cacheKey]) {
+      setSlots(slotsCache[cacheKey]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    getAvailableSlots(date, guests)
-      .then(res => {
-        if (active) {
-          setSlots(res);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (active) setLoading(false);
-      });
+    
+    // Small debounce to avoid flooding on rapid clicks (guests +- etc)
+    const timeoutId = setTimeout(() => {
+      getAvailableSlots(date, guests)
+        .then(res => {
+          if (active) {
+            setSlots(res);
+            setSlotsCache(cacheKey, res);
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (active) setLoading(false);
+        });
+    }, 300);
       
-    return () => { active = false; };
-  }, [date, guests, config]);
+    return () => { 
+      active = false; 
+      clearTimeout(timeoutId);
+    };
+  }, [date, guests, config, cacheKey, slotsCache, setSlotsCache]);
 
   const handleDateClick = () => {
     if (dateInputRef.current) {

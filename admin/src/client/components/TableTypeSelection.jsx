@@ -9,20 +9,27 @@ import { useReservationStore } from '../store/useReservationStore';
 import { getTableTypes } from '../services/reservationService';
 
 export default function TableTypeSelection({ onBack, onContinue }) {
-  const { selectedTableType, setSelectedTableType, config } = useReservationStore();
-  const [tableTypes, setTableTypes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    selectedTableType, setSelectedTableType, config,
+    tableTypes: cachedTypes, setTableTypes: setCachedTypes
+  } = useReservationStore();
+  const [loading, setLoading] = useState(!cachedTypes);
 
   useEffect(() => {
+    if (cachedTypes) return;
+    
+    setLoading(true);
     getTableTypes().then(types => {
-      setTableTypes(types.filter(t => t.is_active));
+      const activeTypes = types.filter(t => t.is_active);
+      setCachedTypes(activeTypes);
       setLoading(false);
+      
       // Auto-select first if none selected
-      if (types.length > 0 && !selectedTableType) {
-        setSelectedTableType(types[0]);
+      if (activeTypes.length > 0 && !selectedTableType) {
+        setSelectedTableType(activeTypes[0]);
       }
     });
-  }, [setSelectedTableType, selectedTableType]);
+  }, [cachedTypes, setCachedTypes, setSelectedTableType, selectedTableType]);
 
   if (loading) {
     return (
@@ -60,7 +67,7 @@ export default function TableTypeSelection({ onBack, onContinue }) {
         </Typography>
 
         <List sx={{ width: '100%', bgcolor: 'background.paper', p: 0 }}>
-          {tableTypes.map((type) => {
+          {(cachedTypes || []).map((type) => {
             const isSelected = selectedTableType?.id === type.id;
             return (
               <Paper 

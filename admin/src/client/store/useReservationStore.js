@@ -15,6 +15,9 @@ export const useReservationStore = create((set) => ({
   step: 'selection', // 'selection' | 'table_selection' | 'confirmation' | 'success'
   reservationId: null,
   config: null,
+  tableTypes: null,
+  specialEvents: null,
+  slotsCache: {}, // { 'date-guests': slots }
   showTerms: false,
   loading: false,
   error: null,
@@ -28,6 +31,11 @@ export const useReservationStore = create((set) => ({
   setSelectedSpecialEvent: (selectedSpecialEvent) => set({ selectedSpecialEvent }),
   setUserData: (userData) => set((state) => ({ userData: { ...state.userData, ...userData } })),
   setConfig: (config) => set({ config }),
+  setTableTypes: (tableTypes) => set({ tableTypes }),
+  setSpecialEvents: (specialEvents) => set({ specialEvents }),
+  setSlotsCache: (key, data) => set((state) => ({ 
+    slotsCache: { ...state.slotsCache, [key]: data } 
+  })),
   setShowTerms: (showTerms) => set({ showTerms }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),

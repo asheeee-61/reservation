@@ -11,21 +11,23 @@ import { getSpecialEvents } from '../services/reservationService';
 export default function SpecialEventSelection({ onBack, onContinue }) {
   const { 
     selectedSpecialEvent, setSelectedSpecialEvent, 
-    date, guests, selectedSlot, selectedTableType, config 
+    date, guests, selectedSlot, selectedTableType, config,
+    specialEvents: cachedEvents, setSpecialEvents: setCachedEvents
   } = useReservationStore();
   
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedEvents);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (cachedEvents) return;
+
     let active = true;
     setLoading(true);
     getSpecialEvents()
       .then(res => {
         if (active) {
           const activeEvents = res.filter(e => e.is_active);
-          setEvents(activeEvents);
+          setCachedEvents(activeEvents);
           // Auto-select first if none selected
           if (activeEvents.length > 0 && !selectedSpecialEvent) {
              setSelectedSpecialEvent(activeEvents[0]);
@@ -40,7 +42,7 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
         }
       });
     return () => { active = false; };
-  }, [setSelectedSpecialEvent, selectedSpecialEvent]);
+  }, [cachedEvents, setCachedEvents, setSelectedSpecialEvent, selectedSpecialEvent]);
 
   if (loading) {
     return (
@@ -113,14 +115,14 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
           ¿Alguna ocasión especial?
         </Typography>
 
-        {events.length === 0 ? (
+        {(!cachedEvents || cachedEvents.length === 0) ? (
           <Box sx={{ textAlign: 'center', mt: 4 }}>
              <span className="material-icons" style={{ fontSize: 48, color: '#BDBDBD' }}>celebration</span>
              <Typography sx={{ mt: 2, color: '#70757A' }}>No hay eventos disponibles</Typography>
           </Box>
         ) : (
           <List sx={{ p: 0 }}>
-            {events.map((event) => {
+            {cachedEvents.map((event) => {
               const isSelected = selectedSpecialEvent?.id === event.id;
               return (
                 <Paper

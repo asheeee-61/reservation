@@ -70,11 +70,15 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
+    if (config) {
+      setInitLoading(false);
+      return;
+    }
     getConfig().then((cfg) => {
       setConfig(cfg);
       setInitLoading(false);
     });
-  }, [setConfig]);
+  }, [setConfig, config]);
 
   if (initLoading) {
     return (
