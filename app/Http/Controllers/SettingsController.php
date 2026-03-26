@@ -49,7 +49,9 @@ class SettingsController extends Controller
         return response()->json(array_merge($defaultConfig, $savedConfig, [
             'global_opening_time' => substr($setting->global_opening_time, 0, 5),
             'global_closing_time' => substr($setting->global_closing_time, 0, 5),
-            'default_interval' => $setting->default_interval
+            'default_interval' => $setting->default_interval,
+            'whatsapp_phone' => $setting->whatsapp_phone,
+            'instagram_username' => $setting->instagram_username
         ]));
     }
 
@@ -60,6 +62,8 @@ class SettingsController extends Controller
                 'global_opening_time' => 'required|date_format:H:i',
                 'global_closing_time' => 'required|date_format:H:i',
                 'default_interval'    => 'required|integer|in:15,30,45,60,90,120',
+                'whatsapp_phone'      => 'nullable|string|max:20',
+                'instagram_username'  => 'nullable|string|max:100',
             ]);
 
             $setting = Setting::firstOrCreate([], [
@@ -71,6 +75,8 @@ class SettingsController extends Controller
             $setting->global_opening_time = $request->global_opening_time . ':00';
             $setting->global_closing_time = $request->global_closing_time . ':00';
             $setting->default_interval = $request->default_interval;
+            $setting->whatsapp_phone = $request->whatsapp_phone;
+            $setting->instagram_username = $request->instagram_username;
             $setting->save();
         }
 
