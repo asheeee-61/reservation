@@ -102,38 +102,29 @@ class ReservationController extends Controller
             'date' => 'required|date',
             'slot.time' => 'required|string',
             'guests' => 'required|integer|min:1',
-            'user.name' => 'required|string|max:255',
+            'customer_id' => 'nullable|exists:customers,id',
+            'user.name' => 'required_without:customer_id|string|max:255',
             'user.email' => 'nullable|email|max:255',
-            'user.phone' => 'nullable|string|max:20',
+            'user.phone' => 'required_without:customer_id|string|max:20',
             'special_requests' => 'nullable|string',
             'table_type_id' => 'required|exists:table_types,id',
-            'special_event_id' => 'required|exists:special_events,id'
+            'special_event_id' => 'nullable|exists:special_events,id'
         ]);
 
         $resId = '#' . rand(1000, 9999);
 
-        // Find or create customer
-        $email = $validated['user']['email'] ?? null;
-        $phone = $validated['user']['phone'] ?? null;
-        $name = $validated['user']['name'];
-        $customer = null;
-
-        if ($email) {
-            $customer = Customer::firstOrCreate(
-                ['email' => $email],
-                ['name' => $name, 'phone' => $phone]
-            );
-        } elseif ($phone) {
-            $customer = Customer::firstOrCreate(
-                ['phone' => $phone],
-                ['name' => $name, 'email' => null]
-            );
+        // FIX: Handle existing vs new customer
+        if ($request->filled('customer_id')) {
+            $customer = Customer::findOrFail($request->customer_id);
         } else {
-            $customer = Customer::create([
-                'name' => $name,
-                'email' => null,
-                'phone' => null
-            ]);
+            $customer = Customer::firstOrCreate(
+                ['phone' => $request->user['phone']],
+                [
+                    'name'  => $request->user['name'],
+                    'email' => $request->user['email'] ?? null,
+                    'phone' => $request->user['phone'],
+                ]
+            );
         }
 
         $reservation = Reservation::create([

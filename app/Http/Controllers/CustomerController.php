@@ -8,19 +8,17 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::withCount('reservations')
-            ->with(['reservations' => function($q) {
-                $q->orderByDesc('date')->limit(1);
-            }]);
+        $query = Customer::query();
 
-        if ($request->search) {
-            $query->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('email', 'like', "%{$request->search}%")
-                  ->orWhere('phone', 'like', "%{$request->search}%");
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $query->where('name', 'like', $term)
+                  ->orWhere('email', 'like', $term)
+                  ->orWhere('phone', 'like', $term);
         }
 
         return response()->json(
-            $query->orderByDesc('created_at')->paginate(10)
+            $query->orderBy('name')->paginate(10)
         );
     }
 
