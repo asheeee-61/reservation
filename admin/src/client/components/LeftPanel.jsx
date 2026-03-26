@@ -20,18 +20,17 @@ const formatDateLabel = (dateString) => {
   return selectedDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
 };
 
-export default function LeftPanel({ onContinue }) {
+export default function LeftPanel({ onAutoAdvance }) {
   const { 
     date, guests, selectedSlot, config, 
     setDate, setGuests, setSelectedSlot,
-    slotsCache, setSlotsCache,
-    setTableTypes: setCachedTableTypes,
-    setSpecialEvents: setCachedSpecialEvents
+    slotsCache, setSlotsCache
   } = useReservationStore();
   const [loading, setLoading] = useState(false);
   const [continuing, setContinuing] = useState(false);
   const [slots, setSlots] = useState([]);
   const dateInputRef = useRef(null);
+  const timeSlotsRef = useRef(null);
   const cacheKey = `${date}-${guests}`;
 
   useEffect(() => {
@@ -79,26 +78,13 @@ export default function LeftPanel({ onContinue }) {
     }
   };
 
-  const handleContinue = async () => {
-    if (!selectedSlot) return;
-    setContinuing(true);
-    try {
-      // Prefetch data for next steps
-      const { getTableTypes, getSpecialEvents } = await import('../services/reservationService');
-      const [types, events] = await Promise.all([
-        getTableTypes(),
-        getSpecialEvents()
-      ]);
-      setCachedTableTypes(types.filter(t => t.is_active));
-      setCachedSpecialEvents(events.filter(e => e.is_active));
-      onContinue();
-    } catch (e) {
-      console.error("Prefetch failed", e);
-      onContinue(); // Continue anyway, components will fetch themselves
-    } finally {
-      setContinuing(false);
+  useEffect(() => {
+    if (date && timeSlotsRef.current) {
+      setTimeout(() => {
+        timeSlotsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
-  };
+  }, [date]);
 
   if (!config) return <Box p={4}><CircularProgress /></Box>;
   
@@ -209,7 +195,7 @@ export default function LeftPanel({ onContinue }) {
         <Divider sx={{ my: 0, borderColor: '#E0E0E0' }} />
 
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="body1" sx={{ fontWeight: 500, mb: 1.5, fontSize: '14px', color: '#70757A' }}>
+          <Typography ref={timeSlotsRef} variant="body1" sx={{ fontWeight: 500, mb: 1.5, fontSize: '14px', color: '#70757A' }}>
             Horarios Disponibles
           </Typography>
           {date && (
@@ -291,6 +277,7 @@ export default function LeftPanel({ onContinue }) {
                         disabled={isFull}
                         onClick={() => {
                           setSelectedSlot({ time: slot.time });
+                          onAutoAdvance();
                         }}
                         sx={{ 
                           height: 48,
@@ -335,20 +322,7 @@ export default function LeftPanel({ onContinue }) {
         </Box>
 
         <Box sx={{ mt: 'auto', pt: 4, pb: { xs: 4, md: 2 } }}>
-          <Button
-            fullWidth
-            variant="contained"
-            disabled={!selectedSlot || continuing}
-            onClick={handleContinue}
-            sx={{ 
-              height: 56, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF',
-              fontFamily: 'Roboto', fontWeight: 500, fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1.25px',
-              boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
-              '&.Mui-disabled': { bgcolor: '#F1F3F4', color: '#BDBDBD' }
-            }}
-          >
-            {continuing ? <CircularProgress size={24} color="inherit" /> : 'CONTINUAR'}
-          </Button>
+           {/* Auto-advance triggers on time selection */}
         </Box>
       </Box>
     </Box>

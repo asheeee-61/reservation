@@ -8,7 +8,7 @@ import {
 import { useReservationStore } from '../store/useReservationStore';
 import { getSpecialEvents } from '../services/reservationService';
 
-export default function SpecialEventSelection({ onBack, onContinue }) {
+export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
   const { 
     selectedSpecialEvent, setSelectedSpecialEvent, 
     date, guests, selectedSlot, selectedTableType, config,
@@ -121,6 +121,7 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
                   elevation={0}
                   onClick={() => {
                     setSelectedSpecialEvent(event);
+                    onAutoAdvance();
                   }}
                   sx={{
                     mb: 2,
@@ -167,20 +168,7 @@ export default function SpecialEventSelection({ onBack, onContinue }) {
       </Box>
 
       <Box sx={{ mt: 'auto', p: { xs: 3, sm: 4 }, pt: 0 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          disabled={continuing}
-          onClick={onContinue}
-          sx={{ 
-            height: 56, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF',
-            fontFamily: 'Roboto', fontWeight: 500, fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1.25px',
-            boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
-            '&.Mui-disabled': { bgcolor: '#F1F3F4', color: '#BDBDBD' }
-          }}
-        >
-          {continuing ? <CircularProgress size={24} color="inherit" /> : 'CONTINUAR'}
-        </Button>
+        {/* Auto-advance triggers on selection */}
       </Box>
     </Box>
   );

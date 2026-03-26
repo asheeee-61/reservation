@@ -18,6 +18,7 @@ export const useReservationStore = create((set) => ({
   tableTypes: null,
   specialEvents: null,
   slotsCache: {}, // { 'date-guests': slots }
+  slotsCache: {}, // { 'date-guests': slots }
   showTerms: false,
   loading: false,
   error: null,

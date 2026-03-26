@@ -8,13 +8,13 @@ import {
 import { useReservationStore } from '../store/useReservationStore';
 import { getTableTypes } from '../services/reservationService';
 
-export default function TableTypeSelection({ onBack, onContinue }) {
+export default function TableTypeSelection({ onBack, onAutoAdvance }) {
   const { 
-    selectedTableType, setSelectedTableType, config,
+    selectedTableType, setSelectedTableType, 
+    date, guests, selectedSlot, config,
     tableTypes: cachedTypes, setTableTypes: setCachedTypes
   } = useReservationStore();
   const [loading, setLoading] = useState(!cachedTypes);
-  const [continuing, setContinuing] = useState(false);
 
   useEffect(() => {
     if (cachedTypes) return;
@@ -62,6 +62,13 @@ export default function TableTypeSelection({ onBack, onContinue }) {
         </Typography>
       </Box>
 
+      {/* Summary line */}
+      <Box sx={{ bgcolor: '#F1F3F4', p: '12px', textAlign: 'center' }}>
+        <Typography sx={{ fontSize: '14px', color: '#70757A', fontFamily: 'Roboto', fontWeight: 400 }}>
+          {`${guests} personas  ·  ${date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : ''}  ·  ${selectedSlot?.time}`}
+        </Typography>
+      </Box>
+
       <Box sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1 }}>
         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, fontSize: '20px', color: '#202124' }}>
           ¿Qué tipo de mesa prefiere?
@@ -79,6 +86,7 @@ export default function TableTypeSelection({ onBack, onContinue }) {
                 elevation={0}
                 onClick={() => {
                   setSelectedTableType(type);
+                  onAutoAdvance();
                 }}
                 sx={{ 
                   mb: 2,
@@ -124,20 +132,7 @@ export default function TableTypeSelection({ onBack, onContinue }) {
       </Box>
 
       <Box sx={{ mt: 'auto', p: { xs: 3, sm: 4 }, pt: 0 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          disabled={!selectedTableType || continuing}
-          onClick={onContinue}
-          sx={{ 
-            height: 56, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF',
-            fontFamily: 'Roboto', fontWeight: 500, fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1.25px',
-            boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
-            '&.Mui-disabled': { bgcolor: '#F1F3F4', color: '#BDBDBD' }
-          }}
-        >
-          {continuing ? <CircularProgress size={24} color="inherit" /> : 'CONTINUAR'}
-        </Button>
+        {/* Auto-advance triggers on selection */}
       </Box>
     </Box>
   );

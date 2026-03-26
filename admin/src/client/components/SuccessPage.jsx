@@ -82,6 +82,19 @@ export default function SuccessPage() {
           )}
         </Box>
 
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={() => window.location.href = '/'}
+          sx={{ 
+            height: 48, borderColor: '#DADCE0', color: '#202124', borderRadius: '4px',
+            fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase',
+            letterSpacing: '1.25px', '&:hover': { borderColor: '#BDBDBD', bgcolor: '#F8F9FA' },
+            mt: 2
+          }}
+        >
+          Volver al inicio
+        </Button>
       </Box>
     </Container>
   );
