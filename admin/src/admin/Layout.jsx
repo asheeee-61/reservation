@@ -55,7 +55,7 @@ export default function Layout() {
           [TABLET]: { justifyContent: 'center' },
           [MOBILE]: { justifyContent: 'center' }
         }}>
-          <Typography sx={{ 
+          <Typography component="div" sx={{ 
             fontFamily: 'Roboto', fontWeight: 500, color: '#1A73E8',
             [DESKTOP]: { fontSize: '14px', color: '#202124' },
             [TABLET]: { fontSize: '16px' },
