@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   Typography, Box, Paper, TextField, 
   Button, Select, MenuItem, FormControl, InputLabel,
-  Popover, IconButton, Grid, InputAdornment, Alert
+  Popover, IconButton, Grid, InputAdornment, Alert,
+  List, ListItem, ListItemText, ListItemAvatar, Avatar, CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useSettingsStore } from '../store/useSettingsStore';
@@ -458,93 +459,87 @@ export default function NewBooking() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Customer Search / Chip */}
             <Box sx={{ position: 'relative' }} ref={searchRef}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                Nombre <span style={{ color: '#D93025' }}>*</span>
-              </Typography>
-              
               {selectedCustomer || (newBooking.name && !customerSearch) ? (
                 <Box sx={{ 
-                  display: 'flex', alignItems: 'center', gap: '8px', bgcolor: '#E8F0FE', 
-                  p: '8px 12px', borderRadius: '4px', height: 56, boxSizing: 'border-box'
+                  p: '8px 12px', border: '1px solid #1A73E8', borderRadius: '4px', bgcolor: '#E8F0FE', 
+                  display: 'flex', alignItems: 'center', height: 56, boxSizing: 'border-box' 
                 }}>
-                  <Box sx={{ 
-                    width: 32, height: 32, borderRadius: '50%', bgcolor: '#FFFFFF', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#1A73E8'
-                  }}>
+                  <Avatar sx={{ width: 32, height: 32, bgcolor: '#1A73E8', mr: 1.5, fontSize: '14px' }}>
                     {getInitials(selectedCustomer?.name || newBooking.name)}
+                  </Avatar>
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#1A73E8', lineHeight: 1.2 }}>
+                      {selectedCustomer?.name || newBooking.name}
+                    </Typography>
+                    <Typography sx={{ fontSize: '12px', color: '#1A73E8', opacity: 0.8 }}>
+                      {selectedCustomer ? 'Cliente seleccionado' : 'Nuevo cliente'}
+                    </Typography>
                   </Box>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', flex: 1 }}>
-                    {selectedCustomer?.name || newBooking.name}
-                  </Typography>
-                  <IconButton size="small" onClick={handleClearSelectedCustomer}>
-                    <span className="material-icons" style={{ fontSize: 18, color: '#70757A' }}>close</span>
+                  <IconButton size="small" onClick={handleClearSelectedCustomer} sx={{ color: '#1A73E8' }}>
+                    <span className="material-icons" style={{ fontSize: 20 }}>close</span>
                   </IconButton>
                 </Box>
               ) : (
                 <TextField 
-                  fullWidth
-                  placeholder="Buscar cliente o escribir nuevo nombre..."
-                  value={customerSearch}
+                  fullWidth label="Customer Name" required
+                  placeholder="Type to search existing or enter new..."
+                  value={customerSearch} 
                   onChange={e => setCustomerSearch(e.target.value)}
+                  onFocus={() => customerSearch.length >= 2 && setShowResults(true)}
+                  InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
                   InputProps={{ 
+                    sx: { height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px', bgcolor: '#FFFFFF' },
+                    endAdornment: isSearching ? <CircularProgress size={20} /> : null,
                     startAdornment: (
                       <InputAdornment position="start">
                         <span className="material-icons" style={{ fontSize: 20, color: '#70757A' }}>search</span>
                       </InputAdornment>
                     ),
-                    sx: { 
-                      height: 56, borderRadius: '4px', bgcolor: '#FFFFFF',
-                      fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124',
-                      '& .MuiOutlinedInput-notchedOutline': { 
-                        borderColor: (isNameInvalid && newBooking.name === '' && !customerSearch) ? '#D93025' : '#DADCE0' 
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#202124' }
+                    '& .MuiOutlinedInput-notchedOutline': { 
+                      borderColor: (isNameInvalid && newBooking.name === '' && !customerSearch) ? '#D93025' : '#DADCE0' 
                     }
                   }}
                 />
               )}
-              
+
+              {/* Search Results Popover Simulation (Custom Menu) */}
               {showResults && (
                 <Paper sx={{ 
-                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000,
-                  mt: '4px', border: '1px solid #DADCE0', borderRadius: '4px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', bgcolor: '#FFFFFF'
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, 
+                  mt: 0.5, border: '1px solid #E0E0E0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+                  maxHeight: 280, overflowY: 'auto', bgcolor: '#FFFFFF' 
                 }}>
-                  <Box sx={{ maxHeight: 280, overflowY: 'auto' }}>
+                  <List sx={{ py: 0 }}>
                     {customersResults.length > 0 ? (
-                      customersResults.slice(0, 5).map(c => (
-                        <Box 
-                          key={c.id} 
-                          onClick={() => handleSelectCustomer(c)}
-                          sx={{ 
-                            height: 56, px: '16px', display: 'flex', alignItems: 'center', gap: '12px',
-                            cursor: 'pointer', '&:hover': { bgcolor: '#F1F3F4' }
-                          }}
-                        >
-                          <Box sx={{ 
-                            width: 32, height: 32, borderRadius: '50%', bgcolor: '#E8F0FE', 
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#1A73E8'
-                          }}>
-                            {getInitials(c.name)}
-                          </Box>
-                          <Box>
-                            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', lineHeight: 1.2 }}>
-                              {c.name}
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A' }}>
-                              {c.email} {c.phone ? `· ${c.phone}` : ''}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      ))
+                      <>
+                        <ListItem sx={{ bgcolor: '#F1F3F4', py: 1 }}>
+                          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#70757A', textTransform: 'uppercase' }}>Existing Customers</Typography>
+                        </ListItem>
+                        {customersResults.slice(0, 5).map((c) => (
+                          <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)} sx={{ borderBottom: '1px solid #F1F3F4' }}>
+                            <ListItemAvatar>
+                              <Avatar sx={{ width: 36, height: 36 }}>{getInitials(c.name)}</Avatar>
+                            </ListItemAvatar>
+                            <ListItemText 
+                              primary={<Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</Typography>}
+                              secondary={<Typography sx={{ fontSize: '12px', color: '#70757A' }}>{c.phone || c.email || 'No contact details'}</Typography>}
+                            />
+                            <span className="material-icons" style={{ fontSize: 18, color: '#1A73E8' }}>chevron_right</span>
+                          </ListItem>
+                        ))}
+                      </>
                     ) : (
-                      <Box sx={{ p: '16px', color: '#70757A', fontFamily: 'Roboto', fontSize: '13px' }}>
-                        No se encontró '{customerSearch}'
-                      </Box>
+                      <ListItem sx={{ p: '16px', color: '#70757A' }}>
+                        <Typography sx={{ fontSize: '13px' }}>No se encontró '{customerSearch}'</Typography>
+                      </ListItem>
                     )}
-                  </Box>
+                    <ListItem button onClick={handleCreateAsNew} sx={{ borderTop: '1px solid #E0E0E0', py: 1.5 }}>
+                      <span className="material-icons" style={{ fontSize: 20, color: '#1A73E8', marginRight: 8 }}>person_add</span>
+                      <ListItemText 
+                        primary={<Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#1A73E8' }}>Use "{customerSearch}" as new customer</Typography>}
+                      />
+                    </ListItem>
+                  </List>
                 </Paper>
               )}
             </Box>
