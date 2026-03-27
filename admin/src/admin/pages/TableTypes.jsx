@@ -204,15 +204,7 @@ export default function TableTypes() {
                     {type.description}
                   </Typography>
                 )}
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: '4px' }}>
-                  <Box sx={{ 
-                    width: 8, height: 8, borderRadius: '50%', 
-                    bgcolor: type.is_active ? '#1A73E8' : '#BDBDBD', mr: 1 
-                  }} />
-                  <Typography sx={{ fontSize: '12px', color: '#70757A' }}>
-                    {type.is_active ? 'Activo' : 'Inactivo'}
-                  </Typography>
-                </Box>
+
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

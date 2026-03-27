@@ -139,7 +139,7 @@ export default function SpecialEvents() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' 
       }}>
         <Typography variant="h5" sx={{ fontWeight: 500, fontSize: '20px', color: '#202124' }}>
-          Eventos Especiales
+          Eventos
         </Typography>
         <Button 
           variant="contained"
@@ -201,15 +201,7 @@ export default function SpecialEvents() {
                     {event.description}
                   </Typography>
                 )}
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: '4px' }}>
-                  <Box sx={{ 
-                    width: 8, height: 8, borderRadius: '50%', 
-                    bgcolor: event.is_active ? '#1A73E8' : '#BDBDBD', mr: 1 
-                  }} />
-                  <Typography sx={{ fontSize: '12px', color: '#70757A' }}>
-                    {event.is_active ? 'Activo' : 'Inactivo'}
-                  </Typography>
-                </Box>
+
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

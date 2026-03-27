@@ -356,8 +356,8 @@ export default function Settings() {
 
       {/* Horario del Restaurante Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Horario del Restaurante</Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Define el horario global. Ningún turno puede salir fuera de estos límites.</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Rango Global para Aceptar Reservaciones</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Define el rango horario en el que se pueden aceptar reservaciones. Ningún turno puede salir fuera de estos límites.</Typography>
 
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px' }}>
           <Box sx={{ flex: 1 }}>
