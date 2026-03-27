@@ -77,7 +77,8 @@ export default function NewBooking() {
       setTableTypesLoading(true);
       setTableTypesError(false);
       try {
-        const types = await apiClient('/admin/table-types');
+        const res = await apiClient('/admin/table-types');
+        const types = Array.isArray(res) ? res : (res.data ?? []);
         const activeTypes = types.filter(t => t.is_active);
         setTableTypes(activeTypes);
         if (activeTypes.length > 0) {
@@ -95,7 +96,8 @@ export default function NewBooking() {
       setSpecialEventsLoading(true);
       setSpecialEventsError(false);
       try {
-        const events = await apiClient('/admin/special-events');
+        const evRes = await apiClient('/admin/special-events');
+        const events = Array.isArray(evRes) ? evRes : (evRes.data ?? []);
         const activeEvents = events.filter(e => e.is_active);
         setSpecialEvents(activeEvents);
         if (activeEvents.length > 0) {

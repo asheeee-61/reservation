@@ -1,23 +1,28 @@
-import { Box, Typography, Button, Tooltip, IconButton } from '@mui/material';
+import { useState, useRef, useEffect } from 'react';
+import { Box, Typography, Tooltip, IconButton } from '@mui/material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
 import { MOBILE, TABLET, DESKTOP } from './utils/breakpoints';
 import GlobalSearch from './components/GlobalSearch';
 import QuickActions from './components/QuickActions';
+import { ConfirmModal } from './components/QuickActions';
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore(state => state.logout);
+  const [logoutModal, setLogoutModal] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
 
   const menuItems = [
-    { text: 'Dashboard', icon: 'dashboard', path: '/admin' },
-    { text: 'Reservations', icon: 'event', path: '/admin/reservations' },
-    { text: 'Clientes', icon: 'people', path: '/admin/customers' },
-    { text: 'Tipos de Mesa', icon: 'table_restaurant', path: '/admin/table-types' },
-    { text: 'Eventos', icon: 'celebration', path: '/admin/special-events' },
-    { text: 'Calendario', icon: 'calendar_month', path: '/admin/calendar' },
-    { text: 'Settings', icon: 'settings', path: '/admin/settings' }
+    { text: 'Dashboard',    icon: 'dashboard',         path: '/admin' },
+    { text: 'Reservations', icon: 'event',             path: '/admin/reservations' },
+    { text: 'Clientes',     icon: 'people',            path: '/admin/customers' },
+    { text: 'Tipos de Mesa',icon: 'table_restaurant',  path: '/admin/table-types' },
+    { text: 'Eventos',      icon: 'celebration',       path: '/admin/special-events' },
+    { text: 'Calendario',   icon: 'calendar_month',    path: '/admin/calendar' },
+    { text: 'Settings',     icon: 'settings',          path: '/admin/settings' }
   ];
 
   const handleLogout = () => {
@@ -35,6 +40,17 @@ export default function Layout() {
     if (path.startsWith('/admin/settings')) return 'Settings';
     return 'Restaurant Admin';
   };
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   return (
     <Box className="app-shell" sx={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
@@ -103,7 +119,7 @@ export default function Layout() {
                 key={item.text}
                 title={item.text} 
                 placement="right" 
-                disableHoverListener={window.innerWidth > 1024} // Tooltip only on tablet/mobile where text is hidden
+                disableHoverListener={window.innerWidth > 1024}
                 componentsProps={{ 
                   tooltip: { sx: { bgcolor: '#323232', color: 'white', fontFamily: 'Roboto', fontSize: '12px', borderRadius: '4px', p: '8px' } }
                 }}
@@ -139,26 +155,74 @@ export default function Layout() {
             <GlobalSearch />
           </Box>
 
-          {/* Right side: Quick Actions (desktop only) + Logout */}
+          {/* Right side: Quick Actions + User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            {/* Quick action buttons — desktop only */}
             <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
               <QuickActions />
             </Box>
 
-            {/* Logout — desktop text button */}
-            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
-              <Button 
-                onClick={handleLogout} 
-                startIcon={<span className="material-icons">logout</span>}
-                sx={{ color: '#70757A', textTransform: 'uppercase', fontWeight: 500, fontSize: '14px', minHeight: '44px' }}
+            {/* User menu — desktop */}
+            <Box ref={userMenuRef} sx={{ display: 'none', [DESKTOP]: { display: 'block' }, position: 'relative' }}>
+              <Box
+                onClick={() => setUserMenuOpen(o => !o)}
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: '6px', height: 36,
+                  px: '8px', borderRadius: '4px', cursor: 'pointer',
+                  '&:hover': { bgcolor: '#F1F3F4' },
+                }}
               >
-                Logout
-              </Button>
+                <Box sx={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  bgcolor: '#E8F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span className="material-icons" style={{ fontSize: 18, color: '#1A73E8' }}>person</span>
+                </Box>
+                <span className="material-icons" style={{ fontSize: 18, color: '#70757A' }}>
+                  {userMenuOpen ? 'expand_less' : 'expand_more'}
+                </span>
+              </Box>
+
+              {userMenuOpen && (
+                <Box sx={{
+                  position: 'absolute', top: 'calc(100% + 4px)', right: 0,
+                  width: 200, bgcolor: '#FFFFFF',
+                  border: '1px solid #E0E0E0', borderRadius: '4px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.12)', zIndex: 1300, py: '4px',
+                }}>
+                  {[
+                    { label: 'Mi perfil', icon: 'person', action: () => { setUserMenuOpen(false); navigate('/admin/settings'); } },
+                    { label: 'Ajustes',   icon: 'settings', action: () => { setUserMenuOpen(false); navigate('/admin/settings'); } },
+                  ].map(item => (
+                    <Box key={item.label} onClick={item.action} sx={{
+                      display: 'flex', alignItems: 'center', height: 40, px: '12px', gap: '12px',
+                      cursor: 'pointer', '&:hover': { bgcolor: '#F1F3F4' },
+                    }}>
+                      <span className="material-icons" style={{ fontSize: 18, color: '#70757A' }}>{item.icon}</span>
+                      <Typography sx={{ fontFamily: 'Roboto', fontSize: 14, color: '#202124' }}>{item.label}</Typography>
+                    </Box>
+                  ))}
+
+                  {/* Divider */}
+                  <Box sx={{ borderTop: '1px solid #E0E0E0', my: '4px' }} />
+
+                  {/* Cerrar sesión */}
+                  <Box onClick={() => { setUserMenuOpen(false); setLogoutModal(true); }} sx={{
+                    display: 'flex', alignItems: 'center', height: 40, px: '12px', gap: '12px',
+                    cursor: 'pointer', '&:hover': { bgcolor: '#FDE8E8' },
+                  }}>
+                    <span className="material-icons" style={{ fontSize: 18, color: '#D93025' }}>logout</span>
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: 14, fontWeight: 500, color: '#D93025' }}>
+                      Cerrar sesión
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </Box>
 
-            {/* Logout — mobile icon */}
+            {/* Mobile: logout icon */}
             <Box sx={{ display: 'block', [DESKTOP]: { display: 'none' } }}>
-              <IconButton onClick={handleLogout} sx={{ color: '#70757A', minHeight: '44px', minWidth: '44px' }}>
+              <IconButton onClick={() => setLogoutModal(true)} sx={{ color: '#70757A', minHeight: '44px', minWidth: '44px' }}>
                 <span className="material-icons" style={{ fontSize: 24 }}>logout</span>
               </IconButton>
             </Box>
@@ -176,6 +240,16 @@ export default function Layout() {
         </Box>
       </Box>
 
+      {/* Logout confirmation modal */}
+      <ConfirmModal
+        open={logoutModal}
+        title="Cerrar sesión"
+        body="¿Quieres salir del panel de administración?"
+        confirmLabel="Cerrar sesión"
+        confirmColor="#D93025"
+        onCancel={() => setLogoutModal(false)}
+        onConfirm={handleLogout}
+      />
     </Box>
   );
 }
