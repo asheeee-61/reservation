@@ -66,13 +66,13 @@ class ReservationController extends Controller
         $defaultConfig = [
             'totalCapacity' => 40,
             'schedule' => [
-                'monday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
-                'tuesday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
-                'wednesday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
-                'thursday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
-                'friday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
-                'saturday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
-                'sunday' => ['open' => true, 'slots' => ["18:00"=>true, "18:30"=>true, "19:00"=>true, "19:30"=>true, "20:00"=>true, "20:30"=>true]],
+                'monday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
+                'tuesday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
+                'wednesday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
+                'thursday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
+                'friday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
+                'saturday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
+                'sunday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
             ],
             'blockedDays' => []
         ];
@@ -81,7 +81,7 @@ class ReservationController extends Controller
             $config = $defaultConfig;
         } else {
             $savedConfig = json_decode(\Illuminate\Support\Facades\Storage::get('config.json'), true);
-            $config = array_merge($defaultConfig, $savedConfig);
+            $config = array_replace_recursive($defaultConfig, $savedConfig);
         }
         
         $dayOfWeek = strtolower(date('l', strtotime($date)));
@@ -104,7 +104,7 @@ class ReservationController extends Controller
             ->pluck('total_guests', 'time');
 
         $masterSlots = [];
-        if (isset($dayConfig['shifts']) && is_array($dayConfig['shifts'])) {
+        if (isset($dayConfig['shifts']) && is_array($dayConfig['shifts']) && !empty($dayConfig['shifts'])) {
             foreach ($dayConfig['shifts'] as $shift) {
                 if (isset($shift['slots']) && is_array($shift['slots'])) {
                     foreach ($shift['slots'] as $time => $isOpen) {
@@ -163,6 +163,21 @@ class ReservationController extends Controller
             'table_type_id' => 'required|exists:table_types,id',
             'special_event_id' => 'nullable|exists:special_events,id'
         ]);
+
+        // Re-validate availability for non-admin sources
+        if ($source !== Reservation::SOURCE_ADMIN) {
+            $isAvailable = $this->isSlotAvailable(
+                $validated['date'],
+                $validated['slot']['time'],
+                $validated['guests']
+            );
+
+            if (!$isAvailable) {
+                return response()->json([
+                    'message' => 'No hay disponibilidad para esta fecha'
+                ], 422);
+            }
+        }
 
         $resId = '#' . rand(1000, 9999);
 
@@ -341,5 +356,26 @@ class ReservationController extends Controller
     private function canTransition($from, $to)
     {
         return true; // No restrictions
+    }
+
+    private function isSlotAvailable($date, $time, $guests)
+    {
+        $request = new \Illuminate\Http\Request([
+            'date' => $date,
+            'guests' => $guests
+        ]);
+
+        $slotsRes = $this->availableSlots($request);
+        $availableSlots = json_decode($slotsRes->getContent(), true);
+
+        if (!is_array($availableSlots)) return false;
+
+        foreach ($availableSlots as $slot) {
+            if ($slot['time'] === $time && ($slot['available'] ?? false) === true) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
