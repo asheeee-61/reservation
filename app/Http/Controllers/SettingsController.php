@@ -20,7 +20,22 @@ class SettingsController extends Controller
                 'lng' => -3.6846
             ],
             'schedule' => [
-                'monday' => ['open' => true, 'shifts' => []],
+                'monday' => [
+                    'open' => true, 
+                    'shifts' => [
+                        [
+                            'id' => 1, 
+                            'openingTime' => '13:00', 
+                            'closingTime' => '23:30', 
+                            'interval' => 30, 
+                            'slots' => [
+                                '13:00' => true, '13:30' => true, '14:00' => true, '14:30' => true,
+                                '20:00' => true, '20:30' => true, '21:00' => true, '21:30' => true,
+                                '22:00' => true, '22:30' => true, '23:00' => true, '23:30' => true
+                            ]
+                        ]
+                    ]
+                ],
                 'tuesday' => ['open' => true, 'shifts' => []],
                 'wednesday' => ['open' => true, 'shifts' => []],
                 'thursday' => ['open' => true, 'shifts' => []],
