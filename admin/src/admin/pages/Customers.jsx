@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar
@@ -8,6 +9,7 @@ import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import TablePagination from '../components/TablePagination';
 
 export default function Customers() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,7 @@ export default function Customers() {
               </TableRow>
             )}
             {customers.map(c => (
-              <TableRow key={c.id} hover>
+              <TableRow key={c.id} hover onClick={() => navigate(`/admin/customers/${c.id}`)} sx={{ cursor: 'pointer' }}>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <Avatar sx={{ bgcolor: '#E8F0FE', color: '#1A73E8', width: 32, height: 32, fontSize: '14px', fontFamily: 'Roboto', fontWeight: 500 }}>
@@ -191,10 +193,13 @@ export default function Customers() {
         {customers.map(c => (
           <Paper 
             key={c.id}
+            onClick={() => navigate(`/admin/customers/${c.id}`)}
             sx={{ 
               p: '16px', borderRadius: '4px', border: '1px solid #E0E0E0', 
               bgcolor: '#FFFFFF', boxShadow: 'none',
-              display: 'flex', flexDirection: 'column', gap: '8px'
+              display: 'flex', flexDirection: 'column', gap: '8px',
+              cursor: 'pointer',
+              '&:hover': { bgcolor: '#F8F9FA' }
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '4px' }}>

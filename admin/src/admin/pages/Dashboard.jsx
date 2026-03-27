@@ -21,7 +21,6 @@ const STATUS_CHIP = {
 const DAY_STATUS_UI = {
   'ABIERTO':   { bg: '#E6F4EA', text: '#137333', label: 'Abierto',   icon: 'check_circle', btn: 'Cerrar día',   next: 'CERRADO' },
   'CERRADO':   { bg: '#FEF7E0', text: '#7D4A00', label: 'Cerrado',   icon: 'pause_circle', btn: 'Reabrir día',  next: 'ABIERTO' },
-  'BLOQUEADO': { bg: '#FDECEA', text: '#C5221F', label: 'Bloqueado', icon: 'block',        btn: 'Desbloquear',  next: 'ABIERTO' },
 };
 
 export default function Dashboard() {
@@ -124,20 +123,11 @@ export default function Dashboard() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      {/* BANNERS */}
       {dayStatus === 'CERRADO' && (
         <Paper sx={{ p: '12px 20px', bgcolor: '#FEF7E0', border: '1px solid #FAD242', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span className="material-icons" style={{ color: '#7D4A00' }}>pause_circle</span>
           <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#7D4A00' }}>
             Día cerrado: No se permiten nuevas reservas desde la web.
-          </Typography>
-        </Paper>
-      )}
-      {dayStatus === 'BLOQUEADO' && (
-        <Paper sx={{ p: '12px 20px', bgcolor: '#FDECEA', border: '1px solid #F5B7B1', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span className="material-icons" style={{ color: '#C5221F' }}>block</span>
-          <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#C5221F' }}>
-            Día bloqueado: Todas las operaciones están restringidas.
           </Typography>
         </Paper>
       )}
@@ -174,13 +164,17 @@ export default function Dashboard() {
                 const isPast = r.time < currentTime && !isCurrent;
 
                 return (
-                  <Box key={r.id} sx={{
-                    display: 'flex', alignItems: 'center', px: '20px', py: '12px',
-                    borderBottom: idx < todayRes.length - 1 ? '1px solid #F1F3F4' : 'none',
-                    bgcolor: isCurrent ? '#FEF7E0' : 'transparent',
-                    opacity: isPast ? 0.6 : 1,
-                    '&:hover': { bgcolor: isCurrent ? '#FFF9C4' : '#F8F9FA' }
-                  }}>
+                  <Box key={r.id} 
+                    onClick={() => navigate(`/admin/reservations/view/${r.id}`)}
+                    sx={{
+                      display: 'flex', alignItems: 'center', px: '20px', py: '12px',
+                      borderBottom: idx < todayRes.length - 1 ? '1px solid #F1F3F4' : 'none',
+                      bgcolor: isCurrent ? '#FEF7E0' : 'transparent',
+                      opacity: isPast ? 0.6 : 1,
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: isCurrent ? '#FFF9C4' : '#F8F9FA' }
+                    }}
+                  >
                     <Typography sx={{ width: 50, fontFamily: 'Roboto', fontWeight: 600, fontSize: '14px', color: '#202124' }}>
                       {r.time}
                     </Typography>
@@ -194,7 +188,7 @@ export default function Dashboard() {
                     </Box>
                     
                     {/* Interactive Status Selector */}
-                    <FormControl size="small" variant="standard" sx={{ m: 0 }}>
+                    <FormControl size="small" variant="standard" sx={{ m: 0 }} onClick={(e) => e.stopPropagation()}>
                       <Select
                         value={sKey}
                         onChange={(e) => handleStatusUpdate(r.id, e.target.value)}
@@ -279,10 +273,10 @@ export default function Dashboard() {
       {/* Confirmation Modal */}
       <ConfirmModal
         open={confirmModal.open}
-        title={confirmModal.type === 'CERRADO' ? 'Cerrar día' : 'Desbloquear'}
-        body={confirmModal.type === 'CERRADO' ? '¿Seguro que quieres cerrar este día? No se permitirán nuevas reservas web.' : '¿Deseas volver al estado abierto?'}
-        confirmLabel={confirmModal.type === 'CERRADO' ? 'Cerrar día' : 'Confirmar'}
-        onConfirm={() => updateDayStatus(confirmModal.type)}
+        title="Cerrar día"
+        body="¿Seguro que quieres cerrar este día? No se permitirán nuevas reservas web."
+        confirmLabel="Cerrar día"
+        onConfirm={() => updateDayStatus('CERRADO')}
         onCancel={() => setConfirmModal({ open: false, type: '' })}
       />
 

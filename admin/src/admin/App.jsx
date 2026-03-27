@@ -7,6 +7,7 @@ import ViewBooking from './pages/ViewBooking';
 import NewBooking from './pages/NewBooking';
 import EditBooking from './pages/EditBooking';
 import Customers from './pages/Customers';
+import CustomerDetail from './pages/CustomerDetail';
 import TableTypes from './pages/TableTypes';
 import SpecialEvents from './pages/SpecialEvents';
 import Settings from './pages/Settings';
@@ -127,6 +128,7 @@ function App() {
           <Route path="reservations/new" element={<NewBooking />} />
           <Route path="reservations/edit/:id" element={<EditBooking />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="customers/:id" element={<CustomerDetail />} />
           <Route path="table-types" element={<TableTypes />} />
           <Route path="special-events" element={<SpecialEvents />} />
           <Route path="settings" element={<Settings />} />
