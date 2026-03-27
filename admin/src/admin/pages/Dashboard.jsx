@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Typography, Box, Paper, Button, CircularProgress, Chip } from '@mui/material';
+import { Typography, Box, Paper, Button, CircularProgress, MenuItem, Select, FormControl, Snackbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
-import { ConfirmModal } from '../components/QuickActions';
+import { ConfirmModal } from '../components/ConfirmModal'; // I will move ConfirmModal to its own file or use from QuickActions if exported
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -18,6 +18,12 @@ const STATUS_CHIP = {
   'NO_ASISTIÓ': { bg: '#FDECEA', text: '#C5221F', label: 'No asistió' },
 };
 
+const DAY_STATUS_UI = {
+  'ABIERTO':   { bg: '#E6F4EA', text: '#137333', label: 'Abierto',   icon: 'check_circle', btn: 'Cerrar día',   next: 'CERRADO' },
+  'CERRADO':   { bg: '#FEF7E0', text: '#7D4A00', label: 'Cerrado',   icon: 'pause_circle', btn: 'Reabrir día',  next: 'ABIERTO' },
+  'BLOQUEADO': { bg: '#FDECEA', text: '#C5221F', label: 'Bloqueado', icon: 'block',        btn: 'Desbloquear',  next: 'ABIERTO' },
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
@@ -25,19 +31,21 @@ export default function Dashboard() {
   const [todayRes, setTodayRes] = useState([]);
   const [loadingToday, setLoadingToday] = useState(true);
 
-  // Config (for day state)
-  const [config, setConfig] = useState(null);
-  const [dayBlocked, setDayBlocked] = useState(false);
-  const [togglingDay, setTogglingDay] = useState(false);
+  // Day Status
+  const [dayStatus, setDayStatus] = useState('ABIERTO');
+  const [loadingStatus, setLoadingStatus] = useState(true);
+  const [togglingStatus, setTogglingStatus] = useState(false);
 
-  // Block day modal
-  const [blockModal, setBlockModal] = useState(false);
-  const [unblockModal, setUnblockModal] = useState(false);
+  // Modals
+  const [confirmModal, setConfirmModal] = useState({ open: false, type: '' });
+  
+  // Feedback
+  const [toast, setToast] = useState({ open: false, message: '' });
 
   const fetchToday = useCallback(async () => {
     setLoadingToday(true);
     try {
-      const data = await apiClient(`/admin/reservations?per_page=50&date=${TODAY}`);
+      const data = await apiClient(`/admin/reservations?per_page=100&date=${TODAY}`);
       const list = (data.data ?? []).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       setTodayRes(list);
     } catch (e) {
@@ -47,183 +55,164 @@ export default function Dashboard() {
     }
   }, []);
 
-  const fetchConfig = useCallback(async () => {
+  const fetchDayStatus = useCallback(async () => {
+    setLoadingStatus(true);
     try {
-      const cfg = await apiClient('/config');
-      setConfig(cfg);
-      const blockedDays = cfg?.blockedDays ?? [];
-      setDayBlocked(blockedDays.includes(TODAY));
+      const data = await apiClient(`/day-status?date=${TODAY}`);
+      setDayStatus(data.status || 'ABIERTO');
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoadingStatus(false);
     }
   }, []);
 
   useEffect(() => {
     fetchToday();
-    fetchConfig();
-  }, []);
+    fetchDayStatus();
+  }, [fetchToday, fetchDayStatus]);
 
-  const handleStatusUpdate = async (id, status) => {
-    setTodayRes(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  const handleStatusUpdate = async (id, newStatus) => {
     try {
       await apiClient(`/admin/reservations/${id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: newStatus }),
       });
+      setTodayRes(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+      setToast({ open: true, message: 'Estado actualizado' });
     } catch (e) {
-      fetchToday(); // revert on error
+      console.error(e);
     }
   };
 
-  const handleToggleDay = async (block) => {
-    setTogglingDay(true);
+  const updateDayStatus = async (status) => {
+    setTogglingStatus(true);
     try {
-      const cfg = config || {};
-      const blocked = Array.isArray(cfg.blockedDays) ? cfg.blockedDays : [];
-      const newBlocked = block
-        ? [...new Set([...blocked, TODAY])]
-        : blocked.filter(d => d !== TODAY);
-      await apiClient('/admin/config', {
-        method: 'POST',
-        body: JSON.stringify({ ...cfg, blockedDays: newBlocked }),
+      await apiClient('/admin/day-status', {
+        method: 'PATCH',
+        body: JSON.stringify({ date: TODAY, status }),
       });
-      setDayBlocked(block);
-      setConfig(c => ({ ...c, blockedDays: newBlocked }));
+      setDayStatus(status);
+      setToast({ open: true, message: `Día ${status.toLowerCase()}` });
     } catch (e) {
       console.error(e);
     } finally {
-      setTogglingDay(false);
-      setBlockModal(false);
-      setUnblockModal(false);
+      setTogglingStatus(false);
+      setConfirmModal({ open: false, type: '' });
+    }
+  };
+
+  const handleToggleClick = () => {
+    if (dayStatus === 'ABIERTO') {
+      setConfirmModal({ open: true, type: 'CERRADO' });
+    } else {
+      updateDayStatus('ABIERTO');
     }
   };
 
   // Derived stats
-  const totalToday = todayRes.length;
-  const noShows = todayRes.filter(r => r.status?.toUpperCase() === 'NO_ASISTIÓ').length;
   const guestsToday = todayRes.reduce((s, r) => s + (r.guests || 0), 0);
-  const capacity = config?.totalCapacity || 40;
-  const occupancyPct = capacity > 0 ? Math.round((guestsToday / capacity) * 100) : 0;
-
+  const noShows = todayRes.filter(r => r.status?.toUpperCase() === 'NO_ASISTIÓ').length;
   const currentTime = now();
   const nextRes = todayRes.find(r => (r.time || '') >= currentTime && r.status?.toUpperCase() !== 'NO_ASISTIÓ');
 
-  // Alerts
   const alerts = [];
   const noPhone = todayRes.filter(r => !r.customer?.phone);
-  if (noPhone.length > 0) alerts.push({ icon: 'phone_disabled', text: `${noPhone.length} cliente${noPhone.length > 1 ? 's' : ''} sin teléfono`, path: '/admin/customers' });
-  if (occupancyPct >= 90) alerts.push({ icon: 'warning', text: `Alta ocupación (${occupancyPct}%)`, path: '/admin/reservations' });
-  const pending = todayRes.filter(r => r.status?.toUpperCase() === 'PENDIENTE');
-  if (pending.length > 0) alerts.push({ icon: 'pending', text: `${pending.length} reserva${pending.length > 1 ? 's' : ''} pendiente${pending.length > 1 ? 's' : ''} de confirmar`, path: '/admin/reservations' });
+  if (noPhone.length > 0) alerts.push({ icon: 'phone_disabled', text: `${noPhone.length} clientes sin teléfono`, path: '/admin/customers' });
+  if (guestsToday > 30) alerts.push({ icon: 'warning', text: `Alta ocupación hoy`, path: '/admin/reservations' });
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      {/* ROW 1 — STAT CARDS */}
+      {/* BANNERS */}
+      {dayStatus === 'CERRADO' && (
+        <Paper sx={{ p: '12px 20px', bgcolor: '#FEF7E0', border: '1px solid #FAD242', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span className="material-icons" style={{ color: '#7D4A00' }}>pause_circle</span>
+          <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#7D4A00' }}>
+            Día cerrado: No se permiten nuevas reservas desde la web.
+          </Typography>
+        </Paper>
+      )}
+      {dayStatus === 'BLOQUEADO' && (
+        <Paper sx={{ p: '12px 20px', bgcolor: '#FDECEA', border: '1px solid #F5B7B1', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span className="material-icons" style={{ color: '#C5221F' }}>block</span>
+          <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#C5221F' }}>
+            Día bloqueado: Todas las operaciones están restringidas.
+          </Typography>
+        </Paper>
+      )}
+
+      {/* ROW 1 — STATS */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: '16px' }}>
-        <StatCard icon="event" label="Reservas hoy" value={totalToday} loading={loadingToday} color="#1A73E8" />
-        <StatCard icon="group" label="Comensales hoy" value={guestsToday} loading={loadingToday} color="#137333" />
-        <StatCard
-          icon="schedule"
-          label="Próxima reserva"
-          value={nextRes ? `${nextRes.time}` : '—'}
-          sub={nextRes?.customer?.name}
-          loading={loadingToday}
-          color="#7D4A00"
-        />
-        <StatCard icon="person_off" label="No shows" value={noShows} loading={loadingToday} color="#C5221F" />
+        <StatCard icon="event" label="Hoy" value={todayRes.length} color="#1A73E8" />
+        <StatCard icon="group" label="Pax hoy" value={guestsToday} color="#137333" />
+        <StatCard icon="schedule" label="Próxima" value={nextRes ? nextRes.time : '—'} sub={nextRes?.customer?.name} color="#7D4A00" />
+        <StatCard icon="person_off" label="No shows" value={noShows} color="#C5221F" />
       </Box>
 
-      {/* ROW 2 — SERVICIO EN CURSO + CONTROL RAPIDO */}
-      <Box sx={{ display: 'flex', gap: '20px', flexDirection: { xs: 'column', lg: 'row' }, alignItems: 'flex-start' }}>
-
+      {/* ROW 2 — MAIN CONTENT */}
+      <Box sx={{ display: 'flex', gap: '20px', flexDirection: { xs: 'column', lg: 'row' } }}>
+        
         {/* LEFT — SERVICIO EN CURSO */}
         <Paper sx={{ flex: 1, minWidth: 0, border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px', overflow: 'hidden' }}>
-          <Box sx={{ px: '20px', py: '14px', borderBottom: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ px: '20px', py: '16px', borderBottom: '1px solid #E0E0E0' }}>
             <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
               Servicio en curso
-            </Typography>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A' }}>
-              {TODAY}
             </Typography>
           </Box>
 
           {loadingToday ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: '32px' }}>
-              <CircularProgress size={24} />
-            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={24} /></Box>
           ) : todayRes.length === 0 ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: '40px', gap: '8px' }}>
-              <span className="material-icons" style={{ fontSize: 40, color: '#BDBDBD' }}>event_busy</span>
-              <Typography sx={{ fontFamily: 'Roboto', fontSize: 14, color: '#70757A' }}>Sin reservas para hoy</Typography>
-            </Box>
+            <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="text.secondary">Sin reservas para hoy</Typography></Box>
           ) : (
             <Box>
               {todayRes.map((r, idx) => {
-                const statusKey = r.status?.toUpperCase() || 'PENDIENTE';
-                const chip = STATUS_CHIP[statusKey] || { bg: '#F1F3F4', text: '#202124', label: statusKey };
-                const isPast = (r.time || '') < currentTime;
+                const sKey = r.status?.toUpperCase() || 'PENDIENTE';
+                const chip = STATUS_CHIP[sKey] || { bg: '#F1F3F4', text: '#202124', label: sKey };
                 const isCurrent = nextRes?.id === r.id;
-                const isClosed = statusKey === 'ASISTIÓ' || statusKey === 'NO_ASISTIÓ';
+                const isPast = r.time < currentTime && !isCurrent;
 
                 return (
-                  <Box
-                    key={r.id}
-                    onClick={() => navigate(`/admin/reservations/view/${r.id}`)}
-                    sx={{
-                      display: 'flex', alignItems: 'center', gap: '12px',
-                      px: '20px', py: '10px', cursor: 'pointer',
-                      borderBottom: idx < todayRes.length - 1 ? '1px solid #F1F3F4' : 'none',
-                      bgcolor: isCurrent ? '#FFFDE7' : 'transparent',
-                      opacity: isPast && !isCurrent ? 0.55 : 1,
-                      '&:hover': { bgcolor: isCurrent ? '#FFF9C4' : '#F8F9FA' },
-                    }}
-                  >
-                    {/* Time */}
-                    <Typography sx={{
-                      fontFamily: 'Roboto', fontWeight: isCurrent ? 600 : 500,
-                      fontSize: '14px', color: isCurrent ? '#7D4A00' : '#202124',
-                      minWidth: 44, flexShrink: 0,
-                    }}>
-                      {r.time || '—'}
+                  <Box key={r.id} sx={{
+                    display: 'flex', alignItems: 'center', px: '20px', py: '12px',
+                    borderBottom: idx < todayRes.length - 1 ? '1px solid #F1F3F4' : 'none',
+                    bgcolor: isCurrent ? '#FEF7E0' : 'transparent',
+                    opacity: isPast ? 0.6 : 1,
+                    '&:hover': { bgcolor: isCurrent ? '#FFF9C4' : '#F8F9FA' }
+                  }}>
+                    <Typography sx={{ width: 50, fontFamily: 'Roboto', fontWeight: 600, fontSize: '14px', color: '#202124' }}>
+                      {r.time}
                     </Typography>
-
-                    {/* Name + pax */}
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography noWrap sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-                        {r.customer?.name || 'N/A'}
+                    <Box sx={{ flex: 1, ml: 2 }}>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                        {r.customer?.name}
                       </Typography>
                       <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' }}>
-                        {r.guests} pax
+                        {r.guests} personas
                       </Typography>
                     </Box>
-
-                    {/* Status chip */}
-                    <Box sx={{ bgcolor: chip.bg, color: chip.text, borderRadius: '4px', px: '8px', py: '3px', flexShrink: 0 }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', whiteSpace: 'nowrap' }}>
-                        {chip.label}
-                      </Typography>
-                    </Box>
-
-                    {/* Inline action buttons */}
-                    {!isClosed && (
-                      <Box sx={{ display: 'flex', gap: '6px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                        <ActionBtn
-                          label="Asistió"
-                          color="#137333"
-                          bg="#E6F4EA"
-                          icon="check_circle"
-                          onClick={() => handleStatusUpdate(r.id, 'ASISTIÓ')}
-                        />
-                        <ActionBtn
-                          label="No show"
-                          color="#C5221F"
-                          bg="#FDECEA"
-                          icon="cancel"
-                          onClick={() => handleStatusUpdate(r.id, 'NO_ASISTIÓ')}
-                        />
-                      </Box>
-                    )}
+                    
+                    {/* Interactive Status Selector */}
+                    <FormControl size="small" variant="standard" sx={{ m: 0 }}>
+                      <Select
+                        value={sKey}
+                        onChange={(e) => handleStatusUpdate(r.id, e.target.value)}
+                        disableUnderline
+                        sx={{
+                          bgcolor: chip.bg, color: chip.text, borderRadius: '4px', px: '8px',
+                          fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px',
+                          '& .MuiSelect-select': { py: '4px', pr: '24px !important', textTransform: 'uppercase' },
+                          '& .MuiSvgIcon-root': { color: chip.text, right: 0 }
+                        }}
+                      >
+                        {Object.keys(STATUS_CHIP).map(k => (
+                          <MenuItem key={k} value={k} sx={{ fontFamily: 'Roboto', fontSize: '13px', textTransform: 'uppercase' }}>
+                            {STATUS_CHIP[k].label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Box>
                 );
               })}
@@ -231,165 +220,92 @@ export default function Dashboard() {
           )}
         </Paper>
 
-        {/* RIGHT — CONTROL RAPIDO */}
-        <Box sx={{ width: { xs: '100%', lg: 280 }, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-          {/* Estado del día */}
-          <Paper sx={{ border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px', p: '16px' }}>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '12px' }}>
+        {/* RIGHT — CONTROL PANEL */}
+        <Box sx={{ width: { xs: '100%', lg: 280 }, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Day Status Card */}
+          <Paper sx={{ p: '20px', border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px' }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1px', mb: 2 }}>
               Estado del día
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                bgcolor: dayBlocked ? '#FDECEA' : '#E6F4EA',
-                color: dayBlocked ? '#C5221F' : '#137333',
-                borderRadius: '4px', px: '10px', py: '6px',
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <Box sx={{ 
+                display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', borderRadius: '4px',
+                bgcolor: DAY_STATUS_UI[dayStatus].bg, color: DAY_STATUS_UI[dayStatus].text
               }}>
-                <span className="material-icons" style={{ fontSize: 16 }}>
-                  {dayBlocked ? 'block' : 'check_circle'}
-                </span>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px' }}>
-                  {dayBlocked ? 'Cerrado' : 'Abierto'}
+                <span className="material-icons" style={{ fontSize: 20 }}>{DAY_STATUS_UI[dayStatus].icon}</span>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 600, fontSize: '14px' }}>
+                  {DAY_STATUS_UI[dayStatus].label}
                 </Typography>
               </Box>
+
               <Button
-                size="small"
+                fullWidth
                 variant="outlined"
-                disabled={togglingDay}
-                onClick={() => dayBlocked ? setUnblockModal(true) : setBlockModal(true)}
+                disabled={togglingStatus}
+                onClick={handleToggleClick}
                 sx={{
-                  height: 32, borderRadius: '4px', border: '1px solid #DADCE0',
-                  color: '#202124', fontFamily: 'Roboto', fontSize: '12px',
-                  fontWeight: 500, textTransform: 'none',
-                  '&:hover': { bgcolor: '#F1F3F4', border: '1px solid #DADCE0' },
+                  height: 36, textTransform: 'none', fontFamily: 'Roboto', fontWeight: 500,
+                  borderColor: '#DADCE0', color: '#202124',
+                  '&:hover': { bgcolor: '#F1F3F4', borderColor: '#DADCE0' }
                 }}
               >
-                {dayBlocked ? 'Abrir' : 'Cerrar'}
-              </Button>
-            </Box>
-          </Paper>
-
-          {/* Acciones rápidas */}
-          <Paper sx={{ border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px', p: '16px' }}>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '12px' }}>
-              Acciones
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Button
-                fullWidth variant="contained" disableElevation
-                onClick={() => navigate('/admin/reservations/new')}
-                startIcon={<span className="material-icons" style={{ fontSize: 18 }}>add</span>}
-                sx={{ height: 36, borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF', fontFamily: 'Roboto', fontSize: 13, fontWeight: 500, textTransform: 'none', boxShadow: 'none', justifyContent: 'flex-start', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' } }}
-              >
-                Nueva reserva
-              </Button>
-              <Button
-                fullWidth variant="outlined" disableElevation
-                onClick={() => navigate('/admin/reservations')}
-                startIcon={<span className="material-icons" style={{ fontSize: 18 }}>list</span>}
-                sx={{ height: 36, borderRadius: '4px', border: '1px solid #DADCE0', color: '#202124', bgcolor: '#FFFFFF', fontFamily: 'Roboto', fontSize: 13, fontWeight: 500, textTransform: 'none', boxShadow: 'none', justifyContent: 'flex-start', '&:hover': { bgcolor: '#F1F3F4', border: '1px solid #DADCE0' } }}
-              >
-                Ver todas las reservas
+                {DAY_STATUS_UI[dayStatus].btn}
               </Button>
             </Box>
           </Paper>
 
           {/* Alertas */}
           {alerts.length > 0 && (
-            <Paper sx={{ border: '1px solid #FEF3CD', bgcolor: '#FFFDE7', boxShadow: 'none', borderRadius: '4px', p: '16px' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#7D4A00', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '10px' }}>
+            <Paper sx={{ p: '20px', border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px', bgcolor: '#FFFDE7' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#7D4A00', textTransform: 'uppercase', letterSpacing: '1px', mb: 2 }}>
                 Alertas
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {alerts.map((a, i) => (
-                  <Box
-                    key={i}
-                    onClick={() => navigate(a.path)}
-                    sx={{
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                      cursor: 'pointer', '&:hover': { opacity: 0.75 },
-                    }}
-                  >
-                    <span className="material-icons" style={{ fontSize: 16, color: '#7D4A00', flexShrink: 0 }}>{a.icon}</span>
-                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#7D4A00', fontWeight: 400 }}>
-                      {a.text}
-                    </Typography>
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => navigate(a.path)}>
+                    <span className="material-icons" style={{ fontSize: 18, color: '#7D4A00' }}>{a.icon}</span>
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#7D4A00' }}>{a.text}</Typography>
                   </Box>
                 ))}
               </Box>
             </Paper>
           )}
+
         </Box>
       </Box>
 
-      {/* Modals */}
+      {/* Confirmation Modal */}
       <ConfirmModal
-        open={blockModal}
-        title="Cerrar día"
-        body={`¿Seguro que quieres bloquear ${TODAY} completo? No se aceptarán nuevas reservas.`}
-        confirmLabel="Bloquear día"
-        confirmColor="#D93025"
-        onCancel={() => setBlockModal(false)}
-        onConfirm={() => handleToggleDay(true)}
+        open={confirmModal.open}
+        title={confirmModal.type === 'CERRADO' ? 'Cerrar día' : 'Desbloquear'}
+        body={confirmModal.type === 'CERRADO' ? '¿Seguro que quieres cerrar este día? No se permitirán nuevas reservas web.' : '¿Deseas volver al estado abierto?'}
+        confirmLabel={confirmModal.type === 'CERRADO' ? 'Cerrar día' : 'Confirmar'}
+        onConfirm={() => updateDayStatus(confirmModal.type)}
+        onCancel={() => setConfirmModal({ open: false, type: '' })}
       />
-      <ConfirmModal
-        open={unblockModal}
-        title="Abrir día"
-        body={`¿Quieres volver a abrir ${TODAY} para reservas?`}
-        confirmLabel="Abrir día"
-        confirmColor="#1A73E8"
-        onCancel={() => setUnblockModal(false)}
-        onConfirm={() => handleToggleDay(false)}
+
+      {/* Toast */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3000}
+        onClose={() => setToast({ ...toast, open: false })}
+        message={toast.message}
       />
     </Box>
   );
 }
 
-// Stat card helper
-function StatCard({ icon, label, value, sub, loading, color }) {
+function StatCard({ icon, label, value, sub, color }) {
   return (
-    <Paper sx={{ border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px', p: '16px' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: '8px' }}>
+    <Paper sx={{ p: '16px', border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}>
         <span className="material-icons" style={{ fontSize: 18, color }}>{icon}</span>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
-          {label}
-        </Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase' }}>{label}</Typography>
       </Box>
-      {loading ? (
-        <CircularProgress size={20} />
-      ) : (
-        <>
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 600, fontSize: '28px', color, lineHeight: 1 }}>
-            {value}
-          </Typography>
-          {sub && (
-            <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '4px' }}>
-              {sub}
-            </Typography>
-          )}
-        </>
-      )}
+      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 600, fontSize: '24px', color }}>{value}</Typography>
+      {sub && <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' }}>{sub}</Typography>}
     </Paper>
-  );
-}
-
-// Inline action button
-function ActionBtn({ label, color, bg, icon, onClick }) {
-  return (
-    <Box
-      onClick={onClick}
-      sx={{
-        display: 'flex', alignItems: 'center', gap: '4px',
-        bgcolor: bg, color, borderRadius: '4px',
-        px: '8px', py: '4px', cursor: 'pointer',
-        '&:hover': { filter: 'brightness(0.93)' },
-      }}
-    >
-      <span className="material-icons" style={{ fontSize: 14 }}>{icon}</span>
-      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', whiteSpace: 'nowrap' }}>
-        {label}
-      </Typography>
-    </Box>
   );
 }

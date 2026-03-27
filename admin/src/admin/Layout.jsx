@@ -5,7 +5,7 @@ import { useAuthStore } from './store/useAuthStore';
 import { MOBILE, TABLET, DESKTOP } from './utils/breakpoints';
 import GlobalSearch from './components/GlobalSearch';
 import QuickActions from './components/QuickActions';
-import { ConfirmModal } from './components/QuickActions';
+import { ConfirmModal } from './components/ConfirmModal';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -151,12 +151,12 @@ export default function Layout() {
           </Typography>
 
           {/* Desktop: Global Search */}
-          <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500 }}>
+          <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500, ml: { lg: '24px' } }}>
             <GlobalSearch />
           </Box>
 
           {/* Right side: Quick Actions + User Menu */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, ml: 'auto' }}>
             {/* Quick action buttons — desktop only */}
             <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
               <QuickActions />
@@ -185,7 +185,7 @@ export default function Layout() {
 
               {userMenuOpen && (
                 <Box sx={{
-                  position: 'absolute', top: 'calc(100% + 4px)', right: 0,
+                  position: 'absolute', top: '48px', right: 0,
                   width: 200, bgcolor: '#FFFFFF',
                   border: '1px solid #E0E0E0', borderRadius: '4px',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.12)', zIndex: 1300, py: '4px',
