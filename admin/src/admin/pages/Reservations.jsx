@@ -171,14 +171,15 @@ export default function Reservations() {
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Evento</TableCell>
               <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Guests</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Status</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Origen</TableCell>
               <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
             ) : reservations.length === 0 ? (
-              <TableRow><TableCell colSpan={8} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No reservations found.</Typography></TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No reservations found.</Typography></TableCell></TableRow>
             ) : reservations.map(res => (
               <TableRow 
                 key={res.id} 
@@ -259,6 +260,27 @@ export default function Reservations() {
                       </FormControl>
                     );
                   })() || <Box component="span" sx={{ color: '#BDBDBD' }}>—</Box>}
+                </TableCell>
+                <TableCell>
+                  {(() => {
+                    const src = res.source || 'client';
+                    const isAdmin = src === 'admin';
+                    return (
+                      <Box sx={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        bgcolor: isAdmin ? '#E8F0FE' : '#F1F3F4',
+                        color: isAdmin ? '#1A73E8' : '#70757A',
+                        borderRadius: '4px', px: '8px', py: '4px',
+                      }}>
+                        <span className="material-icons" style={{ fontSize: 12 }}>
+                          {isAdmin ? 'admin_panel_settings' : 'person'}
+                        </span>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px' }}>
+                          {isAdmin ? 'Admin' : 'Cliente'}
+                        </Typography>
+                      </Box>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">

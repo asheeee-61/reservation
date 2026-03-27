@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider, IconButton, Select, MenuItem, FormControl } from '@mui/material';
+import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider, IconButton, Select, MenuItem, FormControl, CircularProgress } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 
@@ -386,6 +386,32 @@ export default function ViewBooking() {
                   </Button>
                 </Box>
               )}
+            </Box>
+
+            {/* Section 1.5 - Origen */}
+            <Box sx={{ px: '20px', pt: '16px', pb: '16px', borderTop: '1px solid #E0E0E0' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '8px' }}>
+                Origen de la reserva
+              </Typography>
+              {(() => {
+                const src = resData.source || 'client';
+                const isAdmin = src === 'admin';
+                return (
+                  <Box sx={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    bgcolor: isAdmin ? '#E8F0FE' : '#F1F3F4',
+                    color: isAdmin ? '#1A73E8' : '#70757A',
+                    borderRadius: '4px', px: '8px', py: '4px',
+                  }}>
+                    <span className="material-icons" style={{ fontSize: 14 }}>
+                      {isAdmin ? 'admin_panel_settings' : 'person'}
+                    </span>
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px' }}>
+                      {isAdmin ? 'Admin' : 'Cliente'}
+                    </Typography>
+                  </Box>
+                );
+              })()}
             </Box>
 
             {/* Section 2 - Historial */}

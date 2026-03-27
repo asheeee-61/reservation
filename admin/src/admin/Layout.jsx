@@ -2,6 +2,8 @@ import { Box, Typography, Button, Tooltip, IconButton } from '@mui/material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
 import { MOBILE, TABLET, DESKTOP } from './utils/breakpoints';
+import GlobalSearch from './components/GlobalSearch';
+import QuickActions from './components/QuickActions';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -121,30 +123,45 @@ export default function Layout() {
         <Box className="top-bar" sx={{
           height: 56, minHeight: 56, borderBottom: '1px solid #E0E0E0',
           display: 'flex', alignItems: 'center', bgcolor: '#FFFFFF',
-          [DESKTOP]: { justifyContent: 'flex-end', px: '24px' },
-          [TABLET]: { justifyContent: 'space-between', px: '16px' },
-          [MOBILE]: { justifyContent: 'space-between', px: '12px' }
+          px: '24px', gap: '12px',
         }}>
+          {/* Mobile: page title */}
           <Typography sx={{ 
             display: 'block', [DESKTOP]: { display: 'none' }, 
-            fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124' 
+            fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124',
+            flex: 1, minWidth: 0,
           }}>
             {getPageTitle(location.pathname)}
           </Typography>
-          
-          <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
-            <Button 
-              onClick={handleLogout} 
-              startIcon={<span className="material-icons">logout</span>}
-              sx={{ color: '#70757A', textTransform: 'uppercase', fontWeight: 500, fontSize: '14px', minHeight: '44px' }}
-            >
-              Logout
-            </Button>
+
+          {/* Desktop: Global Search */}
+          <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500 }}>
+            <GlobalSearch />
           </Box>
-          <Box sx={{ display: 'block', [DESKTOP]: { display: 'none' } }}>
-            <IconButton onClick={handleLogout} sx={{ color: '#70757A', minHeight: '44px', minWidth: '44px' }}>
-              <span className="material-icons" style={{ fontSize: 24 }}>logout</span>
-            </IconButton>
+
+          {/* Right side: Quick Actions (desktop only) + Logout */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
+              <QuickActions />
+            </Box>
+
+            {/* Logout — desktop text button */}
+            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
+              <Button 
+                onClick={handleLogout} 
+                startIcon={<span className="material-icons">logout</span>}
+                sx={{ color: '#70757A', textTransform: 'uppercase', fontWeight: 500, fontSize: '14px', minHeight: '44px' }}
+              >
+                Logout
+              </Button>
+            </Box>
+
+            {/* Logout — mobile icon */}
+            <Box sx={{ display: 'block', [DESKTOP]: { display: 'none' } }}>
+              <IconButton onClick={handleLogout} sx={{ color: '#70757A', minHeight: '44px', minWidth: '44px' }}>
+                <span className="material-icons" style={{ fontSize: 24 }}>logout</span>
+              </IconButton>
+            </Box>
           </Box>
         </Box>
 

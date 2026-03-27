@@ -296,7 +296,7 @@ export default function NewBooking() {
         special_requests: newBooking.notes
       };
 
-      await apiClient('/reservations', {
+      await apiClient('/admin/reservations', {
         method: 'POST',
         body: JSON.stringify(payload)
       });
