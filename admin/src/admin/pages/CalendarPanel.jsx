@@ -804,19 +804,7 @@ export default function CalendarPanel() {
 
               {renderMonthGrid()}
               
-              <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end' }}>
-                <Button 
-                  variant="contained" onClick={manualSave} disabled={saving} 
-                  sx={{ 
-                    height: { xs: 44, md: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
-                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
-                    '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
-                    [MOBILE]: { width: '100%' }
-                  }}
-                >
-                  {saving ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR FECHAS'}
-                </Button>
-              </Box>
+
             </Paper>
 
             <Box sx={{ flex: 1, minHeight: 100, width: '100%' }}>
