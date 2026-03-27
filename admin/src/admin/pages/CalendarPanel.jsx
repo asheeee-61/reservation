@@ -1096,29 +1096,63 @@ function BookingModal({ open, initialData, onClose, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: '4px', p: 0 } }}>
-      <DialogTitle sx={{ fontFamily: 'Roboto', fontWeight: 500, borderBottom: '1px solid #E0E0E0', bgcolor: '#F8F9FA' }}>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth 
+      PaperProps={{ 
+        sx: { 
+          borderRadius: '4px', 
+          p: 0,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+        } 
+      }}
+    >
+      <DialogTitle sx={{ 
+        m: 0, 
+        p: '20px 24px', 
+        fontFamily: 'Roboto', 
+        fontWeight: 500, 
+        fontSize: '18px',
+        color: '#202124',
+        borderBottom: '1px solid #E0E0E0', 
+        bgcolor: '#FFFFFF',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
         {initialData?.id ? 'Editar Reserva' : 'Nueva Reserva'}
+        <IconButton onClick={onClose} size="small" sx={{ color: '#5F6368' }}>
+          <span className="material-icons">close</span>
+        </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ p: '24px', mt: 2 }}>
+      
+      <DialogContent sx={{ p: '24px', mt: 1, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#DADCE0', borderRadius: 2 } }}>
         <Grid container spacing={4}>
           {/* CLIENTE PANEL */}
           <Grid item xs={12} md={6}>
-            <Box sx={{ borderBottom: '1px solid #E0E0E0', mb: 2, pb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>person</span>
-              <Typography sx={{ fontWeight: 500 }}>Cliente</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>account_circle</span>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#1A73E8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Cliente
+              </Typography>
             </Box>
             
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               {selectedCustomer ? (
-                <Box sx={{ p: 1.5, bgcolor: '#E8F0FE', borderRadius: '4px', border: '1px solid #1A73E8', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: '#1A73E8', fontSize: 13 }}>{selectedCustomer.name[0]}</Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#1A73E8' }}>{selectedCustomer.name}</Typography>
-                    <Typography sx={{ fontSize: 11, color: '#1A73E8', opacity: 0.8 }}>Cliente seleccionado</Typography>
+                <Paper variant="outlined" sx={{ p: '12px 16px', bgcolor: '#F8F9FA', borderRadius: '4px', border: '1px solid #DADCE0', position: 'relative', overflow: 'hidden' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar sx={{ width: 40, height: 40, bgcolor: '#1A73E8', fontSize: 16 }}>{selectedCustomer.name[0]}</Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#202124' }}>{selectedCustomer.name}</Typography>
+                      <Typography sx={{ fontSize: 12, color: '#1A73E8', fontWeight: 500 }}>Cliente seleccionado</Typography>
+                    </Box>
+                    <IconButton size="small" onClick={() => setSelectedCustomer(null)} sx={{ color: '#5F6368' }}>
+                      <span className="material-icons" style={{ fontSize: 20 }}>close</span>
+                    </IconButton>
                   </Box>
-                  <IconButton size="small" onClick={() => setSelectedCustomer(null)}><span className="material-icons" style={{ fontSize: 18, color: '#1A73E8' }}>close</span></IconButton>
-                </Box>
+                </Paper>
               ) : (
                 <Box sx={{ position: 'relative' }}>
                   <TextField 
@@ -1126,14 +1160,32 @@ function BookingModal({ open, initialData, onClose, onSuccess }) {
                     value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
                     onFocus={() => customerSearch.length >= 2 && setShowResults(true)}
                     placeholder="Escribe para buscar o crear..."
-                    InputProps={{ endAdornment: isSearching ? <CircularProgress size={16} /> : <span className="material-icons" style={{ color: '#70757A', fontSize: 20 }}>search</span> }}
+                    InputProps={{ 
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>search</span>
+                        </InputAdornment>
+                      ),
+                      endAdornment: isSearching ? <CircularProgress size={16} /> : null
+                    }}
                   />
                   {showResults && (
-                    <Paper sx={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, mt: 0.5, border: '1px solid #E0E0E0' }}>
-                      <List size="small">
+                    <Paper 
+                      elevation={4}
+                      sx={{ 
+                        position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, mt: 0.5, 
+                        border: '1px solid #E0E0E0', borderRadius: '4px', overflow: 'hidden'
+                      }}
+                    >
+                      <List size="small" sx={{ p: 0 }}>
                         {customersResults.map(c => (
-                          <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)}>
-                            <ListItemText primary={c.name} secondary={c.phone || c.email} />
+                          <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)} sx={{ '&:hover': { bgcolor: '#F1F3F4' } }}>
+                            <ListItemText 
+                              primary={c.name} 
+                              secondary={c.phone || c.email} 
+                              primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}
+                              secondaryTypographyProps={{ fontSize: 12 }}
+                            />
                           </ListItem>
                         ))}
                       </List>
@@ -1146,22 +1198,38 @@ function BookingModal({ open, initialData, onClose, onSuccess }) {
                 fullWidth label="WhatsApp" size="small" value={form.phone} 
                 onChange={e => setForm({...form, phone: e.target.value})} 
                 placeholder="+34 000 000 000"
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>phone</span>
+                    </InputAdornment>
+                  )
+                }}
               />
               <TextField 
                 fullWidth label="Email" size="small" value={form.email} 
                 onChange={e => setForm({...form, email: e.target.value})} 
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>email</span>
+                    </InputAdornment>
+                  )
+                }}
               />
             </Box>
           </Grid>
 
           {/* RESERVA PANEL */}
           <Grid item xs={12} md={6}>
-            <Box sx={{ borderBottom: '1px solid #E0E0E0', mb: 2, pb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>event</span>
-              <Typography sx={{ fontWeight: 500 }}>Reserva</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>event_note</span>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#1A73E8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Reserva
+              </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField 
                   sx={{ flex: 1 }} type="date" label="Fecha" size="small" value={form.date} 
@@ -1171,52 +1239,102 @@ function BookingModal({ open, initialData, onClose, onSuccess }) {
                   <Select 
                     value={form.time} onChange={e => setForm({...form, time: e.target.value})}
                     displayEmpty renderValue={val => val || 'Slot'}
+                    startAdornment={
+                      <InputAdornment position="start" sx={{ mr: 1, ml: -0.5 }}>
+                        <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>schedule</span>
+                      </InputAdornment>
+                    }
                   >
                     {availableSlots.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                   </Select>
                 </FormControl>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography sx={{ flex: 1, fontSize: 13, color: '#70757A' }}>Comensales:</Typography>
-                <IconButton size="small" onClick={() => setForm({...form, guests: Math.max(1, form.guests - 1)})}>
-                  <span className="material-icons" style={{fontSize: 20}}>remove_circle_outline</span>
+              <Box sx={{ 
+                display: 'flex', alignItems: 'center', gap: 2, 
+                p: '8px 12px', border: '1px solid #DADCE0', borderRadius: '4px',
+                bgcolor: '#FFFFFF'
+              }}>
+                <Typography sx={{ flex: 1, fontSize: 14, color: '#202124', fontWeight: 500 }}>Comensales:</Typography>
+                <IconButton size="small" onClick={() => setForm({...form, guests: Math.max(1, form.guests - 1)})} sx={{ color: '#5F6368' }}>
+                  <span className="material-icons" style={{ fontSize: 22 }}>remove_circle_outline</span>
                 </IconButton>
-                <Typography sx={{ width: 20, textAlign: 'center', fontWeight: 500 }}>{form.guests}</Typography>
-                <IconButton size="small" onClick={() => setForm({...form, guests: form.guests + 1})}>
-                  <span className="material-icons" style={{fontSize: 20}}>add_circle_outline</span>
+                <Typography sx={{ width: 24, textAlign: 'center', fontWeight: 501, fontSize: '15px', color: '#202124' }}>{form.guests}</Typography>
+                <IconButton size="small" onClick={() => setForm({...form, guests: form.guests + 1})} sx={{ color: '#5F6368' }}>
+                  <span className="material-icons" style={{ fontSize: 22 }}>add_circle_outline</span>
                 </IconButton>
               </Box>
 
               <FormControl fullWidth size="small">
-                <Select value={tableTypeId} onChange={e => setTableTypeId(e.target.value)} displayEmpty renderValue={v => tableTypes.find(t=>t.id===v)?.name || 'Tipo de Mesa'}>
+                <Select 
+                  value={tableTypeId} onChange={e => setTableTypeId(e.target.value)} 
+                  displayEmpty renderValue={v => tableTypes.find(t=>t.id===v)?.name || 'Tipo de Mesa'}
+                  startAdornment={
+                    <InputAdornment position="start" sx={{ mr: 1, ml: -0.5 }}>
+                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>table_restaurant</span>
+                    </InputAdornment>
+                  }
+                >
                   {tableTypes.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
                 </Select>
               </FormControl>
 
               <FormControl fullWidth size="small">
-                <Select value={specialEventId} onChange={e => setSpecialEventId(e.target.value)} displayEmpty renderValue={v => specialEvents.find(e=>e.id===v)?.name || 'Evento Especial (Opcional)'}>
+                <Select 
+                  value={specialEventId} onChange={e => setSpecialEventId(e.target.value)} 
+                  displayEmpty renderValue={v => specialEvents.find(e=>e.id===v)?.name || 'Evento Especial (Opcional)'}
+                  startAdornment={
+                    <InputAdornment position="start" sx={{ mr: 1, ml: -0.5 }}>
+                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>stars</span>
+                    </InputAdornment>
+                  }
+                >
                   <MenuItem value="">Ninguno</MenuItem>
                   {specialEvents.map(e => <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>)}
                 </Select>
               </FormControl>
 
               {!showNotes ? (
-                <Button onClick={() => setShowNotes(true)} sx={{ color: '#1A73E8', textTransform: 'none', alignSelf: 'flex-start', p: 0 }}>＋ Añadir nota</Button>
+                <Button 
+                  onClick={() => setShowNotes(true)} 
+                  startIcon={<span className="material-icons" style={{ fontSize: 18 }}>add</span>}
+                  sx={{ 
+                    color: '#1A73E8', textTransform: 'none', alignSelf: 'flex-start', p: '2px 8px',
+                    fontSize: '13px', fontWeight: 500, '&:hover': { bgcolor: '#E8F0FE' }
+                  }}
+                >
+                  Añadir nota
+                </Button>
               ) : (
                 <TextField 
                   fullWidth multiline rows={2} label="Notas" size="small" value={form.notes} 
                   onChange={e => setForm({...form, notes: e.target.value})} 
+                  autoFocus
                 />
               )}
             </Box>
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions sx={{ p: '16px' }}>
-        <Button onClick={onClose} sx={{ color: '#70757A' }}>Cancelar</Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={loading || !form.name || !form.phone || !form.time} sx={{ bgcolor: '#1A73E8' }}>
-          {loading ? <CircularProgress size={24} /> : 'Guardar Reserva'}
+      <DialogActions sx={{ p: '16px 24px', bgcolor: '#FFFFFF', borderTop: '1px solid #E0E0E0', gap: 1 }}>
+        <Button 
+          onClick={onClose} 
+          sx={{ 
+            color: '#5F6368', textTransform: 'uppercase', fontWeight: 500, fontSize: '13px', px: 2,
+            letterSpacing: '0.5px'
+          }}
+        >
+          Cancelar
+        </Button>
+        <Button 
+          variant="contained" onClick={handleSubmit} disabled={loading || !form.name || !form.phone || !form.time}
+          sx={{ 
+            bgcolor: '#1A73E8', boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
+            textTransform: 'uppercase', fontWeight: 500, fontSize: '13px', px: 3, py: 1,
+            letterSpacing: '0.5px'
+          }}
+        >
+          {loading ? <CircularProgress size={18} color="inherit" /> : (initialData?.id ? 'Guardar Cambios' : 'Guardar Reserva')}
         </Button>
       </DialogActions>
     </Dialog>

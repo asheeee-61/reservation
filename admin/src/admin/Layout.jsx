@@ -89,7 +89,9 @@ export default function Layout() {
         {/* Nav list */}
         <Box sx={{ py: 2, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center', [DESKTOP]: { alignItems: 'stretch' } }}>
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+            const isActive = item.path === '/admin' 
+              ? (location.pathname === '/admin' || location.pathname === '/admin/') 
+              : location.pathname.startsWith(item.path);
             
             const navItem = (
               <Box 
