@@ -14,6 +14,9 @@ class Reservation extends Model
     const STATUS_ASISTIO     = 'ASISTIÓ';
     const STATUS_NO_ASISTIO  = 'NO_ASISTIÓ';
 
+    const SOURCE_CLIENT = 'client';
+    const SOURCE_ADMIN  = 'admin';
+
     protected $fillable = [
         'reservation_id',
         'customer_id',
@@ -22,6 +25,7 @@ class Reservation extends Model
         'guests',
         'special_requests',
         'status',
+        'source',
         'table_type_id',
         'special_event_id',
     ];

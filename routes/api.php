@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SearchController;
 
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Storage;
@@ -26,6 +27,7 @@ Route::post('/admin/login', [AuthController::class, 'login']);
 // Protected Admin Endpoints
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index']);
+    Route::post('/reservations', [ReservationController::class, 'adminStore']);
     Route::get('/reservations/{id}', [ReservationController::class, 'show']);
     Route::match(['put', 'patch'], '/reservations/{id}', [ReservationController::class, 'update']);
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
@@ -48,4 +50,5 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);
     Route::get('/blocked-dates', [SettingsController::class, 'blockedDates']);
+    Route::get('/search', [SearchController::class, 'index']);
 });

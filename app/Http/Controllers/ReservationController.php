@@ -128,8 +128,19 @@ class ReservationController extends Controller
         return response()->json($availableSlots);
     }
 
-    // Customer: Submit a new reservation
+    // Customer: Submit a new reservation (always PENDIENTE, source=client)
     public function store(Request $request)
+    {
+        return $this->createReservation($request, Reservation::STATUS_PENDIENTE, Reservation::SOURCE_CLIENT);
+    }
+
+    // Admin: Create a new reservation (always CONFIRMADA, source=admin)
+    public function adminStore(Request $request)
+    {
+        return $this->createReservation($request, Reservation::STATUS_CONFIRMADA, Reservation::SOURCE_ADMIN);
+    }
+
+    private function createReservation(Request $request, string $status, string $source)
     {
         $validated = $request->validate([
             'date' => 'required|date',
@@ -146,7 +157,6 @@ class ReservationController extends Controller
 
         $resId = '#' . rand(1000, 9999);
 
-        // FIX: Handle existing vs new customer
         if ($request->filled('customer_id')) {
             $customer = Customer::findOrFail($request->customer_id);
         } else {
@@ -160,18 +170,18 @@ class ReservationController extends Controller
         }
 
         $reservation = Reservation::create([
-            'reservation_id' => $resId,
-            'customer_id' => $customer->id,
-            'date' => $validated['date'],
-            'time' => $validated['slot']['time'],
-            'guests' => $validated['guests'],
+            'reservation_id'   => $resId,
+            'customer_id'      => $customer->id,
+            'date'             => $validated['date'],
+            'time'             => $validated['slot']['time'],
+            'guests'           => $validated['guests'],
             'special_requests' => $validated['special_requests'] ?? null,
-            'status' => Reservation::STATUS_PENDIENTE,
-            'table_type_id' => $validated['table_type_id'],
+            'status'           => $status,   // enforced by origin, never from request
+            'source'           => $source,   // immutable, set here only
+            'table_type_id'    => $validated['table_type_id'],
             'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
 
-        // Simulated WhatsApp logging as requested by user
         if (!empty($validated['user']['phone'])) {
             Log::info("WHATSAPP NOTIFICATION: Booking $resId confirmed for {$validated['user']['phone']}. Will be implemented later.");
         }
