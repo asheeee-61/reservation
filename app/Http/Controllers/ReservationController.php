@@ -12,7 +12,7 @@ class ReservationController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = $request->input('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
 
         $query = Reservation::with(['customer', 'tableType', 'specialEvent'])->latest();
@@ -32,6 +32,10 @@ class ReservationController extends Controller
 
         if ($request->filled('date')) {
             $query->where('date', $request->date);
+        }
+
+        if ($request->filled('from') && $request->filled('to')) {
+            $query->whereBetween('date', [$request->from, $request->to]);
         }
 
         $results = $query->paginate($perPage);

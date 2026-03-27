@@ -13,6 +13,7 @@ class Reservation extends Model
     const STATUS_CONFIRMADA  = 'CONFIRMADA';
     const STATUS_ASISTIO     = 'ASISTIÓ';
     const STATUS_NO_ASISTIO  = 'NO_ASISTIÓ';
+    const STATUS_CANCELADA   = 'CANCELADA';
 
     const SOURCE_CLIENT = 'client';
     const SOURCE_ADMIN  = 'admin';
