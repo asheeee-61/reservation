@@ -29,6 +29,10 @@ class ReservationController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('date')) {
+            $query->where('date', $request->date);
+        }
+
         $results = $query->paginate($perPage);
 
         return response()->json([
