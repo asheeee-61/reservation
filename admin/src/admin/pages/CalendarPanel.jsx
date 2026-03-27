@@ -1,864 +1,1224 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  Typography, Box, Paper, Button, IconButton, 
-  CircularProgress, Snackbar, Tabs, Tab, Accordion, 
-  AccordionSummary, AccordionDetails, Select, MenuItem, FormControl
+  Box, Typography, Button, IconButton, Paper, 
+  CircularProgress, Tooltip, Avatar, Divider,
+  Dialog, DialogContent, DialogActions, TextField,
+  Select, MenuItem, FormControl, Drawer, Slide,
+  Grid, InputAdornment, List, ListItem, ListItemText,
+  ListItemAvatar, Alert, DialogTitle
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
-const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const DAY_LABELS = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' };
-const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+// --- CONSTANTS ---
+const STATUS_COLORS = {
+  'CONFIRMADA': { bg: '#E6F4EA', border: '#34A853', text: '#137333', dot: '#34A853', label: 'Confirmada' },
+  'PENDIENTE':   { bg: '#FEF7E0', border: '#FBBC04', text: '#7D4A00', dot: '#FBBC04', label: 'Pendiente' },
+  'ASISTIÓ':     { bg: '#E8F0FE', border: '#1A73E8', text: '#1A73E8', dot: '#1A73E8', label: 'Asistió' },
+  'CANCELADA':   { bg: '#F1F3F4', border: '#DADCE0', text: '#80868B', dot: '#DADCE0', label: 'Cancelada' },
+  'NO_ASISTIÓ':  { bg: '#FDECEA', border: '#C5221F', text: '#C5221F', dot: '#C5221F', label: 'No Asistió' }
+};
 
-const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
-const TIME_OPTIONS = (() => {
-  const opts = [];
-  for (let h = 0; h < 24; h++) {
-    opts.push(`${String(h).padStart(2, '0')}:00`);
-    opts.push(`${String(h).padStart(2, '0')}:30`);
-  }
-  return opts;
-})();
+const MONTH_NAMES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+const DAY_NAMES_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUV', 'VIE', 'SÁB'];
+const DAY_NAMES_FULL = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+// --- UTILS ---
+const formatSlotTime = (date) => {
+  const h = String(date.getHours()).padStart(2, '0');
+  const m = String(date.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+};
+
+const getStartOfWeek = (date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+  return new Date(d.setDate(diff));
+};
+
+const formatDateISO = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const toMinutes = (time) => {
+  if (!time) return 0;
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+};
+
+const toTimeString = (minutes) => {
+  const normalized = ((minutes % 1440) + 1440) % 1440;
+  const h = Math.floor(normalized / 60);
+  const m = normalized % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+
+const getMonthRange = (date) => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const startDate = getStartOfWeek(start);
+  const endDate = new Date(end);
+  const endDay = end.getDay();
+  const diff = endDay === 0 ? 0 : 7 - endDay;
+  endDate.setDate(end.getDate() + diff);
+  return { startDate, endDate };
+};
+
+const getWeekRange = (date) => {
+  const startDate = getStartOfWeek(date);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6);
+  return { startDate, endDate };
+};
 
 export default function CalendarPanel() {
-  const toMinutes = (time) => {
-    const [h, m] = time.split(':').map(Number);
-    return h * 60 + m;
-  };
-  const toTimeString = (minutes) => {
-    const normalized = minutes % 1440;
-    const h = Math.floor(normalized / 60);
-    const m = normalized % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-  };
+  const navigate = useNavigate();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState('month'); // month, week, day
+  const [loading, setLoading] = useState(false);
+  const [selectedRes, setSelectedRes] = useState(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [bookingInitialData, setBookingInitialData] = useState(null);
+  
+  // Drag and Drop State
+  const [dragRes, setDragRes] = useState(null);
+  const [dragDiffY, setDragDiffY] = useState(0);
+  const [initialMouseY, setInitialMouseY] = useState(0);
+  const [confirmMove, setConfirmMove] = useState(null);
+  const [reservations, setReservations] = useState([]);
 
+  // Booking Modal Advanced States
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customersResults, setCustomersResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [showResults, setShowResults] = useState(false);
+  const [tableTypes, setTableTypes] = useState([]);
+  const [tableTypesLoading, setTableTypesLoading] = useState(false);
+  const [specialEvents, setSpecialEvents] = useState([]);
+  const [specialEventsLoading, setSpecialEventsLoading] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('idle');
+  const searchRef = useRef(null);
+
+  // App state
   const globalHours = useSettingsStore(state => state.globalHours);
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [config, setConfig] = useState(null);
+  const adminCalendar = useSettingsStore(state => state.adminCalendar);
   
-  const [currentTab, setCurrentTab] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState("Cambios guardados");
-  const [regenMsg, setRegenMsg] = useState(null);
+  useEffect(() => {
+    if (!dragRes) return;
+
+    const handleMouseMove = (e) => {
+      setDragDiffY(e.clientY - initialMouseY);
+    };
+
+    const handleMouseUp = () => {
+      const startMins = toMinutes(globalHours.openingTime || '09:00');
+      const resMins = toMinutes(dragRes.time);
+      const currentTop = ((resMins - startMins) / 30) * 48;
+      const finalTop = currentTop + dragDiffY;
+      
+      const newMins = Math.round((finalTop / 48) * 30) + startMins;
+      const newTime = toTimeString(newMins);
+      
+      if (newTime !== dragRes.time.slice(0, 5)) {
+        setConfirmMove({ id: dragRes.id, newTime });
+      }
+      
+      setDragRes(null);
+      setDragDiffY(0);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragRes, initialMouseY, globalHours]);
+
+  const handleDragStart = (e, res) => {
+    if (e.button !== 0) return; // Only left click
+    e.stopPropagation();
+    setDragRes(res);
+    setInitialMouseY(e.clientY);
+  };
   
-  const [blockMonthStart, setBlockMonthStart] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [blockedPage, setBlockedPage] = useState(1);
-  const [blockedDates, setBlockedDates] = useState([]);
-  const [blockedMeta, setBlockedMeta] = useState(null);
-  const BLOCKED_PER_PAGE = 5;
 
-  useEffect(() => {
-    fetchGlobalHours();
-    fetchConfig();
-  }, [fetchGlobalHours]);
+  const visibleRange = useMemo(() => {
+    if (view === 'month') return getMonthRange(currentDate);
+    if (view === 'week') return getWeekRange(currentDate);
+    return { startDate: currentDate, endDate: currentDate };
+  }, [currentDate, view]);
 
-  const fetchBlockedDates = async (page = 1) => {
+  const fetchReservations = async () => {
+    setLoading(true);
     try {
-      const data = await apiClient(`/admin/blocked-dates?page=${page}&per_page=${BLOCKED_PER_PAGE}`);
-      setBlockedDates(data.data ?? []);
-      setBlockedMeta(data.meta ?? null);
+      const from = formatDateISO(visibleRange.startDate);
+      const to = formatDateISO(visibleRange.endDate);
+      const data = await apiClient(`/admin/reservations?from=${from}&to=${to}&per_page=500`);
+      setReservations(data.data ?? []);
     } catch (e) {
-      console.error('Failed to fetch blocked dates', e);
-    }
-  };
-
-  useEffect(() => {
-    fetchBlockedDates(blockedPage);
-  }, [blockedPage]);
-
-  const fetchConfig = async () => {
-    try {
-      const data = await apiClient('/config');
-      const schedule = data.schedule || {};
-      DAYS.forEach(day => {
-        if (!schedule[day]) schedule[day] = { open: true, shifts: [] };
-        if (!schedule[day].shifts || schedule[day].shifts.length === 0) {
-           const oldOp = schedule[day].openingTime || '09:00';
-           const oldCl = schedule[day].closingTime || '23:30';
-           const defaultInterval = useSettingsStore.getState().globalHours?.defaultInterval || 30;
-           const oldInt = schedule[day].interval || defaultInterval;
-           let oldSlots = schedule[day].slots || {};
-           
-           if (Object.keys(oldSlots).length === 0) {
-              const defaultSlots = ["13:00", "13:30", "14:00", "14:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-              defaultSlots.forEach(time => oldSlots[time] = true);
-           }
-           
-           schedule[day].shifts = [{ id: 1, openingTime: oldOp, closingTime: oldCl, interval: oldInt, slots: oldSlots }];
-           delete schedule[day].slots;
-           delete schedule[day].openingTime;
-           delete schedule[day].closingTime;
-           delete schedule[day].interval;
-        }
-      });
-      setConfig({ ...data, schedule, blockedDays: data.blockedDays || [] });
-      setLoading(false);
-    } catch (e) {
-      console.error(e);
-      setLoading(false);
-    }
-  };
-
-  const saveConfigState = async (newConfig, showToast = false) => {
-    setConfig(newConfig);
-    try {
-      await apiClient('/admin/config', {
-        method: 'POST',
-        body: JSON.stringify(newConfig)
-      });
-      if (showToast) {
-        setToastMessage("Cambios guardados");
-        setToastOpen(true);
-      }
-      // Re-fetch blocked dates from backend to keep list in sync
-      fetchBlockedDates(blockedPage);
-    } catch (e) {
-      console.error("Failed to save", e);
-    }
-  };
-
-  const manualSave = async (msg = "Cambios guardados") => {
-    for (const day of DAYS) {
-      const shifts = config.schedule[day].shifts;
-      for (const shift of shifts) {
-        const oMins = toMinutes(shift.openingTime);
-        let cMins = toMinutes(shift.closingTime);
-        if (cMins <= oMins) cMins += 1440;
-        if (cMins - oMins < 30) {
-          setToastMessage(`El turno en ${DAY_LABELS[day]} debe durar al menos 30 minutos.`);
-          setToastOpen(true);
-          return;
-        }
-      }
-      if (shifts.length === 2) {
-        let s1Open  = toMinutes(shifts[0].openingTime);
-        let s1Close = toMinutes(shifts[0].closingTime);
-        let s2Open  = toMinutes(shifts[1].openingTime);
-        let s2Close = toMinutes(shifts[1].closingTime);
-
-        if (s1Close <= s1Open) s1Close += 1440;
-        if (s2Close <= s2Open) s2Close += 1440;
-        if (s2Open < s1Open) { s2Open += 1440; s2Close += 1440; }
-
-        if (s2Open < s1Close) {
-          setToastMessage(`Hay turnos solapados en ${DAY_LABELS[day]}. Corrígelos antes de guardar.`);
-          setToastOpen(true);
-          return;
-        }
-      }
-    }
-
-    setSaving(true);
-    try {
-      await apiClient('/admin/config', {
-        method: 'POST',
-        body: JSON.stringify(config)
-      });
-      setToastMessage(msg);
-      setToastOpen(true);
-    } catch (e) {
-      console.error("Failed to save", e);
+      console.error('Failed to fetch reservations', e);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  if (loading || !config) return <Box p={4}><CircularProgress /></Box>;
+  useEffect(() => {
+    fetchReservations();
+  }, [visibleRange]);
 
-  const handleDateChange = (daysToAdd) => {
-    const nextDate = new Date(selectedDate);
-    nextDate.setDate(selectedDate.getDate() + daysToAdd);
-    setSelectedDate(nextDate);
+  const handleToday = () => setCurrentDate(new Date());
+  const handlePrev = () => {
+    const d = new Date(currentDate);
+    if (view === 'month') d.setMonth(d.getMonth() - 1);
+    else if (view === 'week') d.setDate(d.getDate() - 7);
+    else d.setDate(d.getDate() - 1);
+    setCurrentDate(d);
+  };
+  const handleNext = () => {
+    const d = new Date(currentDate);
+    if (view === 'month') d.setMonth(d.getMonth() + 1);
+    else if (view === 'week') d.setDate(d.getDate() + 7);
+    else d.setDate(d.getDate() + 1);
+    setCurrentDate(d);
   };
 
-  const jsDayIndex = selectedDate.getDay();
-  const dayNameMapping = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const currentDayKey = dayNameMapping[jsDayIndex];
-  const currentDaySchedule = config.schedule[currentDayKey];
-
-  const dateFormatted = `${DAY_LABELS[currentDayKey]}, ${selectedDate.getDate()} de ${MONTH_NAMES[selectedDate.getMonth()].toLowerCase()}`;
-
-  const toggleDayStatusInstant = () => {
-    const newConfig = {
-      ...config,
-      schedule: {
-        ...config.schedule,
-        [currentDayKey]: { ...currentDaySchedule, open: !currentDaySchedule.open }
-      }
-    };
-    saveConfigState(newConfig, true);
-  };
-
-  const toggleSlotInstant = (time, shiftId) => {
-    const newShifts = currentDaySchedule.shifts.map(s => {
-      if (s.id === shiftId) return { ...s, slots: { ...s.slots, [time]: !s.slots[time] } };
-      return s;
-    });
-    const newConfig = { ...config, schedule: { ...config.schedule, [currentDayKey]: { ...currentDaySchedule, shifts: newShifts } } };
-    saveConfigState(newConfig, true);
-  };
-
-  const toggleAllInstant = (status) => {
-    const newShifts = currentDaySchedule.shifts.map(s => {
-      const newSlots = { ...s.slots };
-      Object.keys(newSlots).forEach(time => newSlots[time] = status);
-      return { ...s, slots: newSlots };
-    });
-    const newConfig = { ...config, schedule: { ...config.schedule, [currentDayKey]: { ...currentDaySchedule, shifts: newShifts } } };
-    saveConfigState(newConfig, true);
-  };
-
-  const updateShiftConfig = (day, shiftId, field, value) => {
-    setConfig(prev => {
-      const dayConf = prev.schedule[day];
-      const newShifts = dayConf.shifts.map(s => s.id === shiftId ? { ...s, [field]: value } : s);
-      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
-    });
-  };
-
-  const addShift = (day) => {
-    setConfig(prev => {
-      const dayConf = prev.schedule[day];
-      const newShifts = [...dayConf.shifts, { id: 2, openingTime: '20:00', closingTime: globalHours.closingTime === '00:00' ? '23:30' : globalHours.closingTime, interval: globalHours.defaultInterval || 30, slots: {} }];
-      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
-    });
-  };
-
-  const removeShift = (day, shiftId) => {
-    setConfig(prev => {
-      const dayConf = prev.schedule[day];
-      const newShifts = dayConf.shifts.filter(s => s.id !== shiftId);
-      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
-    });
-  };
-
-  const handleRegenerateSlots = (day, shiftId) => {
-    setConfig(prev => {
-      const dayConf = prev.schedule[day];
-      const shift = dayConf.shifts.find(s => s.id === shiftId);
-      
-      const openMin = toMinutes(shift.openingTime);
-      let closeMin = toMinutes(shift.closingTime);
-      if (closeMin <= openMin) closeMin += 1440;
-      
-      const newSlots = {};
-      for (let t = openMin; t <= closeMin; t += shift.interval) {
-        newSlots[toTimeString(t)] = true;
-      }
-      
-      setRegenMsg({ day, shiftId, msg: `✓ ${Object.keys(newSlots).length} franjas generadas (${shift.interval} min)` });
-      setTimeout(() => setRegenMsg(null), 3000);
-      
-      const newShifts = dayConf.shifts.map(s => s.id === shiftId ? { ...s, slots: newSlots } : s);
-      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
-    });
-  };
-
-  const copyMondayToAll = () => {
-    const monShifts = config.schedule.monday.shifts;
-    const generateSlots = (shift) => {
-      const openMin = toMinutes(shift.openingTime);
-      let closeMin = toMinutes(shift.closingTime);
-      if (closeMin <= openMin) closeMin += 1440;
-      const newSlots = {};
-      for (let t = openMin; t <= closeMin; t += shift.interval) {
-        newSlots[toTimeString(t)] = true;
-      }
-      return { ...shift, slots: newSlots };
-    };
-
-    const newMonShifts = monShifts.map(generateSlots);
-    const newSchedule = { ...config.schedule };
-    DAYS.forEach(day => {
-      newSchedule[day] = { ...newSchedule[day], shifts: JSON.parse(JSON.stringify(newMonShifts)) };
-    });
-    
-    setConfig({ ...config, schedule: newSchedule });
-    setToastMessage("Turnos de Lunes copiados a todos los días");
-    setToastOpen(true);
-  };
-
-  const toggleDayStatusWeekly = (day) => {
-    setConfig(prev => ({
-      ...prev, schedule: { ...prev.schedule, [day]: { ...prev.schedule[day], open: !prev.schedule[day].open } }
-    }));
-  };
-
-  const toggleSlotWeekly = (day, shiftId, time) => {
-    setConfig(prev => {
-      const dayConf = prev.schedule[day];
-      const newShifts = dayConf.shifts.map(s => s.id === shiftId ? { ...s, slots: { ...s.slots, [time]: !s.slots[time] } } : s);
-      return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
-    });
-  };
-
-  const toggleAllWeekly = (day, shiftId, status) => {
-    setConfig(prev => {
-       const dayConf = prev.schedule[day];
-       const newShifts = dayConf.shifts.map(s => {
-         if (s.id !== shiftId) return s;
-         const newSlots = { ...s.slots };
-         Object.keys(newSlots).forEach(t => newSlots[t] = status);
-         return { ...s, slots: newSlots };
-       });
-       return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } }
-    });
-  };
-
-  const changeBlockMonth = (months) => {
-    const nextMonth = new Date(blockMonthStart);
-    nextMonth.setMonth(blockMonthStart.getMonth() + months);
-    setBlockMonthStart(nextMonth);
-  };
-
-  const isBlocked = (dateStr) => config.blockedDays.includes(dateStr);
-
-  const toggleBlockDate = (dateOb) => {
-    const yyyy = dateOb.getFullYear();
-    const mm = String(dateOb.getMonth() + 1).padStart(2, '0');
-    const dd = String(dateOb.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-
-    const newBlocks = config.blockedDays.includes(dateStr)
-      ? config.blockedDays.filter(d => d !== dateStr)
-      : [...config.blockedDays, dateStr].sort();
-
-    saveConfigState({ ...config, blockedDays: newBlocks }, false);
-  };
-
-  const renderMonthGrid = () => {
-    const startOfMonth = new Date(blockMonthStart.getFullYear(), blockMonthStart.getMonth(), 1);
-    const endOfMonth = new Date(blockMonthStart.getFullYear(), blockMonthStart.getMonth() + 1, 0);
-    
-    let currentDayStr = startOfMonth.getDay(); 
-    let leadingEmptyDays = currentDayStr === 0 ? 6 : currentDayStr - 1;
-
-    const daysInMonth = endOfMonth.getDate();
-    const cells = [];
-
-    const dayHeaders = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-    dayHeaders.forEach(dh => {
-      cells.push(
-        <Box key={dh} sx={{ width: '14.28%', textAlign: 'center', py: 1 }}>
-          <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', fontWeight: 500 }}>{dh}</Typography>
-        </Box>
-      );
-    });
-
-    for (let i = 0; i < leadingEmptyDays; i++) {
-        cells.push(<Box key={`empty-${i}`} sx={{ width: '14.28%', height: 40 }} />);
+  const periodLabel = useMemo(() => {
+    if (view === 'month') {
+      return `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
     }
-
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    for (let i = 1; i <= daysInMonth; i++) {
-      const d = new Date(blockMonthStart.getFullYear(), blockMonthStart.getMonth(), i);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      const dateStr = `${yyyy}-${mm}-${dd}`;
-      const blocked = isBlocked(dateStr);
-      const isToday = dateStr === todayStr;
-
-      let bg = 'transparent';
-      let color = '#202124';
-      if (blocked) { bg = '#FDECEA'; color = '#D93025'; } 
-      else if (isToday) { bg = '#E8F0FE'; color = '#1A73E8'; }
-
-      cells.push(
-        <Box key={i} sx={{ width: '14.28%', height: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', my: 0.5 }}>
-          <Box 
-            onClick={() => toggleBlockDate(d)}
-            sx={{ 
-              width: 32, height: 32, borderRadius: '50%', bgcolor: bg, color: color,
-              display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
-              '&:hover': { bgcolor: blocked ? '#F8D8D5' : '#F1F3F4' }
-            }}
-          >
-            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: (isToday || blocked) ? 500 : 400 }}>{i}</Typography>
-          </Box>
-        </Box>
-      );
+    if (view === 'week') {
+      const start = getStartOfWeek(currentDate);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      
+      if (start.getMonth() === end.getMonth()) {
+        return `${start.getDate()}–${end.getDate()} ${MONTH_NAMES[start.getMonth()].toLowerCase()} ${start.getFullYear()}`;
+      }
+      return `${start.getDate()} ${MONTH_NAMES[start.getMonth()].slice(0, 3)} – ${end.getDate()} ${MONTH_NAMES[end.getMonth()].slice(0, 3)} ${end.getFullYear()}`;
     }
-    return <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%' }}>{cells}</Box>;
-  };
-
+    // Day view
+    return `${DAY_NAMES_FULL[currentDate.getDay()]}, ${currentDate.getDate()} ${MONTH_NAMES[currentDate.getMonth()].toLowerCase()}`;
+  }, [currentDate, view]);
 
   return (
-    <Box sx={{ pb: 8, width: '100%' }}>
-      <Typography sx={{ 
-        fontFamily: 'Roboto', fontWeight: 500, color: '#202124', mb: '24px',
-        [DESKTOP]: { fontSize: '20px' },
-        [TABLET]: { fontSize: '18px' },
-        [MOBILE]: { fontSize: '16px' }
+    <Box sx={{ 
+      display: 'flex', flexDirection: 'column', height: '100%', 
+      bgcolor: '#F1F3F4', overflow: 'hidden' 
+    }}>
+      {/* TOP BAR */}
+      <Box sx={{ 
+        height: 56, minHeight: 56, bgcolor: '#FFFFFF', borderBottom: '1px solid #E0E0E0',
+        display: 'flex', alignItems: 'center', px: '16px', justifyContent: 'space-between'
       }}>
-        Calendar Control
-      </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Button 
+            variant="outlined" onClick={handleToday}
+            sx={{ 
+              height: 36, px: '16px', borderRadius: '4px', border: '1px solid #DADCE0',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124',
+              textTransform: 'none', '&:hover': { bgcolor: '#F1F3F4' }
+            }}
+          >
+            Hoy
+          </Button>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <IconButton onClick={handlePrev} sx={{ width: 36, height: 36, borderRadius: '4px', '&:hover': { bgcolor: '#F1F3F4' } }}>
+              <span className="material-icons" style={{ fontSize: 20 }}>chevron_left</span>
+            </IconButton>
+            <IconButton onClick={handleNext} sx={{ width: 36, height: 36, borderRadius: '4px', '&:hover': { bgcolor: '#F1F3F4' } }}>
+              <span className="material-icons" style={{ fontSize: 20 }}>chevron_right</span>
+            </IconButton>
+          </Box>
+          
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '22px', color: '#202124', ml: '8px' }}>
+            {periodLabel}
+          </Typography>
+        </Box>
 
-      <Paper sx={{ width: '100%', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', p: 0, overflow: 'hidden' }}>
-        <Tabs 
-          value={currentTab} 
-          onChange={(e, v) => setCurrentTab(v)}
-          variant="fullWidth"
-          TabIndicatorProps={{ style: { backgroundColor: '#1A73E8', height: 2 } }}
-          sx={{ borderBottom: '1px solid #E0E0E0', minHeight: 48, height: 48 }}
-        >
-          <Tab label="HOY" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, minHeight: 48, p: 0, '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A', [DESKTOP]: { fontSize: '14px', px: '24px' }, [TABLET]: { fontSize: '14px', px: '24px' }, [MOBILE]: { fontSize: '12px', px: '8px' } }} />
-          <Tab label="SEMANA" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, minHeight: 48, p: 0, '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A', [DESKTOP]: { fontSize: '14px', px: '24px' }, [TABLET]: { fontSize: '14px', px: '24px' }, [MOBILE]: { fontSize: '12px', px: '8px' } }} />
-          <Tab label="FECHAS BLOQUEADAS" sx={{ textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, minHeight: 48, p: 0, '&.Mui-selected': { color: '#1A73E8' }, color: '#70757A', [DESKTOP]: { fontSize: '14px', px: '24px' }, [TABLET]: { fontSize: '14px', px: '24px' }, [MOBILE]: { fontSize: '12px', px: '8px' } }} />
-        </Tabs>
-
-        {/* --- TAB 1: HOY --- */}
-        {currentTab === 0 && (
-          <Box sx={{ [DESKTOP]: { p: '24px' }, [TABLET]: { p: '24px' }, [MOBILE]: { p: '16px' } }}>
-            <Box sx={{ 
-              display: 'flex', alignItems: 'center', mb: '20px',
-              [DESKTOP]: { justifyContent: 'space-between', flexDirection: 'row' },
-              [TABLET]: { justifyContent: 'space-between', flexDirection: 'row' },
-              [MOBILE]: { justifyContent: 'space-between', flexDirection: 'row', width: '100%' }
-            }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <IconButton onClick={() => handleDateChange(-1)} size="small" sx={{ border: '1px solid #70757A', width: 28, height: 28 }}>
-                  <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>keyboard_arrow_left</span>
-                </IconButton>
-                <Typography sx={{ 
-                  fontFamily: 'Roboto', fontWeight: 500, color: '#202124', textAlign: 'center',
-                  [DESKTOP]: { fontSize: '16px', width: 180 },
-                  [TABLET]: { fontSize: '16px', width: 180 },
-                  [MOBILE]: { fontSize: '14px', flex: 1, minWidth: 120 }
-                }}>
-                  {dateFormatted}
-                </Typography>
-                <IconButton onClick={() => handleDateChange(1)} size="small" sx={{ border: '1px solid #70757A', width: 28, height: 28 }}>
-                  <span className="material-icons" style={{ fontSize: 16, color: '#70757A' }}>keyboard_arrow_right</span>
-                </IconButton>
-              </Box>
-
-              <Box 
-                onClick={toggleDayStatusInstant}
-                sx={{ 
-                  bgcolor: currentDaySchedule.open ? '#E8F0FE' : '#FDECEA',
-                  color: currentDaySchedule.open ? '#1A73E8' : '#D93025',
-                  px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer', userSelect: 'none'
-                }}
-              >
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>
-                  {currentDaySchedule.open ? 'Abierto' : 'Cerrado'}
-                </Typography>
-              </Box>
-            </Box>
-
-            <Box sx={{ 
-              display: 'flex', mb: '24px',
-              [DESKTOP]: { gap: '24px', flexDirection: 'row' },
-              [TABLET]: { gap: '24px', flexDirection: 'row' },
-              [MOBILE]: { gap: '8px', flexDirection: 'column' }
-            }}>
-              <Button 
-                variant="outlined"
-                sx={{ 
-                  p: 0, textTransform: 'none', color: '#1A73E8', borderColor: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px',
-                  [DESKTOP]: { border: 'none', minHeight: 0 },
-                  [TABLET]: { border: 'none', minHeight: 0 },
-                  [MOBILE]: { width: '100%', height: 44, borderRadius: '4px' } 
-                }} 
-                onClick={() => toggleAllInstant(true)}
-              >
-                Abrir todos
-              </Button>
-              <Button 
-                variant="outlined"
-                sx={{ 
-                  p: 0, textTransform: 'none', color: '#D93025', borderColor: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px',
-                  [DESKTOP]: { border: 'none', minHeight: 0 },
-                  [TABLET]: { border: 'none', minHeight: 0 },
-                  [MOBILE]: { width: '100%', height: 44, borderRadius: '4px' } 
-                }} 
-                onClick={() => toggleAllInstant(false)}
-              >
-                Cerrar todos
-              </Button>
-            </Box>
-
-            {currentDaySchedule.shifts.map((shift, idx) => (
-              <Box key={shift.id} sx={{ mb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', mr: 2 }}>
-                    Turno {idx + 1} ({shift.openingTime} – {shift.closingTime} {toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? '' : ''})
-                  </Typography>
-                  <Box sx={{ flexGrow: 1, height: '1px', bgcolor: '#E0E0E0' }}></Box>
-                </Box>
-                <Box sx={{ 
-                  display: 'grid', 
-                  [DESKTOP]: { gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' },
-                  [TABLET]: { gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' },
-                  [MOBILE]: { gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }
-                }}>
-                  {Object.keys(shift.slots).sort().map(time => {
-                    const isOpen = shift.slots[time] && currentDaySchedule.open;
-                    return (
-                      <Box key={time} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                        <Box 
-                          onClick={() => { if(currentDaySchedule.open) toggleSlotInstant(time, shift.id); }}
-                          sx={{
-                            width: '100%', borderRadius: '4px',
-                            display: 'flex', justifyContent: 'center', alignItems: 'center',
-                            cursor: currentDaySchedule.open ? 'pointer' : 'not-allowed',
-                            bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
-                            border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
-                            color: isOpen ? '#1A73E8' : '#BDBDBD', userSelect: 'none', mb: '4px',
-                            [DESKTOP]: { height: 48 },
-                            [TABLET]: { height: 48 },
-                            [MOBILE]: { height: 44 }
-                          }}
-                        >
-                          <Typography sx={{ 
-                            fontFamily: 'Roboto', fontWeight: 500, 
-                            [DESKTOP]: { fontSize: '14px' },
-                            [TABLET]: { fontSize: '14px' },
-                            [MOBILE]: { fontSize: '13px' }
-                          }}>{time}</Typography>
-                        </Box>
-                      </Box>
-                    );
-                  })}
-                </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* View Switcher */}
+          <Box sx={{ 
+            display: 'flex', height: 36, border: '1px solid #DADCE0', borderRadius: '4px', overflow: 'hidden' 
+          }}>
+            {[
+              { id: 'month', label: 'Mes' },
+              { id: 'week', label: 'Semana' },
+              { id: 'day', label: 'Día' }
+            ].map((v, i) => (
+              <Box key={v.id} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Button 
+                  onClick={() => setView(v.id)}
+                  sx={{ 
+                    height: '100%', px: '16px', border: 'none', borderRadius: 0,
+                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px',
+                    bgcolor: view === v.id ? '#E8F0FE' : '#FFFFFF',
+                    color: view === v.id ? '#1A73E8' : '#70757A',
+                    textTransform: 'none', '&:hover': { bgcolor: view === v.id ? '#E8F0FE' : '#F1F3F4' }
+                  }}
+                >
+                  {v.label}
+                </Button>
+                {i < 2 && <Divider orientation="vertical" flexItem sx={{ height: 20, my: 'auto', bgcolor: '#DADCE0' }} />}
               </Box>
             ))}
           </Box>
-        )}
 
-        {/* --- TAB 2: SEMANA --- */}
-        {currentTab === 1 && (
-          <Box sx={{ [DESKTOP]: { p: '24px' }, [TABLET]: { p: '24px' }, [MOBILE]: { p: '16px' } }}>
-            <Box sx={{ mb: '24px' }}>
-              <Button sx={{ textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', p: 0, [MOBILE]: { minHeight: 44 } }} onClick={copyMondayToAll}>
-                Copiar de Lunes a todos los días
-              </Button>
-            </Box>
+          <Button 
+            variant="contained" startIcon={<span className="material-icons" style={{ fontSize: 18 }}>add</span>}
+            onClick={() => {
+              setBookingInitialData(null);
+              setIsBookingModalOpen(true);
+            }}
+            sx={{ 
+              height: 36, px: '16px', borderRadius: '4px', bgcolor: '#1A73E8', boxShadow: 'none',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'none',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
+          >
+            Nueva reserva
+          </Button>
+        </Box>
+      </Box>
 
-            {DAYS.map(day => {
-              const dayConfig = config.schedule[day];
-              const totalOpenCount = dayConfig.shifts.reduce((acc, s) => acc + Object.values(s.slots).filter(Boolean).length, 0);
-              const summaryRanges = dayConfig.shifts.map(s => `${s.openingTime}–${s.closingTime}${toMinutes(s.closingTime) <= toMinutes(s.openingTime) ? '' : ''}`).join(' · ');
-              const sameInterval = dayConfig.shifts.length > 0 && dayConfig.shifts.every(s => s.interval === dayConfig.shifts[0].interval);
-              const summaryInterval = sameInterval && dayConfig.shifts.length > 0 ? `${dayConfig.shifts[0].interval}min` : 'Mix';
-              const hasOverlap = dayConfig.shifts.length === 2 && (() => {
-                  let s1Open  = toMinutes(dayConfig.shifts[0].openingTime);
-                  let s1Close = toMinutes(dayConfig.shifts[0].closingTime);
-                  let s2Open  = toMinutes(dayConfig.shifts[1].openingTime);
-                  let s2Close = toMinutes(dayConfig.shifts[1].closingTime);
+      {/* LEGEND BAR */}
+      <Box sx={{ 
+        height: 32, minHeight: 32, bgcolor: '#FFFFFF', borderBottom: '1px solid #E0E0E0',
+        display: 'flex', alignItems: 'center', px: '16px', gap: '24px'
+      }}>
+        {Object.entries(STATUS_COLORS).map(([key, data]) => (
+          <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: data.dot }} />
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A' }}>
+              {data.label}
+            </Typography>
+          </Box>
+        ))}
+        <Box sx={{ ml: 'auto' }}>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A' }}>
+            {reservations.length} reservas en este periodo
+          </Typography>
+        </Box>
+      </Box>
 
-                  if (s1Close <= s1Open) s1Close += 1440;
-                  if (s2Close <= s2Open) s2Close += 1440;
-                  if (s2Open < s1Open) { s2Open += 1440; s2Close += 1440; }
-
-                  return s2Open < s1Close;
-              })();
-
-              return (
-                <Accordion disableGutters key={day} sx={{ mb: '8px', border: '1px solid #E0E0E0', boxShadow: 'none', '&:before': { display: 'none' } }}>
-                  <AccordionSummary expandIcon={<span className="material-icons">expand_more</span>} sx={{ minHeight: 56, height: 56, px: '16px' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: '16px' }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', width: { xs: 80, sm: 100 } }}>
-                        {DAY_LABELS[day]}
-                      </Typography>
-                      {!dayConfig.open ? (
-                        <Typography sx={{ fontFamily: 'Roboto', color: '#D93025', fontSize: '14px', fontWeight: 500 }}>Cerrado</Typography>
-                      ) : (
-                        <Box sx={{ display: 'flex', flex: 1, alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', flex: 1 }}>
-                            {summaryRanges}
-                          </Typography>
-                          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', display: { xs: 'none', sm: 'block' } }}>
-                            {summaryInterval}
-                          </Typography>
-                          <Typography sx={{ fontFamily: 'Roboto', color: '#70757A', fontSize: '14px', display: { xs: 'none', sm: 'block' } }}>
-                            {totalOpenCount} slots
-                          </Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  </AccordionSummary>
-
-                  <AccordionDetails sx={{ pt: 0, pb: '24px', px: { xs: '16px', md: '24px' }, borderTop: '1px solid #E0E0E0', position: 'relative' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: '16px' }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>Config de {DAY_LABELS[day]}</Typography>
-                      <Box 
-                        onClick={() => toggleDayStatusWeekly(day)}
-                        sx={{ bgcolor: dayConfig.open ? '#E8F0FE' : '#FDECEA', color: dayConfig.open ? '#1A73E8' : '#D93025', px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer', userSelect: 'none' }}
-                      >
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>{dayConfig.open ? 'Abierto' : 'Cerrado'}</Typography>
-                      </Box>
-                    </Box>
-
-                    {!dayConfig.open ? (
-                      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', bgcolor: '#F1F3F4', borderRadius: '4px' }}>
-                         <Typography sx={{ color: '#70757A', fontFamily: 'Roboto', fontSize: '14px', textAlign: 'center' }}>Restaurante cerrado este día.</Typography>
-                      </Box>
-                    ) : (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {dayConfig.shifts.map((shift, idx) => {
-                          const oMins = toMinutes(shift.openingTime);
-                          let cMins = toMinutes(shift.closingTime);
-                          if (cMins <= oMins) cMins += 1440;
-                          const isValid = (cMins - oMins) >= 30;
-
-                          return (
-                            <Box key={shift.id} sx={{ bgcolor: '#FFF', border: `1px solid ${!isValid ? '#D93025' : '#E0E0E0'}`, borderRadius: '4px', p: { xs: '12px', md: '16px' } }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#70757A' }}>Turno {idx + 1} &nbsp;&nbsp; {shift.openingTime} – {shift.closingTime} <span style={{fontSize: '11px'}}>{toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? '' : ''}</span></Typography>
-                                {idx === 1 && (
-                                  <IconButton size="small" onClick={() => removeShift(day, shift.id)}>
-                                    <span className="material-icons" style={{ fontSize: 18, color: '#70757A' }}>close</span>
-                                  </IconButton>
-                                )}
-                              </Box>
-
-                              <Box sx={{ borderBottom: '1px solid #E0E0E0', pb: '16px' }}>
-                                <Box sx={{ 
-                                  display: 'grid', 
-                                  [DESKTOP]: { gridTemplateColumns: 'min-content min-content min-content auto', gap: '24px', alignItems: 'flex-end' },
-                                  [TABLET]: { gridTemplateColumns: '1fr 1fr 1fr auto', gap: '16px', alignItems: 'flex-end' },
-                                  [MOBILE]: { gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'flex-end' }
-                                }}>
-                                  <Box sx={{ width: '100%' }}>
-                                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Apertura</Typography>
-                                    <FormControl size="small" sx={{ width: '100%' }}>
-                                      <Select value={shift.openingTime} onChange={(e) => updateShiftConfig(day, shift.id, 'openingTime', e.target.value)} sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
-                                        {TIME_OPTIONS.filter(t => {
-                                          const tMins = toMinutes(t);
-                                          const gOpenMins = toMinutes(globalHours.openingTime);
-                                          let gCloseMins = toMinutes(globalHours.closingTime);
-                                          if (gCloseMins <= gOpenMins) gCloseMins += 1440;
-                                          let effT = tMins;
-                                          if (tMins < gOpenMins) effT += 1440;
-                                          return effT >= gOpenMins && effT < gCloseMins;
-                                        }).map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
-                                      </Select>
-                                    </FormControl>
-                                  </Box>
-                                  <Box sx={{ width: '100%' }}>
-                                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Cierre</Typography>
-                                    <FormControl size="small" sx={{ width: '100%' }}>
-                                      <Select value={shift.closingTime} onChange={(e) => updateShiftConfig(day, shift.id, 'closingTime', e.target.value)} sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
-                                        {TIME_OPTIONS.map(t => {
-                                          const tMins = toMinutes(t);
-                                          const sOpenMins = toMinutes(shift.openingTime);
-                                          const isNextDay = tMins <= sOpenMins;
-                                          return (
-                                            <MenuItem key={t} value={t}>
-                                              {t}
-                                            </MenuItem>
-                                          );
-                                        })}
-                                      </Select>
-                                    </FormControl>
-                                  </Box>
-                                  <Box sx={{ width: '100%' }}>
-                                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', mb: '4px', textTransform: 'uppercase' }}>Intervalo</Typography>
-                                    <FormControl size="small" sx={{ width: '100%' }}>
-                                      <Select value={shift.interval} onChange={(e) => updateShiftConfig(day, shift.id, 'interval', parseInt(e.target.value))}  sx={{ height: { xs: 52, md: 36 }, fontSize: { xs: '16px', md: '14px' }, borderRadius: '4px', fontFamily: 'Roboto', color: '#202124' }}>
-                                        {INTERVAL_OPTIONS.map(i => <MenuItem key={i} value={i}>{i} min</MenuItem>)}
-                                      </Select>
-                                    </FormControl>
-                                  </Box>
-                                  <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                                    <Button 
-                                      variant="outlined" disabled={!isValid} onClick={() => handleRegenerateSlots(day, shift.id)}
-                                      sx={{ 
-                                        width: '100%', height: { xs: 52, md: 36 }, borderRadius: '4px', color: '#1A73E8', borderColor: '#1A73E8',
-                                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none',
-                                        '&.Mui-disabled': { borderColor: '#E0E0E0', color: '#BDBDBD' }
-                                      }}
-                                      startIcon={<span className="material-icons" style={{ fontSize: 16 }}>refresh</span>}
-                                    >
-                                      Regenerar slots
-                                    </Button>
-                                  </Box>
-                                </Box>
-                                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A', mt: '8px' }}>
-                                  Horario permitido: {globalHours.openingTime} – {globalHours.closingTime} {toMinutes(globalHours.closingTime) <= toMinutes(globalHours.openingTime) ? '' : ''}
-                                </Typography>
-                                {regenMsg?.day === day && regenMsg?.shiftId === shift.id && (
-                                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#1A73E8', mt: '8px' }}>{regenMsg.msg}</Typography>
-                                )}
-                              </Box>
-
-                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', py: '12px' }}>
-                                <Box sx={{ 
-                                  display: 'flex', 
-                                  [DESKTOP]: { gap: '24px' }, [TABLET]: { gap: '24px' }, [MOBILE]: { gap: '8px', width: '100%', flexDirection: 'column' }
-                                }}>
-                                  <Button sx={{ 
-                                    textTransform: 'none', color: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', 
-                                    [MOBILE]: { width: '100%', height: 44, border: '1px solid currentColor' },
-                                    [TABLET]: { p: 0 }, [DESKTOP]: { p: 0 } 
-                                  }} onClick={() => toggleAllWeekly(day, shift.id, true)}>
-                                    Abrir todos
-                                  </Button>
-                                  <Button sx={{ 
-                                    textTransform: 'none', color: '#D93025', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px',
-                                    [MOBILE]: { width: '100%', height: 44, border: '1px solid currentColor' },
-                                    [TABLET]: { p: 0 }, [DESKTOP]: { p: 0 }
-                                  }} onClick={() => toggleAllWeekly(day, shift.id, false)}>
-                                    Cerrar todos
-                                  </Button>
-                                </Box>
-                              </Box>
-
-                              <Box sx={{ 
-                                display: 'grid', 
-                                [DESKTOP]: { gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', mt: '12px' },
-                                [TABLET]: { gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', mt: '12px' },
-                                [MOBILE]: { gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', mt: '12px' }
-                              }}>
-                                {Object.keys(shift.slots).sort().map(time => {
-                                  const isOpen = shift.slots[time];
-                                  return (
-                                    <Box 
-                                      key={time} onClick={() => toggleSlotWeekly(day, shift.id, time) }
-                                      sx={{
-                                        width: '100%', height: { xs: 44, md: 40 }, borderRadius: '4px',
-                                        display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
-                                        bgcolor: isOpen ? '#FFFFFF' : '#F1F3F4',
-                                        border: `1px solid ${isOpen ? '#1A73E8' : '#E0E0E0'}`,
-                                        color: isOpen ? '#1A73E8' : '#BDBDBD', userSelect: 'none',
-                                      }}
-                                    >
-                                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: { xs: '13px', md: '14px' } }}>{time}</Typography>
-                                    </Box>
-                                  );
-                                })}
-                              </Box>
-                            </Box>
-                          );
-                        })}
-
-                        {hasOverlap && <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#D93025', textAlign: 'center' }}>El turno 2 se solapa</Typography>}
-
-                        {dayConfig.shifts.length === 1 && (
-                          <Box sx={{ display: 'flex' }}>
-                             <Button 
-                               variant="outlined" onClick={() => addShift(day)} startIcon={<span className="material-icons" style={{ fontSize: 16 }}>add</span>}
-                               sx={{ height: 44, px: '16px', borderRadius: '4px', color: '#1A73E8', borderColor: '#1A73E8', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'none', [MOBILE]: { width: '100%' } }}
-                             >
-                               Añadir turno 2
-                             </Button>
-                          </Box>
-                        )}
-                      </Box>
-                    )}
-                  </AccordionDetails>
-                </Accordion>
-              );
-            })}
-
-            <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end', [MOBILE]: { mt: '16px' } }}>
-              <Button 
-                variant="contained" onClick={manualSave} disabled={saving} 
-                sx={{ 
-                  height: { xs: 44, md: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
-                  fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
-                  '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
-                  [MOBILE]: { width: '100%' }
-                }}
-              >
-                {saving ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR PLANTILLA'}
-              </Button>
-            </Box>
+      {/* CALENDAR CONTENT AREA */}
+      <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', bgcolor: '#FFFFFF' }}>
+        {loading && (
+          <Box sx={{ position: 'absolute', inset: 0, zIndex: 10, bgcolor: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CircularProgress />
           </Box>
         )}
+        
+        {/* View Grid will go here */}
+        {view === 'month' && (
+          <MonthView 
+            currentDate={currentDate} 
+            range={visibleRange} 
+            reservations={reservations} 
+            onCellClick={(date) => {
+              setBookingInitialData({ date: formatDateISO(date) });
+              setIsBookingModalOpen(true);
+            }}
+            onResClick={setSelectedRes}
+          />
+        )}
+        {view === 'week' && (
+          <WeekView 
+            currentDate={currentDate} 
+            range={visibleRange} 
+            reservations={reservations} 
+            globalHours={globalHours}
+            onResClick={setSelectedRes}
+            handleDragStart={handleDragStart}
+            dragRes={dragRes}
+            dragDiffY={dragDiffY}
+            onCellClick={(date, time) => {
+              setBookingInitialData({ date: formatDateISO(date), time });
+              setIsBookingModalOpen(true);
+            }}
+          />
+        )}
+        {view === 'day' && (
+          <DayView 
+            currentDate={currentDate} 
+            reservations={reservations} 
+            globalHours={globalHours}
+            onResClick={setSelectedRes}
+            handleDragStart={handleDragStart}
+            dragRes={dragRes}
+            dragDiffY={dragDiffY}
+            onCellClick={(date, time) => {
+              setBookingInitialData({ date: formatDateISO(date), time });
+              setIsBookingModalOpen(true);
+            }}
+          />
+        )}
 
-        {/* --- TAB 3: FECHAS BLOQUEADAS --- */}
-        {currentTab === 2 && (
-          <Box sx={{ 
-            display: 'flex', alignItems: 'flex-start',
-            [DESKTOP]: { gap: '24px', flexDirection: 'row', p: '24px' },
-            [TABLET]: { gap: '24px', flexDirection: 'column', p: '24px' },
-            [MOBILE]: { gap: '24px', flexDirection: 'column', p: '16px' }
-          }}>
-            
-            <Paper sx={{ 
-              flexShrink: 0, p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none',
-              [DESKTOP]: { width: 400 },
-              [TABLET]: { width: '100%' },
-              [MOBILE]: { width: '100%', p: '16px' }
-            }}>
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: '24px' }}>
-                <IconButton onClick={() => changeBlockMonth(-1)} size="small" sx={{ color: '#70757A' }}>
-                  <span className="material-icons" style={{ fontSize: 20 }}>keyboard_arrow_left</span>
-                </IconButton>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', width: 140, textAlign: 'center', color: '#202124' }}>
-                  {MONTH_NAMES[blockMonthStart.getMonth()]} {blockMonthStart.getFullYear()}
-                </Typography>
-                <IconButton onClick={() => changeBlockMonth(1)} size="small" sx={{ color: '#70757A' }}>
-                  <span className="material-icons" style={{ fontSize: 20 }}>keyboard_arrow_right</span>
-                </IconButton>
+        <ReservationDrawer 
+          reservation={selectedRes} 
+          onClose={() => setSelectedRes(null)} 
+          onRefresh={fetchReservations}
+          onEdit={(res) => {
+            setSelectedRes(null);
+            setBookingInitialData(res);
+            setIsBookingModalOpen(true);
+          }}
+        />
+        
+        <BookingModal 
+          open={isBookingModalOpen} 
+          initialData={bookingInitialData}
+          onClose={() => {
+            setIsBookingModalOpen(false);
+            setBookingInitialData(null);
+          }}
+          onSuccess={() => {
+            setIsBookingModalOpen(false);
+            setBookingInitialData(null);
+            fetchReservations();
+          }}
+        />
+
+        {/* Drag Confirmation */}
+        <Dialog open={!!confirmMove} onClose={() => setConfirmMove(null)}>
+          <DialogTitle sx={{ fontFamily: 'Roboto', fontSize: '16px' }}>¿Mover reserva?</DialogTitle>
+          <DialogContent>
+            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
+              ¿Mover a las {confirmMove?.newTime}?
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setConfirmMove(null)} sx={{ color: '#70757A' }}>Cancelar</Button>
+            <Button 
+              onClick={async () => {
+                const { id, newTime } = confirmMove;
+                try {
+                  await apiClient(`/admin/reservations/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ time: newTime })
+                  });
+                  fetchReservations();
+                } catch (e) { console.error(e); }
+                setConfirmMove(null);
+              }} 
+              sx={{ color: '#1A73E8', fontWeight: 500 }}
+            >
+              Mover
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Box>
+  );
+}
+
+// --- SUB-COMPONENTS ---
+
+function MonthView({ currentDate, range, reservations, onCellClick, onResClick }) {
+  const days = useMemo(() => {
+    const arr = [];
+    let curr = new Date(range.startDate);
+    while (curr <= range.endDate) {
+      arr.push(new Date(curr));
+      curr.setDate(curr.getDate() + 1);
+    }
+    return arr;
+  }, [range]);
+
+  const reservationsByDate = useMemo(() => {
+    const map = {};
+    reservations.forEach(r => {
+      if (!map[r.date]) map[r.date] = [];
+      map[r.date].push(r);
+    });
+    // Sort by time
+    Object.keys(map).forEach(d => {
+      map[d].sort((a, b) => a.time.localeCompare(b.time));
+    });
+    return map;
+  }, [reservations]);
+
+  const todayStr = formatDateISO(new Date());
+  
+  const [popoverAnchor, setPopoverAnchor] = useState(null);
+  const [popoverDate, setPopoverDate] = useState(null);
+
+  const handleOpenMore = (e, date) => {
+    e.stopPropagation();
+    setPopoverAnchor(e.currentTarget);
+    setPopoverDate(date);
+  };
+
+  const popoverRes = popoverDate ? (reservationsByDate[formatDateISO(popoverDate)] || []) : [];
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      {/* Header Row */}
+      <Box sx={{ display: 'flex', borderBottom: '1px solid #E0E0E0', height: 40, minHeight: 40 }}>
+        {DAY_NAMES_SHORT.slice(1).concat(DAY_NAMES_SHORT[0]).map(d => (
+          <Box key={d} sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid #E0E0E0' }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A' }}>
+              {d}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Grid Rows */}
+      <Box sx={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: '1fr', overflowY: 'auto' }}>
+        {days.map((date, i) => {
+          const dateStr = formatDateISO(date);
+          const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+          const isToday = dateStr === todayStr;
+          const dayRes = reservationsByDate[dateStr] || [];
+          
+          return (
+            <Box 
+              key={dateStr}
+              onClick={() => onCellClick(date)}
+              sx={{ 
+                borderRight: '1px solid #E0E0E0', borderBottom: '1px solid #E0E0E0',
+                p: '4px', display: 'flex', flexDirection: 'column', gap: '2px',
+                minHeight: 120, bgcolor: isCurrentMonth ? '#FFFFFF' : '#F8F9FA',
+                '&:hover': { bgcolor: '#F8F9FA' }
+              }}
+            >
+              {/* Day Number */}
+              <Box sx={{ display: 'flex', mb: '4px' }}>
+                <Box sx={{ 
+                  width: 24, height: 24, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  bgcolor: isToday ? '#1A73E8' : 'transparent',
+                  color: isToday ? '#FFFFFF' : (isCurrentMonth ? '#70757A' : '#BDBDBD'),
+                  fontFamily: 'Roboto', fontWeight: isToday ? 500 : 400, fontSize: '12px'
+                }}>
+                  {date.getDate()}
+                </Box>
               </Box>
 
-              {renderMonthGrid()}
-              
-
-            </Paper>
-
-            <Box sx={{ flex: 1, minHeight: 100, width: '100%' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#70757A', mb: '16px', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '1px' }}>
-                Fechas Bloqueadas
-              </Typography>
-              
-              {blockedDates.length === 0 && !blockedMeta ? (
-                <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>No hay fechas bloqueadas</Typography>
-              ) : (
-                <Box>
-                  {blockedDates.length === 0 ? (
-                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>No hay fechas bloqueadas</Typography>
-                  ) : (
-                    <Box sx={{ border: '1px solid #E0E0E0', borderRadius: '4px', bgcolor: '#FFFFFF' }}>
-                      {blockedDates.map((dateStr, idx) => {
-                        const d = new Date(dateStr + 'T12:00:00');
-                        const label = `${DAY_LABELS[dayNameMapping[d.getDay()]]}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
-                        return (
-                          <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '16px', height: 48, borderBottom: idx < blockedDates.length - 1 ? '1px solid #E0E0E0' : 'none', boxSizing: 'border-box' }}>
-                            <Typography sx={{ fontFamily: 'Roboto', color: '#202124', fontSize: '14px' }}>{label}</Typography>
-                            <IconButton size="small" onClick={() => toggleBlockDate(new Date(dateStr + 'T12:00:00'))} sx={{ color: '#D93025' }}>
-                              <span className="material-icons" style={{ fontSize: 20 }}>close</span>
-                            </IconButton>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                  )}
-                  {blockedMeta && blockedMeta.last_page > 1 && (
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', mt: '12px' }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#70757A' }}>
-                        {blockedMeta.current_page} / {blockedMeta.last_page}
+              {/* Chips */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                {dayRes.slice(0, 3).map(res => {
+                  const colors = STATUS_COLORS[res.status] || STATUS_COLORS.pending;
+                  return (
+                    <Box 
+                      key={res.id}
+                      onClick={(e) => { e.stopPropagation(); onResClick(res); }}
+                      sx={{ 
+                        height: 22, px: '6px', borderRadius: '4px', bgcolor: colors.bg,
+                        display: 'flex', alignItems: 'center', cursor: 'pointer',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        border: `1px solid ${colors.bg}` // subtle border
+                      }}
+                    >
+                      <Typography sx={{ 
+                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: colors.text,
+                        overflow: 'hidden', textOverflow: 'ellipsis'
+                      }}>
+                        {res.time.slice(0, 5)} {res.customer?.name}
                       </Typography>
-                      <IconButton size="small" disabled={blockedMeta.current_page <= 1} onClick={() => setBlockedPage(p => p - 1)} sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', '&.Mui-disabled': { borderColor: '#E0E0E0' } }}>
-                        <span className="material-icons" style={{ fontSize: 16, color: blockedMeta.current_page <= 1 ? '#BDBDBD' : '#70757A' }}>chevron_left</span>
-                      </IconButton>
-                      <IconButton size="small" disabled={blockedMeta.current_page >= blockedMeta.last_page} onClick={() => setBlockedPage(p => p + 1)} sx={{ width: 28, height: 28, border: '1px solid #DADCE0', borderRadius: '4px', '&.Mui-disabled': { borderColor: '#E0E0E0' } }}>
-                        <span className="material-icons" style={{ fontSize: 16, color: blockedMeta.current_page >= blockedMeta.last_page ? '#BDBDBD' : '#70757A' }}>chevron_right</span>
-                      </IconButton>
                     </Box>
+                  );
+                })}
+                {dayRes.length > 3 && (
+                  <Box 
+                    onClick={(e) => handleOpenMore(e, date)}
+                    sx={{ 
+                      height: 20, px: '6px', borderRadius: '4px', bgcolor: '#F1F3F4',
+                      display: 'flex', alignItems: 'center', cursor: 'pointer',
+                      '&:hover': { bgcolor: '#E0E0E0' }
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A' }}>
+                      +{dayRes.length - 3} más
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+
+      {/* Popover for "More" */}
+      <Dialog 
+        open={Boolean(popoverAnchor)} 
+        onClose={() => setPopoverAnchor(null)}
+        PaperProps={{ sx: { borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', minWidth: 240 } }}
+      >
+        <Box sx={{ p: '12px' }}>
+          <Typography sx={{ fontFamily: 'Roboto', fontSize: '11px', color: '#70757A', fontWeight: 500, mb: '12px', textTransform: 'uppercase' }}>
+            {popoverDate ? `${DAY_NAMES_FULL[popoverDate.getDay()]}, ${popoverDate.getDate()}` : ''}
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {popoverRes.map(res => {
+              const colors = STATUS_COLORS[res.status] || STATUS_COLORS.pending;
+              return (
+                <Box 
+                  key={res.id}
+                  onClick={() => { onResClick(res); setPopoverAnchor(null); }}
+                  sx={{ 
+                    height: 24, px: '8px', borderRadius: '4px', bgcolor: colors.bg,
+                    display: 'flex', alignItems: 'center', cursor: 'pointer',
+                    '&:hover': { opacity: 0.8 }
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: colors.text }}>
+                    {res.time.slice(0, 5)} {res.customer?.name}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      </Dialog>
+    </Box>
+  );
+}
+
+function WeekView({ currentDate, range, reservations, globalHours, onResClick, handleDragStart, dragRes, dragDiffY, onCellClick }) {
+  const days = useMemo(() => {
+    const arr = [];
+    let curr = new Date(range.startDate);
+    while (arr.length < 7) {
+      arr.push(new Date(curr));
+      curr.setDate(curr.getDate() + 1);
+    }
+    return arr;
+  }, [range]);
+
+  const timeSlots = useMemo(() => {
+    const startMins = toMinutes(globalHours.openingTime || '09:00');
+    let endMins = toMinutes(globalHours.closingTime || '00:00');
+    if (endMins <= startMins) endMins += 1440;
+    
+    const slots = [];
+    for (let m = startMins; m < endMins; m += 30) {
+      slots.push(toTimeString(m));
+    }
+    return slots;
+  }, [globalHours]);
+
+  const reservationsByDay = useMemo(() => {
+    const map = {};
+    reservations.forEach(r => {
+      if (!map[r.date]) map[r.date] = [];
+      map[r.date].push(r);
+    });
+    return map;
+  }, [reservations]);
+
+  const todayStr = formatDateISO(new Date());
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', borderBottom: '1px solid #E0E0E0', bgcolor: '#FFFFFF' }}>
+        <Box sx={{ width: 60, borderRight: '1px solid #E0E0E0', flexShrink: 0 }} />
+        {days.map(date => {
+          const dateStr = formatDateISO(date);
+          const isToday = dateStr === todayStr;
+          return (
+            <Box key={dateStr} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', py: '8px', borderRight: '1px solid #E0E0E0' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontSize: '11px', color: '#70757A', fontWeight: 500 }}>
+                {DAY_NAMES_SHORT[date.getDay()]}
+              </Typography>
+              <Box sx={{ 
+                width: 36, height: 36, borderRadius: '50%', mt: '4px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                bgcolor: isToday ? '#1A73E8' : 'transparent',
+                color: isToday ? '#FFFFFF' : '#202124',
+                fontFamily: 'Roboto', fontSize: '22px'
+              }}>
+                {date.getDate()}
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+      <Box sx={{ flex: 1, display: 'flex', overflowY: 'auto', position: 'relative' }}>
+        <Box sx={{ width: 60, flexShrink: 0, borderRight: '1px solid #E0E0E0', bgcolor: '#FFFFFF' }}>
+          {timeSlots.map(time => (
+            <Box key={time} sx={{ height: 48, position: 'relative' }}>
+              {time.endsWith(':00') && (
+                <Typography sx={{ 
+                  position: 'absolute', top: -6, right: 8, 
+                  fontFamily: 'Roboto', fontSize: '11px', color: '#70757A' 
+                }}>
+                  {time}
+                </Typography>
+              )}
+            </Box>
+          ))}
+        </Box>
+        {days.map(date => {
+          const dateStr = formatDateISO(date);
+          const dayRes = reservationsByDay[dateStr] || [];
+          const isToday = dateStr === todayStr;
+          return (
+            <Box key={dateStr} sx={{ flex: 1, borderRight: '1px solid #E0E0E0', position: 'relative', bgcolor: isToday ? '#FAFBFF' : 'transparent' }}>
+              {timeSlots.map(time => (
+                <Box 
+                  key={time} 
+                  onClick={() => onCellClick(date, time)}
+                  sx={{ height: 48, borderBottom: `1px solid ${time.endsWith(':00') ? '#E0E0E0' : '#F1F3F4'}`, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(26, 115, 232, 0.04)' } }} 
+                />
+              ))}
+              {renderDayReservations(dayRes, globalHours, onResClick, false, handleDragStart, dragRes, dragDiffY)}
+              {isToday && <CurrentTimeLine startMins={toMinutes(globalHours.openingTime || '09:00')} />}
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
+function DayView({ currentDate, reservations, globalHours, onResClick, handleDragStart, dragRes, dragDiffY, onCellClick }) {
+  const dateStr = formatDateISO(currentDate);
+  const dayRes = reservations.filter(r => r.date === dateStr);
+  const isToday = dateStr === formatDateISO(new Date());
+  const timeSlots = useMemo(() => {
+    const startMins = toMinutes(globalHours.openingTime || '09:00');
+    let endMins = toMinutes(globalHours.closingTime || '00:00');
+    if (endMins <= startMins) endMins += 1440;
+    const slots = [];
+    for (let m = startMins; m < endMins; m += 30) {
+      slots.push(toTimeString(m));
+    }
+    return slots;
+  }, [globalHours]);
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <Box sx={{ flex: 1, display: 'flex', overflowY: 'auto', position: 'relative' }}>
+        <Box sx={{ width: 60, flexShrink: 0, borderRight: '1px solid #E0E0E0', bgcolor: '#FFFFFF' }}>
+          {timeSlots.map(time => (
+            <Box key={time} sx={{ height: 48, position: 'relative' }}>
+              {time.endsWith(':00') && (
+                <Typography sx={{ position: 'absolute', top: -6, right: 8, fontFamily: 'Roboto', fontSize: '11px', color: '#70757A' }}>
+                  {time}
+                </Typography>
+              )}
+            </Box>
+          ))}
+        </Box>
+        <Box sx={{ flex: 1, position: 'relative' }}>
+          {timeSlots.map(time => (
+            <Box 
+              key={time} 
+              onClick={() => onCellClick(currentDate, time)}
+              sx={{ height: 48, borderBottom: `1px solid ${time.endsWith(':00') ? '#E0E0E0' : '#F1F3F4'}`, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(26, 115, 232, 0.04)' } }} 
+            />
+          ))}
+          {renderDayReservations(dayRes, globalHours, onResClick, true, handleDragStart, dragRes, dragDiffY)}
+          {isToday && <CurrentTimeLine startMins={toMinutes(globalHours.openingTime || '09:00')} />}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+function renderDayReservations(dayRes, globalHours, onResClick, isDayView = false, onDragStart, dragRes, dragDiffY) {
+  const grouped = {};
+  dayRes.sort((a, b) => a.time.localeCompare(b.time)).forEach(r => {
+    if (!grouped[r.time]) grouped[r.time] = [];
+    grouped[r.time].push(r);
+  });
+  const startMins = toMinutes(globalHours.openingTime || '09:00');
+  return Object.values(grouped).flatMap(group => {
+    const widthPercent = 100 / group.length;
+    return group.map((res, idx) => {
+      const resMins = toMinutes(res.time);
+      let top = ((resMins - startMins) / 30) * 48;
+      const isDragging = dragRes?.id === res.id;
+      if (isDragging) {
+        top += dragDiffY;
+      }
+      
+      const colors = STATUS_COLORS[res.status?.toUpperCase()] || STATUS_COLORS.CONFIRMADA;
+      return (
+        <Box 
+          key={res.id} 
+          onClick={(e) => { e.stopPropagation(); onResClick(res); }} 
+          onMouseDown={(e) => onDragStart && onDragStart(e, res)}
+          sx={{ 
+            position: 'absolute', top: top + 2, left: `${idx * widthPercent}%`, width: `calc(${widthPercent}% - 4px)`, 
+            height: 44, bgcolor: colors.bg, borderRadius: '4px', borderLeft: `3px solid ${colors.border}`, 
+            p: '4px 8px', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'grab', zIndex: isDragging ? 100 : 5, 
+            transition: isDragging ? 'none' : 'all 200ms ease', 
+            '&:hover': { boxShadow: '0 2px 4px rgba(0,0,0,0.15)', zIndex: 10 },
+            ...(isDragging && { opacity: 0.7, boxShadow: '0 4px 12px rgba(0,0,0,0.2)', cursor: 'grabbing' })
+          }}
+        >
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: colors.text }}>
+            {res.time.slice(0, 5)} · {res.customer?.name}
+          </Typography>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>
+            {res.guests} pers · {res.table_type?.name}
+          </Typography>
+        </Box>
+      );
+    });
+  });
+}
+
+function CurrentTimeLine({ startMins }) {
+  const [mins, setMins] = useState(new Date().getHours() * 60 + new Date().getMinutes());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setMins(now.getHours() * 60 + now.getMinutes());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+  const top = ((mins - startMins) / 30) * 48;
+  if (top < 0) return null;
+  return (
+    <Box sx={{ position: 'absolute', top, left: 0, right: 0, height: 2, bgcolor: '#D93025', zIndex: 20, pointerEvents: 'none' }}>
+      <Box sx={{ position: 'absolute', left: -4, top: -3, width: 8, height: 8, borderRadius: '50%', bgcolor: '#D93025' }} />
+    </Box>
+  );
+}
+
+function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
+  const [loading, setLoading] = useState(false);
+
+  if (!reservation) return null;
+
+  const handleStatusUpdate = async (newStatus) => {
+    setLoading(true);
+    try {
+      await apiClient(`/admin/reservations/${reservation.id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus })
+      });
+      onRefresh();
+      onClose();
+    } catch (e) {
+      console.error('Failed to update status', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const colors = STATUS_COLORS[reservation.status?.toUpperCase()] || STATUS_COLORS.PENDIENTE;
+
+  return (
+    <Drawer
+      anchor="right"
+      open={!!reservation}
+      onClose={onClose}
+      PaperProps={{ sx: { width: { xs: '100%', sm: 400 }, borderLeft: 'none', boxShadow: '-4px 0 12px rgba(0,0,0,0.1)' } }}
+    >
+      <Box sx={{ p: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' }}>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
+            Detalles de Reserva
+          </Typography>
+          <IconButton onClick={onClose} size="small">
+            <span className="material-icons">close</span>
+          </IconButton>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '24px' }}>
+          <Avatar sx={{ width: 48, height: 48, bgcolor: '#1A73E8' }}>
+            {reservation.customer?.name?.[0].toUpperCase() || '?'}
+          </Avatar>
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#202124' }}>
+              {reservation.customer?.name}
+            </Typography>
+            <Box sx={{ px: '8px', py: '2px', borderRadius: '4px', bgcolor: colors.bg, display: 'inline-block', mt: '4px' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: colors.text, textTransform: 'uppercase' }}>
+                {colors.label}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        <Divider sx={{ mb: '24px' }} />
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+          <InfoRow icon="calendar_today" label="Fecha" value={reservation.date} />
+          <InfoRow icon="schedule" label="Hora" value={reservation.time.slice(0, 5)} />
+          <InfoRow icon="people" label="Comensales" value={`${reservation.guests} personas`} />
+          <InfoRow icon="table_restaurant" label="Mesa" value={reservation.table_type?.name || 'Cualquiera'} />
+          <InfoRow icon="event" label="Evento" value={reservation.special_event?.name || 'Venta Estándar'} />
+          <InfoRow icon="phone" label="Teléfono" value={reservation.customer?.phone || 'Sin teléfono'} />
+          <InfoRow icon="email" label="Email" value={reservation.customer?.email || 'Sin email'} />
+          
+          {reservation.special_requests && (
+            <Box sx={{ mt: '8px' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', mb: '4px' }}>
+                Notas Especiales
+              </Typography>
+              <Paper sx={{ p: '12px', bgcolor: '#F8F9FA', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
+                  {reservation.special_requests}
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 12, mt: '24px' }}>
+          <Button 
+            fullWidth variant="text" onClick={() => navigate(`/admin/reservations/${reservation.id}`)}
+            sx={{ color: '#1A73E8', textTransform: 'none', fontWeight: 500, mb: 1 }}
+          >
+            Ver detalles completos
+          </Button>
+          {reservation.status === 'PENDIENTE' && (
+            <Button 
+              fullWidth variant="contained" onClick={() => handleStatusUpdate('CONFIRMADA')}
+              disabled={loading}
+              sx={{ bgcolor: '#34A853', '&:hover': { bgcolor: '#2D8E47' }, textTransform: 'none', py: '10px' }}
+            >
+              Confirmar Reserva
+            </Button>
+          )}
+          {reservation.status === 'CONFIRMADA' && (
+            <Button 
+              fullWidth variant="contained" onClick={() => handleStatusUpdate('ASISTIÓ')}
+              disabled={loading}
+              sx={{ bgcolor: '#1A73E8', '&:hover': { bgcolor: '#1557B0' }, textTransform: 'none', py: '10px' }}
+            >
+              Marcar como Llegado
+            </Button>
+          )}
+
+          {/* EDIT BUTTON */}
+          <Button 
+            fullWidth variant="outlined" onClick={() => onEdit(reservation)}
+            disabled={loading}
+            sx={{ color: '#1A73E8', borderColor: '#DADCE0', '&:hover': { bgcolor: '#E8F0FE', borderColor: '#1A73E8' }, textTransform: 'none', py: '10px' }}
+          >
+            Editar Reserva
+          </Button>
+
+          {reservation.status !== 'CANCELADA' && (
+            <Button 
+              fullWidth variant="outlined" onClick={() => handleStatusUpdate('CANCELADA')}
+              disabled={loading}
+              sx={{ color: '#D93025', borderColor: '#DADCE0', '&:hover': { bgcolor: '#FEEBEE', borderColor: '#D93025' }, textTransform: 'none', py: '10px' }}
+            >
+              Cancelar Reserva
+            </Button>
+          )}
+        </Box>
+      </Box>
+    </Drawer>
+  );
+}
+
+function InfoRow({ icon, label, value }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+      <span className="material-icons" style={{ color: '#70757A', fontSize: 20, marginTop: 2 }}>{icon}</span>
+      <Box>
+        <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', textTransform: 'uppercase', fontWeight: 500, mb: '2px' }}>
+          {label}
+        </Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontSize: '15px', color: '#202124' }}>
+          {value}
+        </Typography>
+      </Box>
+    </Box>
+  );
+}
+
+function BookingModal({ open, initialData, onClose, onSuccess }) {
+  const [loading, setLoading] = useState(false);
+  const adminCalendar = useSettingsStore(state => state.adminCalendar);
+  const globalSettings = useSettingsStore(state => state.globalSettings);
+  const storeLoading = useSettingsStore(state => state.loading);
+
+  const [form, setForm] = useState({
+    name: '', phone: '', email: '', date: '', time: '', guests: 2, notes: '', status: 'CONFIRMADA'
+  });
+
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customersResults, setCustomersResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef(null);
+
+  const [tableTypes, setTableTypes] = useState([]);
+  const [specialEvents, setSpecialEvents] = useState([]);
+  const [tableTypeId, setTableTypeId] = useState('');
+  const [specialEventId, setSpecialEventId] = useState('');
+  const [showNotes, setShowNotes] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      if (initialData?.id) {
+        // Edit Mode
+        setForm({
+          name: initialData.customer?.name || '',
+          phone: initialData.customer?.phone || '',
+          email: initialData.customer?.email || '',
+          date: initialData.date,
+          time: initialData.time.slice(0, 5),
+          guests: initialData.guests,
+          notes: initialData.special_requests || '',
+          status: initialData.status
+        });
+        setSelectedCustomer(initialData.customer);
+        setTableTypeId(initialData.table_type_id || '');
+        setSpecialEventId(initialData.special_event_id || '');
+        setShowNotes(!!initialData.special_requests);
+      } else {
+        // New Mode
+        setForm({
+          name: '', phone: '', email: '', 
+          date: initialData?.date || formatDateISO(new Date()),
+          time: initialData?.time || '',
+          guests: globalSettings?.minGuests || 2,
+          notes: '',
+          status: 'CONFIRMADA'
+        });
+        setSelectedCustomer(null);
+        setCustomerSearch('');
+        setShowNotes(false);
+      }
+      fetchDependencies();
+    }
+  }, [open, initialData, globalSettings]);
+
+  const fetchDependencies = async () => {
+    try {
+      const [tRes, eRes] = await Promise.all([
+        apiClient('/admin/table-types'),
+        apiClient('/admin/special-events')
+      ]);
+      const activeTypes = (tRes.data ?? tRes).filter(t => t.is_active);
+      const activeEvents = (eRes.data ?? eRes).filter(e => e.is_active);
+      setTableTypes(activeTypes);
+      setSpecialEvents(activeEvents);
+      if (!initialData?.id) {
+        if (activeTypes.length > 0) setTableTypeId(activeTypes[0].id);
+        if (activeEvents.length > 0) setSpecialEventId('');
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  // Customer search logic
+  useEffect(() => {
+    if (customerSearch.length < 2) {
+      setCustomersResults([]);
+      setShowResults(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const data = await apiClient(`/admin/customers?search=${encodeURIComponent(customerSearch)}`);
+        setCustomersResults(data.data ?? data);
+        setShowResults(true);
+      } catch (err) { console.error(err); }
+      finally { setIsSearching(false); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [customerSearch]);
+
+  const handleSelectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    setForm(prev => ({ ...prev, name: customer.name, email: customer.email || '', phone: customer.phone || '' }));
+    setCustomerSearch('');
+    setShowResults(false);
+  };
+
+  const dayNameKey = form.date ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date(form.date + 'T12:00:00').getDay()] : '';
+  const dayConfig = adminCalendar?.schedule?.[dayNameKey];
+  
+  const availableSlots = useMemo(() => {
+    if (!dayConfig?.open || !dayConfig?.shifts) return [];
+    const slots = [];
+    dayConfig.shifts.forEach(shift => {
+      const oMins = toMinutes(shift.openingTime);
+      let cMins = toMinutes(shift.closingTime);
+      if (cMins <= oMins) cMins += 1440;
+      for (let t = oMins; t <= cMins; t += shift.interval) {
+        slots.push(toTimeString(t));
+      }
+    });
+    return slots;
+  }, [dayConfig]);
+
+  useEffect(() => {
+    if (!initialData?.id && availableSlots.length > 0 && !form.time) {
+      setForm(prev => ({ ...prev, time: availableSlots[0] }));
+    }
+  }, [availableSlots, initialData]);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        ...(selectedCustomer ? { customer_id: selectedCustomer.id } : { user: { name: form.name, phone: form.phone, email: form.email || null } }),
+        date: form.date,
+        slot: { time: form.time }, // for adminStore/store
+        time: form.time, // for update
+        guests: form.guests,
+        table_type_id: tableTypeId,
+        special_event_id: specialEventId || null,
+        special_requests: form.notes,
+        status: form.status,
+        name: form.name, // for update
+        email: form.email, // for update
+        phone: form.phone // for update
+      };
+
+      if (initialData?.id) {
+        await apiClient(`/admin/reservations/${initialData.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      } else {
+        await apiClient('/admin/reservations', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      onSuccess();
+    } catch (e) {
+      console.error(e);
+      alert('Error al guardar la reserva');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: '4px', p: 0 } }}>
+      <DialogTitle sx={{ fontFamily: 'Roboto', fontWeight: 500, borderBottom: '1px solid #E0E0E0', bgcolor: '#F8F9FA' }}>
+        {initialData?.id ? 'Editar Reserva' : 'Nueva Reserva'}
+      </DialogTitle>
+      <DialogContent sx={{ p: '24px', mt: 2 }}>
+        <Grid container spacing={4}>
+          {/* CLIENTE PANEL */}
+          <Grid item xs={12} md={6}>
+            <Box sx={{ borderBottom: '1px solid #E0E0E0', mb: 2, pb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>person</span>
+              <Typography sx={{ fontWeight: 500 }}>Cliente</Typography>
+            </Box>
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {selectedCustomer ? (
+                <Box sx={{ p: 1.5, bgcolor: '#E8F0FE', borderRadius: '4px', border: '1px solid #1A73E8', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ width: 32, height: 32, bgcolor: '#1A73E8', fontSize: 13 }}>{selectedCustomer.name[0]}</Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#1A73E8' }}>{selectedCustomer.name}</Typography>
+                    <Typography sx={{ fontSize: 11, color: '#1A73E8', opacity: 0.8 }}>Cliente seleccionado</Typography>
+                  </Box>
+                  <IconButton size="small" onClick={() => setSelectedCustomer(null)}><span className="material-icons" style={{ fontSize: 18, color: '#1A73E8' }}>close</span></IconButton>
+                </Box>
+              ) : (
+                <Box sx={{ position: 'relative' }}>
+                  <TextField 
+                    fullWidth label="Nombre del Cliente" size="small"
+                    value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
+                    onFocus={() => customerSearch.length >= 2 && setShowResults(true)}
+                    placeholder="Escribe para buscar o crear..."
+                    InputProps={{ endAdornment: isSearching ? <CircularProgress size={16} /> : <span className="material-icons" style={{ color: '#70757A', fontSize: 20 }}>search</span> }}
+                  />
+                  {showResults && (
+                    <Paper sx={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, mt: 0.5, border: '1px solid #E0E0E0' }}>
+                      <List size="small">
+                        {customersResults.map(c => (
+                          <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)}>
+                            <ListItemText primary={c.name} secondary={c.phone || c.email} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Paper>
                   )}
                 </Box>
               )}
+              
+              <TextField 
+                fullWidth label="WhatsApp" size="small" value={form.phone} 
+                onChange={e => setForm({...form, phone: e.target.value})} 
+                placeholder="+34 000 000 000"
+              />
+              <TextField 
+                fullWidth label="Email" size="small" value={form.email} 
+                onChange={e => setForm({...form, email: e.target.value})} 
+              />
+            </Box>
+          </Grid>
+
+          {/* RESERVA PANEL */}
+          <Grid item xs={12} md={6}>
+            <Box sx={{ borderBottom: '1px solid #E0E0E0', mb: 2, pb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>event</span>
+              <Typography sx={{ fontWeight: 500 }}>Reserva</Typography>
             </Box>
 
-          </Box>
-        )}
-      </Paper>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField 
+                  sx={{ flex: 1 }} type="date" label="Fecha" size="small" value={form.date} 
+                  onChange={e => setForm({...form, date: e.target.value})} InputLabelProps={{ shrink: true }} 
+                />
+                <FormControl sx={{ flex: 1 }} size="small">
+                  <Select 
+                    value={form.time} onChange={e => setForm({...form, time: e.target.value})}
+                    displayEmpty renderValue={val => val || 'Slot'}
+                  >
+                    {availableSlots.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Box>
 
-      <Snackbar
-        open={toastOpen} autoHideDuration={2000} onClose={() => setToastOpen(false)} message="Cambios guardados" anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        ContentProps={{ sx: { bgcolor: '#323232', color: '#FFFFFF', borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px' } }}
-      />
-    </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography sx={{ flex: 1, fontSize: 13, color: '#70757A' }}>Comensales:</Typography>
+                <IconButton size="small" onClick={() => setForm({...form, guests: Math.max(1, form.guests - 1)})}>
+                  <span className="material-icons" style={{fontSize: 20}}>remove_circle_outline</span>
+                </IconButton>
+                <Typography sx={{ width: 20, textAlign: 'center', fontWeight: 500 }}>{form.guests}</Typography>
+                <IconButton size="small" onClick={() => setForm({...form, guests: form.guests + 1})}>
+                  <span className="material-icons" style={{fontSize: 20}}>add_circle_outline</span>
+                </IconButton>
+              </Box>
+
+              <FormControl fullWidth size="small">
+                <Select value={tableTypeId} onChange={e => setTableTypeId(e.target.value)} displayEmpty renderValue={v => tableTypes.find(t=>t.id===v)?.name || 'Tipo de Mesa'}>
+                  {tableTypes.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth size="small">
+                <Select value={specialEventId} onChange={e => setSpecialEventId(e.target.value)} displayEmpty renderValue={v => specialEvents.find(e=>e.id===v)?.name || 'Evento Especial (Opcional)'}>
+                  <MenuItem value="">Ninguno</MenuItem>
+                  {specialEvents.map(e => <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>)}
+                </Select>
+              </FormControl>
+
+              {!showNotes ? (
+                <Button onClick={() => setShowNotes(true)} sx={{ color: '#1A73E8', textTransform: 'none', alignSelf: 'flex-start', p: 0 }}>＋ Añadir nota</Button>
+              ) : (
+                <TextField 
+                  fullWidth multiline rows={2} label="Notas" size="small" value={form.notes} 
+                  onChange={e => setForm({...form, notes: e.target.value})} 
+                />
+              )}
+            </Box>
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions sx={{ p: '16px' }}>
+        <Button onClick={onClose} sx={{ color: '#70757A' }}>Cancelar</Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={loading || !form.name || !form.phone || !form.time} sx={{ bgcolor: '#1A73E8' }}>
+          {loading ? <CircularProgress size={24} /> : 'Guardar Reserva'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

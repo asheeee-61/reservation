@@ -7,14 +7,16 @@ const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
   'CONFIRMADA': { bg: '#E8F0FE', text: '#1A73E8' },
   'ASISTIÓ': { bg: '#E6F4EA', text: '#137333' },
-  'NO_ASISTIÓ': { bg: '#FDECEA', text: '#C5221F' }
+  'NO_ASISTIÓ': { bg: '#FDECEA', text: '#C5221F' },
+  'CANCELADA': { bg: '#F1F3F4', text: '#5F6368' }
 };
 
 const STATUS_LABELS = {
   'PENDIENTE': 'Pendiente',
   'CONFIRMADA': 'Confirmada',
   'ASISTIÓ': 'Asistió',
-  'NO_ASISTIÓ': 'No asistió'
+  'NO_ASISTIÓ': 'No asistió',
+  'CANCELADA': 'Cancelada'
 };
 
 const formatTimestamp = (isoString) => {

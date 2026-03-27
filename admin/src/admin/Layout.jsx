@@ -16,12 +16,13 @@ export default function Layout() {
   const userMenuRef = useRef(null);
 
   const menuItems = [
-    { text: 'Dashboard',    icon: 'dashboard',         path: '/admin' },
+    { text: 'Calendario',   icon: 'calendar_month',    path: '/admin/calendar' },
     { text: 'Reservations', icon: 'event',             path: '/admin/reservations' },
+    { text: 'Dashboard',    icon: 'dashboard',         path: '/admin' },
     { text: 'Clientes',     icon: 'people',            path: '/admin/customers' },
     { text: 'Tipos de Mesa',icon: 'table_restaurant',  path: '/admin/table-types' },
     { text: 'Eventos',      icon: 'celebration',       path: '/admin/special-events' },
-    { text: 'Calendario',   icon: 'calendar_month',    path: '/admin/calendar' },
+    { text: 'Horarios',     icon: 'schedule',          path: '/admin/schedule' },
     { text: 'Settings',     icon: 'settings',          path: '/admin/settings' }
   ];
 
@@ -37,6 +38,7 @@ export default function Layout() {
     if (path.startsWith('/admin/table-types')) return 'Tipos de Mesa';
     if (path.startsWith('/admin/special-events')) return 'Eventos';
     if (path.startsWith('/admin/calendar')) return 'Calendario';
+    if (path.startsWith('/admin/schedule')) return 'Control de Horarios';
     if (path.startsWith('/admin/settings')) return 'Settings';
     return 'Restaurant Admin';
   };

@@ -12,6 +12,7 @@ import TableTypes from './pages/TableTypes';
 import SpecialEvents from './pages/SpecialEvents';
 import Settings from './pages/Settings';
 import CalendarPanel from './pages/CalendarPanel';
+import SchedulePanel from './pages/SchedulePanel';
 import Login from './pages/Login';
 import { useAuthStore } from './store/useAuthStore';
 
@@ -133,6 +134,7 @@ function App() {
           <Route path="special-events" element={<SpecialEvents />} />
           <Route path="settings" element={<Settings />} />
           <Route path="calendar" element={<CalendarPanel />} />
+          <Route path="schedule" element={<SchedulePanel />} />
         </Route>
         {/* Redirect any other /admin/* to /admin/ */}
         <Route path="*" element={<Navigate to="/admin" replace />} />
