@@ -77,7 +77,7 @@ export default function CalendarPanel() {
       const schedule = data.schedule || {};
       DAYS.forEach(day => {
         if (!schedule[day]) schedule[day] = { open: true, shifts: [] };
-        if (!schedule[day].shifts) {
+        if (!schedule[day].shifts || schedule[day].shifts.length === 0) {
            const oldOp = schedule[day].openingTime || '09:00';
            const oldCl = schedule[day].closingTime || '23:30';
            const defaultInterval = useSettingsStore.getState().globalHours?.defaultInterval || 30;
