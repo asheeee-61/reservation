@@ -219,23 +219,10 @@ export default function LeftPanel({ onAutoAdvance }) {
 
           const isBlocked = config.blockedDays && config.blockedDays.includes(date);
           
-          if (isBlocked) {
-             return (
-               <Box sx={{ p: 2, bgcolor: '#FDECEA', color: '#D93025', display: 'flex', alignItems: 'center', borderRadius: '4px', mt: 2 }}>
-                 <span className="material-icons" style={{ marginRight: 8 }}>error</span>
-                 <Typography variant="body2" fontWeight={500}>No disponible este día</Typography>
-               </Box>
-             );
-          }
-
           const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
           const dayName = days[new Date(date).getDay()];
           const dayConfig = config.schedule?.[dayName] || { open: true, slots: {} };
           
-          if (!dayConfig.open) {
-             return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">Restaurante cerrado este día.</Typography>;
-          }
-
           let masterSlots = {};
           if (dayConfig.shifts && Array.isArray(dayConfig.shifts)) {
             dayConfig.shifts.forEach(shift => {
@@ -247,9 +234,41 @@ export default function LeftPanel({ onAutoAdvance }) {
 
           // Filter out slots that admin specifically closed
           const visibleSlots = slots.filter(slot => masterSlots[slot.time] !== false);
+          const hasNoSlots = visibleSlots.length === 0;
 
-          if (visibleSlots.length === 0) {
-            return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">No hay horarios disponibles para esta fecha.</Typography>;
+          if (isBlocked || !dayConfig.open || hasNoSlots) {
+             return (
+               <Box sx={{ 
+                 p: 4, 
+                 bgcolor: '#FDECEA', 
+                 borderRadius: '4px', 
+                 mt: 2,
+                 width: '100%',
+                 boxSizing: 'border-box'
+               }}>
+                 <Typography 
+                   sx={{ 
+                     fontFamily: 'Roboto', 
+                     fontWeight: 500, 
+                     fontSize: '14px', 
+                     color: '#C5221F',
+                     mb: 0.5
+                   }}
+                 >
+                   No disponible este día
+                 </Typography>
+                 <Typography 
+                   sx={{ 
+                     fontFamily: 'Roboto', 
+                     fontWeight: 400, 
+                     fontSize: '13px', 
+                     color: '#70757A'
+                   }}
+                 >
+                   Selecciona otra fecha para continuar
+                 </Typography>
+               </Box>
+             );
           }
 
           const todayObj = new Date();
