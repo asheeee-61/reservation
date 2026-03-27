@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use App\Models\Customer;
+use App\Models\DayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -86,7 +87,11 @@ class ReservationController extends Controller
         $dayOfWeek = strtolower(date('l', strtotime($date)));
         $dayConfig = $config['schedule'][$dayOfWeek] ?? ['open' => false, 'slots' => []];
 
-        if (!$dayConfig['open'] || collect($config['blockedDays'] ?? [])->contains($date)) {
+        // Check explicit day status from DB
+        $statusRecord = DayStatus::where('date', $date)->first();
+        $dayStatus = $statusRecord ? $statusRecord->status : DayStatus::STATUS_ABIERTO;
+
+        if (!$dayConfig['open'] || collect($config['blockedDays'] ?? [])->contains($date) || $dayStatus !== DayStatus::STATUS_ABIERTO) {
             return response()->json([]);
         }
 
@@ -159,6 +164,12 @@ class ReservationController extends Controller
             'special_event_id' => 'nullable|exists:special_events,id'
         ]);
 
+        $date = $validated['date'];
+        $statusRecord = DayStatus::where('date', $date)->first();
+        if ($statusRecord && $statusRecord->status === DayStatus::STATUS_BLOQUEADO) {
+            return response()->json(['error' => 'No se pueden realizar operaciones en un día bloqueado.'], 422);
+        }
+
         $resId = '#' . rand(1000, 9999);
 
         if ($request->filled('customer_id')) {
@@ -203,6 +214,11 @@ class ReservationController extends Controller
     public function update(Request $request, $id)
     {
         $reservation = Reservation::findOrFail($id);
+
+        $statusRecord = DayStatus::where('date', $reservation->date)->first();
+        if ($statusRecord && $statusRecord->status === DayStatus::STATUS_BLOQUEADO) {
+            return response()->json(['error' => 'No se pueden editar reservas en un día bloqueado.'], 422);
+        }
 
         // Allow partial PATCH for status only
         if ($request->isMethod('patch') && $request->has('status') && count($request->all()) === 1) {
@@ -303,6 +319,12 @@ class ReservationController extends Controller
         $request->validate(['status' => 'required|string']);
         
         $reservation = Reservation::findOrFail($id);
+        
+        $statusRecord = DayStatus::where('date', $reservation->date)->first();
+        if ($statusRecord && $statusRecord->status === DayStatus::STATUS_BLOQUEADO) {
+            return response()->json(['error' => 'No se puede cambiar el estado en un día bloqueado.'], 422);
+        }
+
         $oldStatus = $reservation->status;
         
         if ($oldStatus === $request->status) {

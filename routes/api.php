@@ -5,7 +5,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SearchController;
-
+use App\Http\Controllers\DayStatusController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,6 +20,7 @@ Route::get('/table-types', [TableTypeController::class, 'publicIndex']);
 // Endpoint for special events
 use App\Http\Controllers\SpecialEventController;
 Route::get('/special-events', [SpecialEventController::class, 'publicIndex']);
+Route::get('/day-status', [DayStatusController::class, 'show']);
 
 // Admin Authentication
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -51,4 +52,5 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/config', [SettingsController::class, 'updateConfig']);
     Route::get('/blocked-dates', [SettingsController::class, 'blockedDates']);
     Route::get('/search', [SearchController::class, 'index']);
+    Route::patch('/day-status', [DayStatusController::class, 'update']);
 });
