@@ -164,12 +164,6 @@ class ReservationController extends Controller
             'special_event_id' => 'nullable|exists:special_events,id'
         ]);
 
-        $date = $validated['date'];
-        $statusRecord = DayStatus::where('date', $date)->first();
-        if ($statusRecord && $statusRecord->status === DayStatus::STATUS_BLOQUEADO) {
-            return response()->json(['error' => 'No se pueden realizar operaciones en un día bloqueado.'], 422);
-        }
-
         $resId = '#' . rand(1000, 9999);
 
         if ($request->filled('customer_id')) {
@@ -214,11 +208,6 @@ class ReservationController extends Controller
     public function update(Request $request, $id)
     {
         $reservation = Reservation::findOrFail($id);
-
-        $statusRecord = DayStatus::where('date', $reservation->date)->first();
-        if ($statusRecord && $statusRecord->status === DayStatus::STATUS_BLOQUEADO) {
-            return response()->json(['error' => 'No se pueden editar reservas en un día bloqueado.'], 422);
-        }
 
         // Allow partial PATCH for status only
         if ($request->isMethod('patch') && $request->has('status') && count($request->all()) === 1) {
@@ -320,11 +309,6 @@ class ReservationController extends Controller
         
         $reservation = Reservation::findOrFail($id);
         
-        $statusRecord = DayStatus::where('date', $reservation->date)->first();
-        if ($statusRecord && $statusRecord->status === DayStatus::STATUS_BLOQUEADO) {
-            return response()->json(['error' => 'No se puede cambiar el estado en un día bloqueado.'], 422);
-        }
-
         $oldStatus = $reservation->status;
         
         if ($oldStatus === $request->status) {

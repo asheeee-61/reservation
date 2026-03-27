@@ -37,10 +37,52 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        return response()->json(
-            $customer->load('reservations')
-                     ->loadCount('reservations')
-        );
+        $stats = [
+            'total_reservations' => $customer->reservations()->count(),
+            'last_visit'         => $customer->reservations()->max('date'),
+            'no_shows'           => $customer->reservations()->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO)->count(),
+        ];
+
+        $stats['attendance_ratio'] = $stats['total_reservations'] > 0 
+            ? round((($stats['total_reservations'] - $stats['no_shows']) / $stats['total_reservations']) * 100)
+            : 0;
+
+        return response()->json([
+            'id'    => $customer->id,
+            'name'  => $customer->name,
+            'email' => $customer->email,
+            'phone' => $customer->phone,
+            'stats' => $stats
+        ]);
+    }
+
+    public function reservations(Customer $customer, Request $request)
+    {
+        $perPage = (int) ($request->per_page ?? 10);
+        $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
+
+        $query = $customer->reservations()->with(['tableType', 'specialEvent']);
+
+        if ($request->filled('filter')) {
+            $filter = $request->filter;
+            if ($filter === 'CONFIRMADA') {
+                $query->where('status', \App\Models\Reservation::STATUS_CONFIRMADA);
+            } elseif ($filter === 'NO_SHOW') {
+                $query->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+            }
+        }
+
+        $results = $query->orderByDesc('date')->orderByDesc('time')->paginate($perPage);
+
+        return response()->json([
+            'data' => $results->items(),
+            'meta' => [
+                'current_page' => $results->currentPage(),
+                'last_page'    => $results->lastPage(),
+                'per_page'     => $results->perPage(),
+                'total'        => $results->total(),
+            ]
+        ]);
     }
 
     public function update(Request $request, Customer $customer)

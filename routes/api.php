@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::get('/customers/{customer}', [CustomerController::class, 'show']);
+    Route::get('/customers/{customer}/reservations', [CustomerController::class, 'reservations']);
     Route::put('/customers/{customer}', [CustomerController::class, 'update']);
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy']);
 
