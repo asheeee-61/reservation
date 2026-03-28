@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../services/apiClient';
+import CustomerAvatar from './CustomerAvatar';
 
 export default function GlobalSearch() {
   const [query, setQuery] = useState('');
@@ -214,7 +215,14 @@ export default function GlobalSearch() {
               {results.reservations.map((r) => (
                 <ResultItem
                   key={`res-${r.id}`}
-                  icon="event"
+                  avatarProps={{
+                    name: r.name,
+                    counts: {
+                      total: r.customer?.reservations_count,
+                      arrived: r.customer?.arrived_count,
+                      noShow: r.customer?.no_show_count
+                    }
+                  }}
                   primary={r.name}
                   secondary={`${r.time}${r.time && r.date_label ? ' · ' : ''}${r.date_label}`}
                   onClick={() => handleSelectReservation(r.id)}
@@ -230,7 +238,14 @@ export default function GlobalSearch() {
               {results.customers.map((c) => (
                 <ResultItem
                   key={`cus-${c.id}`}
-                  icon="person"
+                  avatarProps={{
+                    name: c.name,
+                    counts: {
+                      total: c.reservations_count,
+                      arrived: c.arrived_count,
+                      noShow: c.no_show_count
+                    }
+                  }}
                   primary={c.name}
                   secondary={
                     c.reservations_count === 1
@@ -271,23 +286,31 @@ function SectionLabel({ children }) {
   );
 }
 
-function ResultItem({ icon, primary, secondary, onClick }) {
+function ResultItem({ icon, primary, secondary, onClick, avatarProps }) {
   return (
     <Box
       onClick={onClick}
       sx={{
         display: 'flex',
         alignItems: 'center',
-        height: 48,
+        height: 56,
         px: '12px',
         gap: '12px',
         cursor: 'pointer',
         '&:hover': { bgcolor: '#F1F3F4' },
       }}
     >
-      <span className="material-icons" style={{ fontSize: 18, color: '#70757A', flexShrink: 0 }}>
-        {icon}
-      </span>
+      {avatarProps ? (
+        <CustomerAvatar 
+          {...avatarProps} 
+          size={32} 
+          showTooltip={false} 
+        />
+      ) : (
+        <span className="material-icons" style={{ fontSize: 18, color: '#70757A', flexShrink: 0 }}>
+          {icon}
+        </span>
+      )}
       <Box sx={{ minWidth: 0, flex: 1 }}>
         <Typography
           noWrap

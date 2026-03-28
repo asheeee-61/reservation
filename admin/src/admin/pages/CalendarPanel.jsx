@@ -2,13 +2,14 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Box, Typography, Button, IconButton, Paper, 
-  CircularProgress, Tooltip, Avatar, Divider,
+  CircularProgress, Tooltip, Divider,
   Dialog, DialogContent, DialogActions, TextField,
   Select, MenuItem, FormControl, Drawer, SwipeableDrawer, Slide,
   Grid, InputAdornment, List, ListItem, ListItemText,
   ListItemAvatar, Alert, DialogTitle, Snackbar
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
+import CustomerAvatar from '../components/CustomerAvatar';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import ReservationFormModal from '../components/ReservationFormModal';
@@ -857,12 +858,16 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
 
           {/* CUSTOMER HEADER INFO */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '24px' }}>
-            <Avatar 
-              sx={{ width: 48, height: 48, bgcolor: '#1A73E8', cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.8 } }}
+            <CustomerAvatar 
+              name={reservation.customer?.name} 
+              counts={{
+                total: reservation.customer?.reservations_count,
+                arrived: reservation.customer?.arrived_count,
+                noShow: reservation.customer?.no_show_count
+              }}
+              size={48}
               onClick={() => { onClose(); navigate(`/admin/customers/${reservation.customer?.id}`); }}
-            >
-              {reservation.customer?.name?.[0].toUpperCase() || '?'}
-            </Avatar>
+            />
             <Box>
               <Typography 
                 sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#1A73E8', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}

@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
-  TableHead, TableRow, Avatar, Button, CircularProgress,
-  Snackbar, Divider, IconButton, Tooltip
+  TableHead, TableRow, Button, CircularProgress,
+  Snackbar, Divider, IconButton, Tooltip, Chip, TextField, Autocomplete
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
+import CustomerAvatar from '../components/CustomerAvatar';
 import TablePagination from '../components/TablePagination';
 
 const STATUS_CHIP_STYLE = {
@@ -16,14 +17,6 @@ const STATUS_CHIP_STYLE = {
   'CANCELADA':  { bg: '#FDECEA', text: '#C5221F', label: 'Cancelada' }
 };
 
-const getInitials = (name) => {
-  if (!name) return '?'
-  const parts = name.trim().split(' ')
-  if (parts.length === 1) 
-    return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0])
-    .toUpperCase()
-}
 
 const formatMemberSince = (dateString) => {
   if (!dateString) return 'Fecha desconocida'
@@ -72,12 +65,16 @@ export default function CustomerDetail() {
   const [meta, setMeta] = useState(null);
 
   const [toast, setToast] = useState({ open: false, message: '' });
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [localNotes, setLocalNotes] = useState('');
+  const [tagInput, setTagInput] = useState('');
 
   const fetchCustomer = useCallback(async () => {
     setLoading(true);
     try {
       const data = await apiClient(`/admin/customers/${id}`);
       setCustomer(data);
+      setLocalNotes(data.notes || '');
     } catch (e) {
       console.error(e);
     } finally {
@@ -134,6 +131,48 @@ export default function CustomerDetail() {
     return { total, noShows, attendanceRate, avgParty };
   }, [reservations, meta]);
 
+  const updateCustomerData = async (payload) => {
+    try {
+      await apiClient(`/admin/customers/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...customer,
+          ...payload
+        })
+      });
+    } catch (e) {
+      console.error(e);
+      setToast({ open: true, message: 'Error al guardar cambios' });
+    }
+  };
+
+  const handleAddTag = () => {
+    if (!tagInput.trim()) return;
+    const newTags = [...(customer.tags || []), tagInput.trim()];
+    const uniqueTags = [...new Set(newTags)];
+    setCustomer({ ...customer, tags: uniqueTags });
+    updateCustomerData({ tags: uniqueTags });
+    setTagInput('');
+  };
+
+  const handleDeleteTag = (tagToDelete) => {
+    const newTags = (customer.tags || []).filter(t => t !== tagToDelete);
+    setCustomer({ ...customer, tags: newTags });
+    updateCustomerData({ tags: newTags });
+  };
+
+  useEffect(() => {
+    if (customer && localNotes !== customer.notes) {
+      setSavingNotes(true);
+      const timer = setTimeout(() => {
+        updateCustomerData({ notes: localNotes });
+        setCustomer(prev => ({ ...prev, notes: localNotes }));
+        setSavingNotes(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [localNotes, id]);
+
   if (loading) return <Box display="flex" justifyContent="center" py={10}><CircularProgress /></Box>;
   if (!customer) return <Box display="flex" justifyContent="center" py={10}><Typography>Cliente no encontrado</Typography></Box>;
 
@@ -189,9 +228,15 @@ export default function CustomerDetail() {
         {/* LEFT COLUMN: CUSTOMER INFO CARD */}
         <Paper sx={{ width: { xs: '100%', md: '320px' }, height: 'fit-content', bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px', boxShadow: 'none', p: '24px', display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: '20px' }}>
-            <Avatar sx={{ bgcolor: '#1A73E8', color: '#FFFFFF', width: 72, height: 72, fontSize: '28px', fontFamily: 'Roboto', fontWeight: 500 }}>
-              {getInitials(customer.name)}
-            </Avatar>
+            <CustomerAvatar 
+              name={customer.name} 
+              counts={{
+                total: customer.reservations_count,
+                arrived: customer.arrived_count,
+                noShow: customer.no_show_count
+              }}
+              size={72}
+            />
             <Typography sx={{ mt: '12px', fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124', textAlign: 'center' }}>
               {customer.name}
             </Typography>
@@ -256,6 +301,70 @@ export default function CustomerDetail() {
             <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A' }}>
               Última visita
             </Typography>
+          </Box>
+
+          <Divider sx={{ my: '20px', borderColor: '#E0E0E0' }} />
+
+          {/* TAGS SECTION */}
+          <Box sx={{ mb: '20px' }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '8px', textTransform: 'uppercase' }}>
+              Etiquetas
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px', mb: '12px' }}>
+              {(customer.tags || []).map(tag => (
+                <Chip 
+                  key={tag} 
+                  label={tag} 
+                  onDelete={() => handleDeleteTag(tag)}
+                  size="small"
+                  sx={{ 
+                    bgcolor: '#E8F0FE', color: '#1A73E8', borderRadius: '4px', 
+                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px',
+                    '& .MuiChip-deleteIcon': { color: '#1A73E8', fontSize: '14px' }
+                  }}
+                />
+              ))}
+              {(customer.tags || []).length === 0 && (
+                <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#BDBDBD', fontStyle: 'italic' }}>
+                  Sin etiquetas
+                </Typography>
+              )}
+            </Box>
+            <TextField 
+              size="small"
+              placeholder="Añadir etiqueta..."
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+              sx={{ 
+                '& .MuiOutlinedInput-root': { borderRadius: '4px', height: '36px', fontSize: '13px', fontFamily: 'Roboto' }
+              }}
+              fullWidth
+            />
+          </Box>
+
+          {/* NOTES SECTION */}
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '8px' }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase' }}>
+                Notas internas
+              </Typography>
+              {savingNotes && <CircularProgress size={12} sx={{ color: '#1A73E8' }} />}
+            </Box>
+            <TextField 
+              multiline
+              rows={4}
+              placeholder="Escribe notas privadas sobre este cliente..."
+              value={localNotes}
+              onChange={(e) => setLocalNotes(e.target.value)}
+              sx={{ 
+                '& .MuiOutlinedInput-root': { 
+                  borderRadius: '4px', fontSize: '13px', fontFamily: 'Roboto', p: '8px',
+                  bgcolor: '#F8F9FA'
+                }
+              }}
+              fullWidth
+            />
           </Box>
         </Paper>
 

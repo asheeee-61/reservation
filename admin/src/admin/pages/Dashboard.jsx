@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Typography, Box, Paper, Button, CircularProgress, MenuItem, Select, FormControl, Snackbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
-import { ConfirmModal } from '../components/ConfirmModal'; // I will move ConfirmModal to its own file or use from QuickActions if exported
+import { ConfirmModal } from '../components/ConfirmModal';
+import SourceBadge from '../components/SourceBadge';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -32,6 +33,8 @@ export default function Dashboard() {
 
   // Day Status
   const [dayStatus, setDayStatus] = useState('ABIERTO');
+  const [dayReason, setDayReason] = useState(null);
+  const [bySource, setBySource] = useState({});
   const [togglingStatus, setTogglingStatus] = useState(false);
 
   // Modals
@@ -47,6 +50,8 @@ export default function Dashboard() {
       const list = (data.reservations || []).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       setTodayRes(list);
       setDayStatus(data.dayStatus || 'ABIERTO');
+      setDayReason(data.dayReason || null);
+      setBySource(data.bySource || {});
     } catch (e) {
       console.error(e);
     } finally {
@@ -113,11 +118,17 @@ export default function Dashboard() {
       {dayStatus === 'CERRADO' && (
         <Paper sx={{ p: '12px 20px', bgcolor: '#FEF7E0', border: '1px solid #FAD242', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span className="material-icons" style={{ color: '#7D4A00' }}>pause_circle</span>
-          <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#7D4A00' }}>
-            Día cerrado: No se permiten nuevas reservas desde la web.
-          </Typography>
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#7D4A00' }}>
+              Día cerrado: No se permiten nuevas reservas desde la web.
+            </Typography>
+            {dayReason && (
+              <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#7D4A00', fontStyle: 'italic', mt: '2px' }}>
+                Motivo: {dayReason}
+              </Typography>
+            )}
+          </Box>
         </Paper>
-      )}
 
       {/* ROW 1 — STATS */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: '16px' }}>
@@ -167,8 +178,12 @@ export default function Dashboard() {
                     </Typography>
                     <Box sx={{ flex: 1, ml: 2 }}>
                       <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-                        {r.customer?.name}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                          {r.customer?.name}
+                        </Typography>
+                        <SourceBadge source={r.source} />
+                      </Box>
                       <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' }}>
                         {r.guests} personas
                       </Typography>
@@ -221,6 +236,12 @@ export default function Dashboard() {
                 </Typography>
               </Box>
 
+              {dayStatus === 'CERRADO' && dayReason && (
+                <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#7D4A00', fontStyle: 'italic', bgcolor: '#FEF7E0', p: '8px', borderRadius: '4px', border: '1px dashed #FAD242' }}>
+                  {dayReason}
+                </Typography>
+              )}
+
               <Button
                 fullWidth
                 variant="outlined"
@@ -234,6 +255,27 @@ export default function Dashboard() {
               >
                 {DAY_STATUS_UI[dayStatus].btn}
               </Button>
+            </Box>
+          </Paper>
+
+          {/* Origen de Reservas */}
+          <Paper sx={{ p: '20px', border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px' }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1px', mb: 2 }}>
+              Canales (hoy)
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {['web', 'manual', 'whatsapp'].map(src => {
+                const count = bySource[src]?.count || 0;
+                const pct = todayRes.length ? Math.round((count / todayRes.length) * 100) : 0;
+                return (
+                  <Box key={src} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <SourceBadge source={src} />
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', fontWeight: 500, color: '#202124' }}>
+                      {count} <span style={{ color: '#70757A', fontSize: '11px', fontWeight: 400 }}>({pct}%)</span>
+                    </Typography>
+                  </Box>
+                );
+              })}
             </Box>
           </Paper>
 

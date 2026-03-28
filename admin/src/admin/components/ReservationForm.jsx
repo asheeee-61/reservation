@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { apiClient } from '../services/apiClient';
+import CustomerAvatar from './CustomerAvatar';
 
 const toMinutes = (time) => {
   const [h, m] = time.split(':').map(Number);
@@ -166,12 +167,6 @@ export default function ReservationForm({ initialData, compact = false, onSucces
     }
   }, [customerSearch, selectedCustomer]);
 
-  const getInitials = (name) => {
-    if (!name) return '??';
-    const pts = name.split(' ');
-    if (pts.length > 1) return (pts[0][0] + pts[pts.length - 1][0]).toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  };
 
   const isBlockedDay = adminCalendar?.blockedDays?.includes(formState.date);
   const dayName = formState.date ? DAYS_OF_WEEK[new Date(formState.date).getDay()] : null;
@@ -352,15 +347,20 @@ export default function ReservationForm({ initialData, compact = false, onSucces
               </FormControl>
             )}
           </Box>
-
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Box sx={{ position: 'relative' }} ref={searchRef}>
               {selectedCustomer || (formState.name && !customerSearch) ? (
                 <Box sx={{ p: '8px 12px', border: '1px solid #1A73E8', borderRadius: '4px', bgcolor: '#E8F0FE', display: 'flex', alignItems: 'center', height: 56, boxSizing: 'border-box' }}>
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: '#1A73E8', mr: 1.5, fontSize: '14px' }}>
-                    {getInitials(selectedCustomer?.name || formState.name)}
-                  </Avatar>
-                  <Box sx={{ flexGrow: 1 }}>
+                  <CustomerAvatar 
+                    name={selectedCustomer?.name || formState.name} 
+                    counts={{
+                      total: selectedCustomer?.reservations_count,
+                      arrived: selectedCustomer?.arrived_count,
+                      noShow: selectedCustomer?.no_show_count
+                    }}
+                    size={32}
+                  />
+                  <Box sx={{ flexGrow: 1, ml: 1.5 }}>
                     <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#1A73E8', lineHeight: 1.2 }}>{selectedCustomer?.name || formState.name}</Typography>
                     <Typography sx={{ fontSize: '12px', color: '#1A73E8', opacity: 0.8 }}>{selectedCustomer ? 'Cliente seleccionado' : 'Nuevo cliente'}</Typography>
                   </Box>
@@ -381,7 +381,6 @@ export default function ReservationForm({ initialData, compact = false, onSucces
                   }}
                 />
               )}
-
               {showResults && (
                 <Paper sx={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, mt: 0.5, border: '1px solid #E0E0E0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: 280, overflowY: 'auto', bgcolor: '#FFFFFF' }}>
                   <List sx={{ py: 0 }}>
@@ -390,7 +389,18 @@ export default function ReservationForm({ initialData, compact = false, onSucces
                         <ListItem sx={{ bgcolor: '#F1F3F4', py: 1 }}><Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#70757A', textTransform: 'uppercase' }}>Clientes existentes</Typography></ListItem>
                         {customersResults.slice(0, 5).map((c) => (
                           <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)} sx={{ borderBottom: '1px solid #F1F3F4' }}>
-                            <ListItemAvatar><Avatar sx={{ width: 36, height: 36 }}>{getInitials(c.name)}</Avatar></ListItemAvatar>
+                            <Box sx={{ mr: 2, ml: 1 }}>
+                              <CustomerAvatar 
+                                name={c.name} 
+                                counts={{
+                                  total: c.reservations_count,
+                                  arrived: c.arrived_count,
+                                  noShow: c.no_show_count
+                                }}
+                                size={36}
+                                showTooltip={false}
+                              />
+                            </Box>
                             <ListItemText primary={<Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</Typography>} secondary={<Typography sx={{ fontSize: '12px', color: '#70757A' }}>{c.phone || c.email || 'Sin contacto'}</Typography>} />
                             <span className="material-icons" style={{ fontSize: 18, color: '#1A73E8' }}>chevron_right</span>
                           </ListItem>

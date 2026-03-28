@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
+import CustomerAvatar from '../components/CustomerAvatar';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import TablePagination from '../components/TablePagination';
 
@@ -195,16 +196,31 @@ export default function Reservations() {
               >
                 <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.reservation_id}</TableCell>
                 <TableCell>
-                  {res.customer?.id ? (
-                    <Typography 
-                      onClick={(e) => { e.stopPropagation(); navigate(`/admin/customers/${res.customer.id}`); }}
-                      sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#1A73E8', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-                    >
-                      {res.customer.name}
-                    </Typography>
-                  ) : (
-                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>N/A</Typography>
-                  )}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {res.customer ? (
+                      <>
+                        <CustomerAvatar 
+                          name={res.customer.name} 
+                          counts={{
+                            total: res.customer.reservations_count,
+                            arrived: res.customer.arrived_count,
+                            noShow: res.customer.no_show_count
+                          }}
+                          size={28}
+                        />
+                        <Box>
+                          <Typography 
+                            onClick={(e) => { e.stopPropagation(); navigate(`/admin/customers/${res.customer.id}`); }}
+                            sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#1A73E8', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                          >
+                            {res.customer.name}
+                          </Typography>
+                        </Box>
+                      </>
+                    ) : (
+                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>—</Typography>
+                    )}
+                  </Box>
                   {res.special_requests && (
                     <Typography noWrap sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '2px', maxWidth: 200 }} display="block">
                       Nota: {res.special_requests}
@@ -410,9 +426,20 @@ export default function Reservations() {
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>
                 {res.guests} personas · {res.table_type?.name || 'Sin tipo'}
               </Typography>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#1A73E8', mt: '4px' }}>
-                Cliente: {res.customer?.name || 'N/A'} →
-              </Typography>
+              <Box sx={{ mt: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CustomerAvatar 
+                  name={res.customer?.name} 
+                  counts={{
+                    total: res.customer?.reservations_count,
+                    arrived: res.customer?.arrived_count,
+                    noShow: res.customer?.no_show_count
+                  }}
+                  size={24}
+                />
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#1A73E8' }}>
+                  {res.customer?.name || 'N/A'}
+                </Typography>
+              </Box>
             </Paper>
           );
         })}

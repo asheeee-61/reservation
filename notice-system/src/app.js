@@ -6,6 +6,30 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
+// CORS manual middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-api-secret');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// Health check endpoint for Admin Dashboard
+app.get('/health', (req, res) => {
+    const ready = isReady();
+    const qr = getLastQR();
+    res.json({
+        status: 'ok',
+        whatsapp: {
+            connected: ready,
+            waitingQr: !!qr && !ready
+        }
+    });
+});
+
 const authMiddleware = (req, res, next) => {
     const secret = req.headers['x-api-secret'];
     if (!secret || secret !== process.env.API_SECRET) {

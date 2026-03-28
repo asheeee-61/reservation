@@ -50,6 +50,8 @@ export default function SchedulePanel() {
   const [blockedPage, setBlockedPage] = useState(1);
   const [blockedDates, setBlockedDates] = useState([]);
   const [blockedMeta, setBlockedMeta] = useState(null);
+  const [blockingDate, setBlockingDate] = useState(null);
+  const [blockingReason, setBlockingReason] = useState('');
   const BLOCKED_PER_PAGE = 5;
 
   useEffect(() => {
@@ -316,7 +318,7 @@ export default function SchedulePanel() {
     setBlockMonthStart(nextMonth);
   };
 
-  const isBlocked = (dateStr) => config.blockedDays.includes(dateStr);
+  const isBlocked = (dateStr) => blockedDates.some(bd => bd.date === dateStr);
 
   const toggleBlockDate = (dateOb) => {
     const yyyy = dateOb.getFullYear();
@@ -324,11 +326,50 @@ export default function SchedulePanel() {
     const dd = String(dateOb.getDate()).padStart(2, '0');
     const dateStr = `${yyyy}-${mm}-${dd}`;
 
-    const newBlocks = config.blockedDays.includes(dateStr)
-      ? config.blockedDays.filter(d => d !== dateStr)
-      : [...config.blockedDays, dateStr].sort();
+    const existing = blockedDates.find(bd => bd.date === dateStr);
+    if (existing) {
+      // If already blocked, unblock immediately
+      unblockDate(dateStr);
+    } else {
+      // If not blocked, show the mini form
+      setBlockingDate(dateOb);
+      setBlockingReason('');
+    }
+  };
 
-    saveConfigState({ ...config, blockedDays: newBlocks }, false);
+  const unblockDate = async (dateStr) => {
+    try {
+      await apiClient('/admin/day-status', {
+        method: 'PATCH',
+        body: JSON.stringify({ date: dateStr, status: 'ABIERTO' })
+      });
+      fetchBlockedDates(blockedPage);
+      setToastMessage("Día desbloqueado");
+      setToastOpen(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const confirmBlock = async () => {
+    if (!blockingDate) return;
+    const yyyy = blockingDate.getFullYear();
+    const mm = String(blockingDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(blockingDate.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+
+    try {
+      await apiClient('/admin/day-status', {
+        method: 'PATCH',
+        body: JSON.stringify({ date: dateStr, status: 'CERRADO', reason: blockingReason })
+      });
+      fetchBlockedDates(blockedPage);
+      setBlockingDate(null);
+      setToastMessage("Día bloqueado correctamente");
+      setToastOpen(true);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const renderMonthGrid = () => {
@@ -803,8 +844,55 @@ export default function SchedulePanel() {
               </Box>
 
               {renderMonthGrid()}
-              
 
+              {blockingDate && (
+                <Box sx={{ 
+                  mt: '12px', p: '12px', bgcolor: '#F8F9FA', border: '1px solid #E0E0E0', borderRadius: '4px' 
+                }}>
+                  <Typography sx={{ 
+                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124', mb: '12px' 
+                  }}>
+                    Bloquear {blockingDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+                  </Typography>
+                  <Typography sx={{ 
+                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '4px' 
+                  }}>
+                    Motivo (opcional)
+                  </Typography>
+                  <TextField 
+                    fullWidth
+                    size="small"
+                    placeholder="Evento privado, Vacaciones, Mantenimiento..."
+                    value={blockingReason}
+                    onChange={(e) => setBlockingReason(e.target.value)}
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': { borderRadius: '4px', height: '44px', fontSize: '14px', fontFamily: 'Roboto' }
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '12px' }}>
+                    <Button 
+                      onClick={() => setBlockingDate(null)}
+                      sx={{ 
+                        height: '36px', px: '16px', borderRadius: '4px', border: '1px solid #DADCE0', 
+                        color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px'
+                      }}
+                    >
+                      CANCELAR
+                    </Button>
+                    <Button 
+                      variant="contained"
+                      onClick={confirmBlock}
+                      sx={{ 
+                        height: '36px', px: '16px', borderRadius: '4px', bgcolor: '#1A73E8', color: '#FFFFFF',
+                        fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', boxShadow: 'none',
+                        '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+                      }}
+                    >
+                      BLOQUEAR DÍA
+                    </Button>
+                  </Box>
+                </Box>
+              )}
             </Paper>
 
             <Box sx={{ flex: 1, minHeight: 100, width: '100%' }}>
@@ -820,13 +908,25 @@ export default function SchedulePanel() {
                     <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>No hay fechas bloqueadas</Typography>
                   ) : (
                     <Box sx={{ border: '1px solid #E0E0E0', borderRadius: '4px', bgcolor: '#FFFFFF' }}>
-                      {blockedDates.map((dateStr, idx) => {
-                        const d = new Date(dateStr + 'T12:00:00');
+                      {blockedDates.map((item, idx) => {
+                        const d = new Date(item.date + 'T12:00:00');
                         const label = `${DAY_LABELS[dayNameMapping[d.getDay()]]}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
                         return (
-                          <Box key={dateStr} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: '16px', height: 48, borderBottom: idx < blockedDates.length - 1 ? '1px solid #E0E0E0' : 'none', boxSizing: 'border-box' }}>
-                            <Typography sx={{ fontFamily: 'Roboto', color: '#202124', fontSize: '14px' }}>{label}</Typography>
-                            <IconButton size="small" onClick={() => toggleBlockDate(new Date(dateStr + 'T12:00:00'))} sx={{ color: '#D93025' }}>
+                          <Box key={item.date} sx={{ 
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                            p: '16px', borderBottom: idx < blockedDates.length - 1 ? '1px solid #E0E0E0' : 'none' 
+                          }}>
+                            <Box>
+                              <Typography sx={{ fontFamily: 'Roboto', color: '#202124', fontSize: '14px', fontWeight: 500 }}>
+                                {label}
+                              </Typography>
+                              {item.reason && (
+                                <Typography sx={{ fontFamily: 'Roboto', color: '#70757A', fontSize: '12px', mt: '2px' }}>
+                                  {item.reason}
+                                </Typography>
+                              )}
+                            </Box>
+                            <IconButton size="small" onClick={() => unblockDate(item.date)} sx={{ color: '#D93025' }}>
                               <span className="material-icons" style={{ fontSize: 20 }}>close</span>
                             </IconButton>
                           </Box>

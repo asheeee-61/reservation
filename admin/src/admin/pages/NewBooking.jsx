@@ -8,6 +8,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { apiClient } from '../services/apiClient';
+import CustomerAvatar from '../components/CustomerAvatar';
 
 const toMinutes = (time) => {
   const [h, m] = time.split(':').map(Number);
@@ -189,12 +190,6 @@ export default function NewBooking() {
     }
   }, [customerSearch, selectedCustomer]);
 
-  const getInitials = (name) => {
-    if (!name) return '??';
-    const pts = name.split(' ');
-    if (pts.length > 1) return (pts[0][0] + pts[pts.length - 1][0]).toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  };
 
   // Set default guests when loaded
   useEffect(() => {
@@ -466,10 +461,16 @@ export default function NewBooking() {
                   p: '8px 12px', border: '1px solid #1A73E8', borderRadius: '4px', bgcolor: '#E8F0FE', 
                   display: 'flex', alignItems: 'center', height: 56, boxSizing: 'border-box' 
                 }}>
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: '#1A73E8', mr: 1.5, fontSize: '14px' }}>
-                    {getInitials(selectedCustomer?.name || newBooking.name)}
-                  </Avatar>
-                  <Box sx={{ flexGrow: 1 }}>
+                   <CustomerAvatar 
+                    name={selectedCustomer?.name || newBooking.name} 
+                    counts={{
+                      total: selectedCustomer?.reservations_count,
+                      arrived: selectedCustomer?.arrived_count,
+                      noShow: selectedCustomer?.no_show_count
+                    }}
+                    size={32}
+                  />
+                  <Box sx={{ flexGrow: 1, ml: 1.5 }}>
                     <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#1A73E8', lineHeight: 1.2 }}>
                       {selectedCustomer?.name || newBooking.name}
                     </Typography>
@@ -519,9 +520,18 @@ export default function NewBooking() {
                         </ListItem>
                         {customersResults.slice(0, 5).map((c) => (
                           <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)} sx={{ borderBottom: '1px solid #F1F3F4' }}>
-                            <ListItemAvatar>
-                              <Avatar sx={{ width: 36, height: 36 }}>{getInitials(c.name)}</Avatar>
-                            </ListItemAvatar>
+                            <Box sx={{ mr: 2, ml: 1 }}>
+                              <CustomerAvatar 
+                                name={c.name} 
+                                counts={{
+                                  total: c.reservations_count,
+                                  arrived: c.arrived_count,
+                                  noShow: c.no_show_count
+                                }}
+                                size={36}
+                                showTooltip={false}
+                              />
+                            </Box>
                             <ListItemText 
                               primary={<Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</Typography>}
                               secondary={<Typography sx={{ fontSize: '12px', color: '#70757A' }}>{c.phone || c.email || 'Sin contacto'}</Typography>}

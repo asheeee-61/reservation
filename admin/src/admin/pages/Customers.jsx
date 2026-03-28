@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
-  TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar
+  TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar, Chip
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
+import CustomerAvatar from '../components/CustomerAvatar';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import TablePagination from '../components/TablePagination';
 
@@ -43,13 +44,6 @@ export default function Customers() {
 
   const handlePageChange = (newPage) => setPage(newPage);
   const handlePerPageChange = (newPer) => { setPerPage(newPer); setPage(1); };
-
-  const getInitials = (name) => {
-    if (!name) return '';
-    const parts = name.split(' ');
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return name.substring(0, 2).toUpperCase();
-  };
 
   const sanitizePhone = (phone) => phone?.replace(/[\s+]/g, '').replace(/\D/g, '') || '';
 
@@ -133,10 +127,38 @@ export default function Customers() {
               <TableRow key={c.id} hover onClick={() => navigate(`/admin/customers/${c.id}`)} sx={{ cursor: 'pointer' }}>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Avatar sx={{ bgcolor: '#E8F0FE', color: '#1A73E8', width: 32, height: 32, fontSize: '14px', fontFamily: 'Roboto', fontWeight: 500 }}>
-                      {getInitials(c.name)}
-                    </Avatar>
-                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{c.name}</Typography>
+                    <CustomerAvatar 
+                      name={c.name} 
+                      counts={{
+                        total: c.reservations_count,
+                        arrived: c.arrived_count,
+                        noShow: c.no_show_count
+                      }}
+                      size={32}
+                    />
+                    <Box>
+                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{c.name}</Typography>
+                      {c.tags && c.tags.length > 0 && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px', mt: '4px' }}>
+                          {c.tags.slice(0, 3).map(tag => (
+                            <Chip 
+                              key={tag} 
+                              label={tag} 
+                              size="small" 
+                              sx={{ 
+                                height: '18px', fontSize: '10px', bgcolor: '#E8F0FE', color: '#1A73E8', 
+                                border: 'none', borderRadius: '4px', fontFamily: 'Roboto' 
+                              }} 
+                            />
+                          ))}
+                          {c.tags.length > 3 && (
+                            <Typography sx={{ fontSize: '10px', color: '#70757A', fontFamily: 'Roboto' }}>
+                              +{c.tags.length - 3}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
                 </TableCell>
                 <TableCell>
@@ -201,12 +223,35 @@ export default function Customers() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '4px' }}>
-              <Avatar sx={{ bgcolor: '#E8F0FE', color: '#1A73E8', width: 36, height: 36, fontSize: '14px', fontFamily: 'Roboto', fontWeight: 500 }}>
-                {getInitials(c.name)}
-              </Avatar>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-                {c.name}
-              </Typography>
+              <CustomerAvatar 
+                name={c.name} 
+                counts={{
+                  total: c.reservations_count,
+                  arrived: c.arrived_count,
+                  noShow: c.no_show_count
+                }}
+                size={36}
+              />
+              <Box>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                  {c.name}
+                </Typography>
+                {c.tags && c.tags.length > 0 && (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px', mt: '2px' }}>
+                    {c.tags.map(tag => (
+                      <Chip 
+                        key={tag} 
+                        label={tag} 
+                        size="small" 
+                        sx={{ 
+                          height: '16px', fontSize: '9px', bgcolor: '#E8F0FE', color: '#1A73E8', 
+                          border: 'none', borderRadius: '4px', fontFamily: 'Roboto' 
+                        }} 
+                      />
+                    ))}
+                  </Box>
+                )}
+              </Box>
             </Box>
             
             <Box sx={{ pl: '48px', display: 'flex', flexDirection: 'column', gap: '2px' }}>

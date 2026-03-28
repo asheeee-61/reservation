@@ -5,6 +5,7 @@ import { useAuthStore } from './store/useAuthStore';
 import { MOBILE, TABLET, DESKTOP } from './utils/breakpoints';
 import GlobalSearch from './components/GlobalSearch';
 import QuickActions from './components/QuickActions';
+import WhatsAppStatus from './components/WhatsAppStatus';
 import { ConfirmModal } from './components/ConfirmModal';
 
 export default function Layout() {
@@ -167,6 +168,9 @@ export default function Layout() {
             <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
               <QuickActions />
             </Box>
+
+            {/* WhatsApp Connection Status */}
+            <WhatsAppStatus />
 
             {/* User menu — desktop */}
             <Box ref={userMenuRef} sx={{ display: 'none', [DESKTOP]: { display: 'block' }, position: 'relative' }}>

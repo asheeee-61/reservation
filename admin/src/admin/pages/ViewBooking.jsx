@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider, IconButton, Select, MenuItem, FormControl, CircularProgress } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
+import CustomerAvatar from '../components/CustomerAvatar';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -65,12 +66,6 @@ export default function ViewBooking() {
     fetchReservation();
   }, [id]);
 
-  const getInitials = (name) => {
-    if (!name) return '';
-    const parts = name.split(' ');
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return name.substring(0, 2).toUpperCase();
-  };
 
   const handleStatusUpdate = async (newStatus) => {
     const fromStatus = resData?.status?.toUpperCase() || 'PENDIENTE';
@@ -308,14 +303,16 @@ export default function ViewBooking() {
               {resData.customer?.name ? (
                 <>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Box 
+                    <CustomerAvatar 
+                      name={resData.customer.name} 
+                      counts={{
+                        total: resData.customer.reservations_count,
+                        arrived: resData.customer.arrived_count,
+                        noShow: resData.customer.no_show_count
+                      }}
+                      size={40}
                       onClick={() => navigate(`/admin/customers/${resData.customer.id}`)}
-                      sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#E8F0FE', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.8 } }}
-                    >
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#1A73E8' }}>
-                        {getInitials(resData.customer.name)}
-                      </Typography>
-                    </Box>
+                    />
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                       <Typography 
                         onClick={() => navigate(`/admin/customers/${resData.customer.id}`)}
