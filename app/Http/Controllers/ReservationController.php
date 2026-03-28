@@ -16,7 +16,23 @@ class ReservationController extends Controller
         $perPage = $request->input('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
 
-        $query = Reservation::with(['customer', 'tableType', 'specialEvent'])->latest();
+        $query = Reservation::with(['customer' => function($q) {
+            $q->withCount([
+                'reservations as reservations_count',
+                'reservations as arrived_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+                },
+                'reservations as confirmed_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_CONFIRMADA);
+                },
+                'reservations as cancelled_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_CANCELADA);
+                },
+                'reservations as no_show_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+                }
+            ]);
+        }, 'tableType', 'specialEvent'])->latest();
 
         if ($request->filled('search')) {
             $term = '%' . $request->search . '%';
@@ -54,7 +70,17 @@ class ReservationController extends Controller
 
     public function show($id)
     {
-        $reservation = Reservation::with(['customer', 'tableType', 'specialEvent', 'activities'])->findOrFail($id);
+        $reservation = Reservation::with(['customer' => function($q) {
+            $q->withCount([
+                'reservations as reservations_count',
+                'reservations as arrived_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+                },
+                'reservations as no_show_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+                }
+            ]);
+        }, 'tableType', 'specialEvent', 'activities'])->findOrFail($id);
         return response()->json($reservation);
     }
 
@@ -62,17 +88,36 @@ class ReservationController extends Controller
     {
         $date = $request->query('date', date('Y-m-d'));
         
-        $reservations = Reservation::with(['customer', 'tableType', 'specialEvent'])
+        $reservations = Reservation::with(['customer' => function($q) {
+            $q->withCount([
+                'reservations as reservations_count',
+                'reservations as arrived_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+                },
+                'reservations as no_show_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+                }
+            ]);
+        }, 'tableType', 'specialEvent'])
             ->where('date', $date)
             ->latest()
             ->get();
 
-        $statusRecord = DayStatus::where('date', $date)->value('status');
-        $dayStatus = $statusRecord ?: DayStatus::STATUS_ABIERTO;
+        $dayStatusRecord = DayStatus::where('date', $date)->first();
+        $dayStatus = $dayStatusRecord ? $dayStatusRecord->status : DayStatus::STATUS_ABIERTO;
+        $dayReason = $dayStatusRecord ? $dayStatusRecord->reason : null;
+
+        $bySource = Reservation::selectRaw("source, COUNT(*) as count")
+            ->where('date', $date)
+            ->groupBy('source')
+            ->get()
+            ->keyBy('source');
 
         return response()->json([
             'reservations' => $reservations,
-            'dayStatus'    => $dayStatus
+            'dayStatus'    => $dayStatus,
+            'dayReason'    => $dayReason,
+            'bySource'     => $bySource
         ]);
     }
 
@@ -162,13 +207,17 @@ class ReservationController extends Controller
     // Customer: Submit a new reservation (always PENDIENTE, source=client)
     public function store(Request $request)
     {
-        return $this->createReservation($request, Reservation::STATUS_PENDIENTE, Reservation::SOURCE_CLIENT);
+        $source = Reservation::SOURCE_WEB;
+        if ($request->header('X-Source') === 'whatsapp') {
+            $source = Reservation::SOURCE_WHATSAPP;
+        }
+        return $this->createReservation($request, Reservation::STATUS_PENDIENTE, $source);
     }
 
     // Admin: Create a new reservation (always CONFIRMADA, source=admin)
     public function adminStore(Request $request)
     {
-        return $this->createReservation($request, Reservation::STATUS_CONFIRMADA, Reservation::SOURCE_ADMIN);
+        return $this->createReservation($request, Reservation::STATUS_CONFIRMADA, Reservation::SOURCE_MANUAL);
     }
 
     private function createReservation(Request $request, string $status, string $source)
@@ -187,7 +236,7 @@ class ReservationController extends Controller
         ]);
 
         // Re-validate availability for non-admin sources
-        if ($source !== Reservation::SOURCE_ADMIN) {
+        if ($source !== Reservation::SOURCE_MANUAL) {
             $isAvailable = $this->isSlotAvailable(
                 $validated['date'],
                 $validated['slot']['time'],

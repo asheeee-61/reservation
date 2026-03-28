@@ -20,7 +20,17 @@ class SearchController extends Controller
         $term = '%' . $q . '%';
 
         // --- Reservations ---
-        $reservations = Reservation::with('customer')
+        $reservations = Reservation::with(['customer' => function ($q) {
+            $q->withCount([
+                'reservations as reservations_count',
+                'reservations as arrived_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+                },
+                'reservations as no_show_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+                }
+            ]);
+        }])
             ->where(function ($query) use ($term, $q) {
                 $query->whereHas('customer', function ($cq) use ($term) {
                     $cq->where('name', 'like', $term)
@@ -54,6 +64,12 @@ class SearchController extends Controller
                     'time'        => $r->time ?? '',
                     'date_label'  => $dateLabel,
                     'status'      => $r->status ?? '',
+                    'customer'    => $r->customer ? [
+                        'name'               => $r->customer->name,
+                        'reservations_count' => $r->customer->reservations_count,
+                        'arrived_count'      => $r->customer->arrived_count,
+                        'no_show_count'      => $r->customer->no_show_count,
+                    ] : null,
                 ];
             });
 
@@ -61,7 +77,15 @@ class SearchController extends Controller
         $customers = Customer::where('name', 'like', $term)
             ->orWhere('email', 'like', $term)
             ->orWhere('phone', 'like', $term)
-            ->withCount('reservations')
+            ->withCount([
+                'reservations as reservations_count',
+                'reservations as arrived_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+                },
+                'reservations as no_show_count' => function ($q) {
+                    $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+                }
+            ])
             ->orderBy('name')
             ->limit(5)
             ->get()
@@ -72,6 +96,8 @@ class SearchController extends Controller
                     'email'              => $c->email ?? '',
                     'phone'              => $c->phone ?? '',
                     'reservations_count' => $c->reservations_count,
+                    'arrived_count'      => $c->arrived_count,
+                    'no_show_count'      => $c->no_show_count,
                 ];
             });
 

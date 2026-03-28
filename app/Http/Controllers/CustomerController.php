@@ -22,6 +22,23 @@ class CustomerController extends Controller
             });
         }
 
+        // Add counts for credibility calculation
+        $query->withCount([
+            'reservations as reservations_count',
+            'reservations as arrived_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+            },
+            'reservations as confirmed_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_CONFIRMADA);
+            },
+            'reservations as cancelled_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_CANCELADA);
+            },
+            'reservations as no_show_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+            }
+        ]);
+
         $results = $query->orderBy('name')->paginate($perPage);
 
         return response()->json([
@@ -38,28 +55,48 @@ class CustomerController extends Controller
     public function show(Customer $customer)
     {
         $customer->loadCount([
+            'reservations as reservations_count',
+            'reservations as arrived_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+            },
+            'reservations as confirmed_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_CONFIRMADA);
+            },
+            'reservations as cancelled_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_CANCELADA);
+            },
+            'reservations as no_show_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+            }
+        ]);
+        return response()->json($customer);
+    }
+
+    public function stats(Customer $customer)
+    {
+        $customer->loadCount([
             'reservations as total_reservations',
-            'reservations as no_shows' => function ($query) {
-                $query->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+            'reservations as arrived_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_ASISTIO);
+            },
+            'reservations as confirmed_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_CONFIRMADA);
+            },
+            'reservations as cancelled_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_CANCELADA);
+            },
+            'reservations as no_show_count' => function ($q) {
+                $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
             }
         ]);
 
-        $stats = [
-            'total_reservations' => $customer->total_reservations ?? 0,
-            'last_visit'         => $customer->reservations()->max('date'),
-            'no_shows'           => $customer->no_shows ?? 0,
-        ];
-
-        $stats['attendance_ratio'] = $stats['total_reservations'] > 0 
-            ? round((($stats['total_reservations'] - $stats['no_shows']) / $stats['total_reservations']) * 100)
-            : 0;
-
         return response()->json([
-            'id'    => $customer->id,
-            'name'  => $customer->name,
-            'email' => $customer->email,
-            'phone' => $customer->phone,
-            'stats' => $stats
+            'total'     => $customer->total_reservations ?? 0,
+            'arrived'   => $customer->arrived_count ?? 0,
+            'confirmed' => $customer->confirmed_count ?? 0,
+            'cancelled' => $customer->cancelled_count ?? 0,
+            'noShow'    => $customer->no_show_count ?? 0,
+            'last_visit' => $customer->reservations()->where('status', \App\Models\Reservation::STATUS_ASISTIO)->max('date'),
         ]);
     }
 
@@ -97,7 +134,9 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20'
+            'phone' => 'nullable|string|max:20',
+            'tags' => 'nullable|array',
+            'notes' => 'nullable|string'
         ]);
         
         $customer->update($validated);

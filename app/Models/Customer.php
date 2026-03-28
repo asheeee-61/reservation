@@ -8,7 +8,11 @@ class Customer extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'email', 'phone'];
+    protected $fillable = ['name', 'email', 'phone', 'tags', 'notes'];
+
+    protected $casts = [
+        'tags' => 'array',
+    ];
 
     protected $appends = ['total_reservations', 'last_visit'];
 

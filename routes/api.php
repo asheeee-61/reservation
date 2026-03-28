@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::get('/customers/{customer}', [CustomerController::class, 'show']);
+    Route::get('/customers/{customer}/stats', [CustomerController::class, 'stats']);
     Route::get('/customers/{customer}/reservations', [CustomerController::class, 'reservations']);
     Route::put('/customers/{customer}', [CustomerController::class, 'update']);
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy']);
@@ -54,7 +55,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);
-    Route::get('/blocked-dates', [SettingsController::class, 'blockedDates']);
+    Route::get('/blocked-dates', [DayStatusController::class, 'index']);
     Route::get('/search', [SearchController::class, 'index']);
     Route::patch('/day-status', [DayStatusController::class, 'update']);
     Route::get('/me', [ProfileController::class, 'show']);

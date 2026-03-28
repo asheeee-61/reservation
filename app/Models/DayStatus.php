@@ -9,7 +9,7 @@ class DayStatus extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['date', 'status'];
+    protected $fillable = ['date', 'status', 'reason'];
 
     const STATUS_ABIERTO = 'ABIERTO';
     const STATUS_CERRADO = 'CERRADO';

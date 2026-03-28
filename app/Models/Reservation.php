@@ -15,8 +15,9 @@ class Reservation extends Model
     const STATUS_NO_ASISTIO  = 'NO_ASISTIÓ';
     const STATUS_CANCELADA   = 'CANCELADA';
 
-    const SOURCE_CLIENT = 'client';
-    const SOURCE_ADMIN  = 'admin';
+    const SOURCE_WEB      = 'web';
+    const SOURCE_MANUAL   = 'manual';
+    const SOURCE_WHATSAPP = 'whatsapp';
 
     protected $fillable = [
         'reservation_id',
