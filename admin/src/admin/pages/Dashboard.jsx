@@ -134,10 +134,10 @@ export default function Dashboard() {
 
       {/* ROW 1 — STATS */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: '16px' }}>
-        <StatCard icon="event" label="Hoy" value={todayRes.length} color="#1A73E8" />
-        <StatCard icon="group" label="Pax hoy" value={guestsToday} color="#137333" />
-        <StatCard icon="schedule" label="Próxima" value={nextRes ? nextRes.time : '—'} sub={nextRes?.customer?.name} color="#7D4A00" />
-        <StatCard icon="person_off" label="No shows" value={noShows} color="#C5221F" />
+        <StatCard icon="event" label="Reservas de hoy" value={todayRes.length} color="#1A73E8" />
+        <StatCard icon="group" label="Personas hoy" value={guestsToday} color="#137333" />
+        <StatCard icon="schedule" label="Próxima reserva" value={nextRes ? nextRes.time : '—'} sub={nextRes?.customer?.name} color="#7D4A00" />
+        <StatCard icon="person_off" label="No presentados" value={noShows} color="#C5221F" />
       </Box>
 
       {/* ROW 2 — MAIN CONTENT */}
@@ -240,7 +240,7 @@ export default function Dashboard() {
                 disabled={togglingStatus}
                 onClick={handleToggleClick}
                 sx={{
-                  height: 36, textTransform: 'none', fontFamily: 'Roboto', fontWeight: 500,
+                  height: 36, textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500,
                   borderColor: '#DADCE0', color: '#202124',
                   '&:hover': { bgcolor: '#F1F3F4', borderColor: '#DADCE0' }
                 }}
@@ -275,7 +275,7 @@ export default function Dashboard() {
         open={confirmModal.open}
         title="Cerrar día"
         body="¿Seguro que quieres cerrar este día? No se permitirán nuevas reservas web."
-        confirmLabel="Cerrar día"
+        confirmLabel="CERRAR DÍA"
         onConfirm={() => updateDayStatus('CERRADO')}
         onCancel={() => setConfirmModal({ open: false, type: '' })}
       />

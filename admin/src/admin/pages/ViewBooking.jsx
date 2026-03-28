@@ -133,7 +133,7 @@ export default function ViewBooking() {
               '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
             }}
           >
-            BACK TO RESERVATIONS
+            VOLVER A RESERVAS
           </Button>
         </Box>
 
@@ -224,18 +224,18 @@ export default function ViewBooking() {
               
               {/* Section 1 - Detalles */}
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '16px' }}>
-                Detalles de la reserva
+                DETALLES DE LA RESERVA
               </Typography>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: '0' }}>
                 <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pr: { md: '12px' } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Fecha y hora</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>FECHA Y HORA</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
                     {resData.date || 'N/A'} · {resData.time || 'N/A'}
                   </Typography>
                 </Box>
                 <Box sx={{ pb: '20px', borderBottom: '1px solid #E0E0E0', pl: { md: '12px' }, pt: { xs: '20px', md: 0 } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Número de personas</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>PERSONAS</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
                     {resData.guests || 0} personas
                   </Typography>
@@ -246,7 +246,7 @@ export default function ViewBooking() {
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>{resData.special_event?.name || 'Sin evento asignado'}</Typography>
                 </Box>
                 <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Tipo de Mesa</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>TIPO DE MESA</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
                     {resData.table_type?.name || 'Sin tipo asignado'}
                   </Typography>
@@ -255,7 +255,7 @@ export default function ViewBooking() {
 
               {/* Section 2 - Notas especiales */}
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mt: { xs: '24px', md: '32px' }, mb: '16px' }}>
-                Notas especiales
+                NOTAS ESPECIALES
               </Typography>
               <Box sx={{ bgcolor: '#F8F9FA', borderRadius: '4px', p: '12px' }}>
                 {resData.special_requests ? (
@@ -264,7 +264,7 @@ export default function ViewBooking() {
                   </Typography>
                 ) : (
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', fontStyle: 'italic' }}>
-                    Sin peticiones especiales
+                    Sin notas especiales
                   </Typography>
                 )}
               </Box>
@@ -290,7 +290,7 @@ export default function ViewBooking() {
                     }}
                   >
                     <span className="material-icons" style={{ fontSize: 16, marginRight: 8 }}>edit</span>
-                    Editar Reserva
+                    EDITAR RESERVA
                   </Button>
               </Box>
 
@@ -477,7 +477,7 @@ export default function ViewBooking() {
           Cancelar reserva
         </Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px' }}>
-          ¿Estás seguro de que quieres marcar la reserva #{resData.reservation_id || id} como NO ASISTIDA?<br/>
+          ¿Seguro que deseas cancelar la reserva #{resData.reservation_id || id}?<br/>
           Esta acción no se puede deshacer.
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
@@ -490,7 +490,7 @@ export default function ViewBooking() {
               color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase'
             }}
           >
-            Volver
+            VOLVER
           </Button>
           <Button 
             onClick={handleCancelClick}
@@ -503,7 +503,7 @@ export default function ViewBooking() {
               '&:hover': { bgcolor: '#B3261E', boxShadow: 'none' }
             }}
           >
-            {cancelLoading ? 'Guardando...' : 'Confirmar No Asistió'}
+            {cancelLoading ? 'Guardando...' : 'CANCELAR RESERVA'}
           </Button>
         </Box>
       </Dialog>

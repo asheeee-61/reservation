@@ -22,10 +22,10 @@ export default function Login() {
         login(data.token, data.user);
         navigate('/');
       } else {
-        alert(data.message || 'Login failed');
+        alert(data.message || 'Error al iniciar sesión');
       }
     } catch (error) {
-      alert('Error during login: ' + error.message);
+      alert('Error al iniciar sesión: ' + error.message);
     }
   };
 
@@ -33,7 +33,7 @@ export default function Login() {
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#F1F3F4' }}>
       <Paper sx={{ p: 8, width: '100%', maxWidth: 400 }}>
         <Typography variant="h5" fontWeight="bold" align="center" gutterBottom>
-          Admin Login
+          Iniciar Sesión
         </Typography>
         <Box component="form" onSubmit={handleLogin} sx={{ mt: 2 }}>
           <TextField 
@@ -41,11 +41,11 @@ export default function Login() {
             margin="normal" required
           />
           <TextField 
-            fullWidth label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)}
+            fullWidth label="Contraseña" type="password" value={password} onChange={e => setPassword(e.target.value)}
             margin="normal" required
           />
           <Button fullWidth type="submit" variant="contained" sx={{ mt: 6 }}>
-            Login
+            INICIAR SESIÓN
           </Button>
         </Box>
       </Paper>

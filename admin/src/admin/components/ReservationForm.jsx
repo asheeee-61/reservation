@@ -21,7 +21,7 @@ const toTimeString = (minutes) => {
 };
 
 const DAYS_OF_WEEK = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const STATUS_LABELS = {
   'PENDIENTE': 'Pendiente',
@@ -267,7 +267,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
 
     return (
       <Grid container spacing={0.5} sx={{ p: '16px', width: 280 }}>
-        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+        {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map(d => (
           <Grid size={12/7} key={d} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', fontWeight: 500 }}>{d}</Typography>
           </Grid>
@@ -321,7 +321,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
             onClick={onCancel} 
             sx={{ color: '#1A73E8', textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: 13, letterSpacing: '1.25px', p: 0, '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' } }}
           >
-            BACK TO RESERVATIONS
+            VOLVER A RESERVAS
           </Button>
         </Box>
       )}
@@ -367,7 +367,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
                 </Box>
               ) : (
                 <TextField 
-                  fullWidth label="Customer Name" required placeholder="Type to search existing or enter new..."
+                  fullWidth label="CLIENTE *" required placeholder="Buscar por nombre, correo o teléfono..."
                   value={customerSearch} onChange={e => setCustomerSearch(e.target.value)} onFocus={() => customerSearch.length >= 2 && setShowResults(true)}
                   InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
                   InputProps={{ 
@@ -384,11 +384,11 @@ export default function ReservationForm({ initialData, compact = false, onSucces
                   <List sx={{ py: 0 }}>
                     {customersResults.length > 0 ? (
                       <>
-                        <ListItem sx={{ bgcolor: '#F1F3F4', py: 1 }}><Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#70757A', textTransform: 'uppercase' }}>Existing Customers</Typography></ListItem>
+                        <ListItem sx={{ bgcolor: '#F1F3F4', py: 1 }}><Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#70757A', textTransform: 'uppercase' }}>Clientes existentes</Typography></ListItem>
                         {customersResults.slice(0, 5).map((c) => (
                           <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)} sx={{ borderBottom: '1px solid #F1F3F4' }}>
                             <ListItemAvatar><Avatar sx={{ width: 36, height: 36 }}>{getInitials(c.name)}</Avatar></ListItemAvatar>
-                            <ListItemText primary={<Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</Typography>} secondary={<Typography sx={{ fontSize: '12px', color: '#70757A' }}>{c.phone || c.email || 'No contact details'}</Typography>} />
+                            <ListItemText primary={<Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</Typography>} secondary={<Typography sx={{ fontSize: '12px', color: '#70757A' }}>{c.phone || c.email || 'Sin contacto'}</Typography>} />
                             <span className="material-icons" style={{ fontSize: 18, color: '#1A73E8' }}>chevron_right</span>
                           </ListItem>
                         ))}
@@ -424,7 +424,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Box sx={{ display: 'flex', gap: '16px' }}>
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>Fecha <span style={{ color: '#D93025' }}>*</span></Typography>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>FECHA <span style={{ color: '#D93025' }}>*</span></Typography>
                 <Button onClick={e => setAnchorEl(e.currentTarget)} sx={{ height: 56, borderRadius: '4px', border: '1px solid #DADCE0', justifyContent: 'flex-start', px: '14px', color: '#202124', fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', textTransform: 'none', bgcolor: '#FFFFFF', '&:hover': { border: '1px solid #202124', bgcolor: 'transparent' } }}>
                   {formState.date ? formState.date : 'Seleccione una fecha'}
                 </Button>
@@ -440,7 +440,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
               </Box>
 
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>Hora</Typography>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>HORA</Typography>
                 <FormControl fullWidth>
                   <Select
                     displayEmpty
@@ -449,7 +449,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
                     disabled={isBlockedDay || allAvailableSlots.length === 0}
                     IconComponent={(props) => <span {...props} className={"material-icons " + props.className} style={{ color: '#70757A' }}>arrow_drop_down</span>}
                     sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', color: '#202124', bgcolor: '#FFFFFF', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#DADCE0' } }}
-                    renderValue={(val) => { if (!val) return <span style={{color: '#70757A'}}>Sin slots</span>; return val; }}
+                    renderValue={(val) => { if (!val) return <span style={{color: '#70757A'}}>Sin horarios</span>; return val; }}
                   >
                     {!availableShifts.length && initialData?.time && <MenuItem value={initialData.time}>{initialData.time}</MenuItem>}
                     {availableShifts.map((shiftGroup, gIdx) => [
@@ -464,7 +464,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>Comensales</Typography>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>PERSONAS</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', height: 56 }}>
                 <Button onClick={() => setFormState(prev => ({ ...prev, guests: Math.max(globalSettings?.minGuests || 1, Number(prev.guests) - 1) }))} sx={{ minWidth: 32, width: 32, height: 32, p: 0, border: '1px solid #DADCE0', borderRadius: '4px', color: '#202124' }}><span className="material-icons" style={{ fontSize: 18 }}>remove</span></Button>
                 <Typography sx={{ width: 48, textAlign: 'center', fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124' }}>{formState.guests}</Typography>
@@ -473,7 +473,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>Tipo de Mesa</Typography>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>TIPO DE MESA</Typography>
               <FormControl fullWidth>
                 <Select
                   value={tableTypeId} onChange={(e) => setTableTypeId(e.target.value)} disabled={tableTypesLoading || tableTypesError}
@@ -487,7 +487,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>Evento Especial</Typography>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>EVENTO ESPECIAL</Typography>
               <FormControl fullWidth>
                 <Select
                   value={specialEventId} onChange={(e) => setSpecialEventId(e.target.value)} disabled={specialEventsLoading || specialEventsError}
@@ -504,12 +504,12 @@ export default function ReservationForm({ initialData, compact = false, onSucces
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               {!showNotes ? (
                 <Button onClick={() => setShowNotes(true)} sx={{ width: 'fit-content', p: 0, minWidth: 0, color: '#1A73E8', fontFamily: 'Roboto', fontSize: '14px', textTransform: 'none', '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
-                  ＋ Añadir nota
+                  + Añadir nota
                 </Button>
               ) : (
                 <Box sx={{ overflow: 'hidden', transition: 'max-height 200ms ease-in-out', maxHeight: '200px' }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>Notas / Peticiones Especiales (Opcional)</Typography>
-                  <TextField fullWidth multiline rows={3} value={formState.notes} onChange={e => setFormState({...formState, notes: e.target.value})} placeholder="Añadir notas..." InputProps={{ sx: { fontFamily: 'Roboto', fontSize: '14px', color: '#202124', borderRadius: '4px', bgcolor: '#FFFFFF' } }} />
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>NOTAS (Opcional)</Typography>
+                  <TextField fullWidth multiline rows={3} value={formState.notes} onChange={e => setFormState({...formState, notes: e.target.value})} placeholder="Peticiones especiales, alergias..." InputProps={{ sx: { fontFamily: 'Roboto', fontSize: '14px', color: '#202124', borderRadius: '4px', bgcolor: '#FFFFFF' } }} />
                 </Box>
               )}
             </Box>

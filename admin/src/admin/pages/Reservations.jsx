@@ -105,7 +105,7 @@ export default function Reservations() {
           [TABLET]: { fontSize: '18px' },
           [MOBILE]: { fontSize: '16px' }
         }}>
-          Reservations
+          Reservas
         </Typography>
       </Box>
 
@@ -119,7 +119,7 @@ export default function Reservations() {
       }}>
         <TextField
           size="small"
-          placeholder="Search by name or ID..."
+          placeholder="Buscar reservas..."
           value={searchTerm}
           onChange={handleSearchChange}
           InputProps={{
@@ -150,7 +150,7 @@ export default function Reservations() {
               [MOBILE]: { height: 52, fontSize: '16px' }
             }}
           >
-            <MenuItem value="all">All Statuses</MenuItem>
+            <MenuItem value="all">Todas</MenuItem>
             {Object.keys(STATUS_COLORS).map(s => (
               <MenuItem key={s} value={s}>{STATUS_LABELS[s] || s}</MenuItem>
             ))}
@@ -166,13 +166,13 @@ export default function Reservations() {
         <Table sx={{ minWidth: 650 }}>
           <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>ID</TableCell>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Customer</TableCell>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Date & Time</TableCell>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Tipo de Mesa</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>#</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Cliente</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Fecha y hora</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Tipo de mesa</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Evento</TableCell>
-              <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Guests</TableCell>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Status</TableCell>
+              <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Personas</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Estado</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Origen</TableCell>
               <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Acciones</TableCell>
             </TableRow>
@@ -181,7 +181,7 @@ export default function Reservations() {
             {loading ? (
               <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
             ) : reservations.length === 0 ? (
-              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No reservations found.</Typography></TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No se encontraron reservas</Typography></TableCell></TableRow>
             ) : reservations.map(res => (
               <TableRow 
                 key={res.id} 
@@ -203,7 +203,7 @@ export default function Reservations() {
                   )}
                   {res.special_requests && (
                     <Typography noWrap sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '2px', maxWidth: 200 }} display="block">
-                      Note: {res.special_requests}
+                      Nota: {res.special_requests}
                     </Typography>
                   )}
                 </TableCell>
@@ -376,7 +376,7 @@ export default function Reservations() {
         {loading ? (
           <Box display="flex" justifyContent="center" py={3}><CircularProgress /></Box>
         ) : reservations.length === 0 ? (
-          <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No reservations found.</Typography></Box>
+          <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No se encontraron reservas</Typography></Box>
         ) : reservations.map(res => {
           const sKey = res.status?.toUpperCase() || 'PENDIENTE';
           const chipColor = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#202124' };

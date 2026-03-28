@@ -18,7 +18,7 @@ export default function QuickActions() {
           bgcolor: '#1A73E8', color: '#FFFFFF',
           height: 36, px: '16px', borderRadius: '4px',
           fontFamily: 'Roboto', fontSize: 14, fontWeight: 500,
-          textTransform: 'none', whiteSpace: 'nowrap', boxShadow: 'none',
+          textTransform: 'uppercase', whiteSpace: 'nowrap', boxShadow: 'none',
           '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
         }}
       >
@@ -35,7 +35,7 @@ export default function QuickActions() {
           border: '1px solid #DADCE0', color: '#202124', bgcolor: '#FFFFFF',
           height: 36, px: '16px', borderRadius: '4px',
           fontFamily: 'Roboto', fontSize: 14, fontWeight: 500,
-          textTransform: 'none', whiteSpace: 'nowrap', boxShadow: 'none',
+          textTransform: 'uppercase', whiteSpace: 'nowrap', boxShadow: 'none',
           '&:hover': { bgcolor: '#F1F3F4', border: '1px solid #DADCE0' },
         }}
       >

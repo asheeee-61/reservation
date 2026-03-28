@@ -42,7 +42,7 @@ export default function EditBooking() {
   return (
     <Box sx={{ maxWidth: 1000, display: 'flex', flexDirection: 'column', gap: '24px', mx: 'auto', p: { xs: '16px', md: '24px' }, width: '100%', boxSizing: 'border-box' }}>
       <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '24px', color: '#202124' }}>
-        Editar Reserva #{resData?.reservation_id || id}
+        Editar reserva #{resData?.reservation_id || id}
       </Typography>
       <ReservationForm 
         compact={false} 

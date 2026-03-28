@@ -32,7 +32,7 @@ export function ConfirmModal({ open, title, body, confirmLabel, confirmColor = '
             fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase',
           }}
         >
-          Cancelar
+          CANCELAR
         </Button>
         <Button
           onClick={onConfirm}

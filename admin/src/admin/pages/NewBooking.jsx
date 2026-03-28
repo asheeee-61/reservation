@@ -22,7 +22,7 @@ const toTimeString = (minutes) => {
 };
 
 const DAYS_OF_WEEK = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 export default function NewBooking() {
   const navigate = useNavigate();
@@ -349,7 +349,7 @@ export default function NewBooking() {
 
     return (
       <Grid container spacing={0.5} sx={{ p: '16px', width: 280 }}>
-        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+        {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map(d => (
           <Grid size={12/7} key={d} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', fontWeight: 500 }}>{d}</Typography>
           </Grid>
@@ -429,7 +429,7 @@ export default function NewBooking() {
             '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
           }}
         >
-          BACK TO RESERVATIONS
+          VOLVER A RESERVAS
         </Button>
       </Box>
 
@@ -483,8 +483,8 @@ export default function NewBooking() {
                 </Box>
               ) : (
                 <TextField 
-                  fullWidth label="Customer Name" required
-                  placeholder="Type to search existing or enter new..."
+                  fullWidth label="CLIENTE *" required
+                  placeholder="Buscar por nombre, correo o teléfono..."
                   value={customerSearch} 
                   onChange={e => setCustomerSearch(e.target.value)}
                   onFocus={() => customerSearch.length >= 2 && setShowResults(true)}
@@ -515,7 +515,7 @@ export default function NewBooking() {
                     {customersResults.length > 0 ? (
                       <>
                         <ListItem sx={{ bgcolor: '#F1F3F4', py: 1 }}>
-                          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#70757A', textTransform: 'uppercase' }}>Existing Customers</Typography>
+                          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#70757A', textTransform: 'uppercase' }}>Clientes existentes</Typography>
                         </ListItem>
                         {customersResults.slice(0, 5).map((c) => (
                           <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)} sx={{ borderBottom: '1px solid #F1F3F4' }}>
@@ -524,7 +524,7 @@ export default function NewBooking() {
                             </ListItemAvatar>
                             <ListItemText 
                               primary={<Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</Typography>}
-                              secondary={<Typography sx={{ fontSize: '12px', color: '#70757A' }}>{c.phone || c.email || 'No contact details'}</Typography>}
+                              secondary={<Typography sx={{ fontSize: '12px', color: '#70757A' }}>{c.phone || c.email || 'Sin contacto'}</Typography>}
                             />
                             <span className="material-icons" style={{ fontSize: 18, color: '#1A73E8' }}>chevron_right</span>
                           </ListItem>
@@ -602,7 +602,7 @@ export default function NewBooking() {
             <Box sx={{ display: 'flex', gap: '16px' }}>
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                  Fecha <span style={{ color: '#D93025' }}>*</span>
+                  FECHA <span style={{ color: '#D93025' }}>*</span>
                 </Typography>
                 <Button
                   onClick={handleOpenDatePicker}
@@ -637,7 +637,7 @@ export default function NewBooking() {
 
               <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                  Hora
+                  HORA
                 </Typography>
                 <FormControl fullWidth>
                   <Select
@@ -651,7 +651,7 @@ export default function NewBooking() {
                       '& .MuiOutlinedInput-notchedOutline': { borderColor: '#DADCE0' }
                     }}
                     renderValue={(val) => {
-                      if (!val) return <span style={{color: '#70757A'}}>Sin slots disponibles</span>;
+                      if (!val) return <span style={{color: '#70757A'}}>Sin horarios disponibles</span>;
                       return val;
                     }}
                   >
@@ -675,7 +675,7 @@ export default function NewBooking() {
             {/* Row 2: Guests (Full Width) */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                Comensales
+                PERSONAS
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', height: 56 }}>
                 <Button 
@@ -699,7 +699,7 @@ export default function NewBooking() {
             {/* Row 3: Table Type (Full Width) */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                Tipo de Mesa
+                TIPO DE MESA
               </Typography>
               <FormControl fullWidth>
                 <Select
@@ -725,7 +725,7 @@ export default function NewBooking() {
             {/* Row 4: Special Event (Full Width) */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                Evento Especial
+                EVENTO ESPECIAL
               </Typography>
               <FormControl fullWidth>
                 <Select
@@ -759,7 +759,7 @@ export default function NewBooking() {
                     '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
                   }}
                 >
-                  ＋ Añadir nota
+                  + Añadir nota
                 </Button>
               ) : (
                 <Box sx={{ 
@@ -768,12 +768,12 @@ export default function NewBooking() {
                   maxHeight: '200px'
                 }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                    Notas / Peticiones Especiales (Opcional)
+                    NOTAS (Opcional)
                   </Typography>
                   <TextField 
                     fullWidth multiline rows={3}
                     value={newBooking.notes} onChange={e => setNewBooking({...newBooking, notes: e.target.value})}
-                    placeholder="Añadir notas..."
+                    placeholder="Peticiones especiales, alergias..."
                     InputProps={{ sx: { fontFamily: 'Roboto', fontSize: '14px', color: '#202124', borderRadius: '4px', bgcolor: '#FFFFFF' } }}
                   />
                 </Box>
@@ -828,7 +828,7 @@ export default function NewBooking() {
           ) : saveStatus === 'success' ? (
             '✓ GUARDADO'
           ) : (
-            'SAVE BOOKING'
+            'GUARDAR RESERVA'
           )}
         </Button>
       </Box>

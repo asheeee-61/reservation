@@ -141,8 +141,8 @@ export default function TableTypes() {
       <Box sx={{ 
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' 
       }}>
-        <Typography variant="h5" sx={{ fontWeight: 500, fontSize: '20px', color: '#202124' }}>
-          Tipos de Mesa
+        <Typography variant="h5" sx={{ fontWeight: 500, fontSize: '20px', color: '#202124', letterSpacing: '1.5px' }}>
+          TIPOS DE MESA
         </Typography>
         <Button 
           variant="contained"

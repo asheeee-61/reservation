@@ -19,7 +19,7 @@ const STATUS_COLORS = {
   'PENDIENTE':   { bg: '#FEF7E0', border: '#FBBC04', text: '#7D4A00', dot: '#FBBC04', label: 'Pendiente' },
   'ASISTIÓ':     { bg: '#E6F4EA', border: '#34A853', text: '#137333', dot: '#34A853', label: 'Asistió' },
   'CANCELADA':   { bg: '#F1F3F4', border: '#DADCE0', text: '#80868B', dot: '#DADCE0', label: 'Cancelada' },
-  'NO_ASISTIÓ':  { bg: '#FDECEA', border: '#C5221F', text: '#C5221F', dot: '#C5221F', label: 'No Asistió' }
+  'NO_ASISTIÓ':  { bg: '#FDECEA', border: '#C5221F', text: '#C5221F', dot: '#C5221F', label: 'No asistió' }
 };
 
 const MONTH_NAMES = [
@@ -27,7 +27,7 @@ const MONTH_NAMES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-const DAY_NAMES_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUV', 'VIE', 'SÁB'];
+const DAY_NAMES_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 const DAY_NAMES_FULL = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 // --- UTILS ---
@@ -848,7 +848,7 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' }}>
             <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
-              Detalles de Reserva
+              DETALLES DE LA RESERVA
             </Typography>
             <IconButton onClick={onClose} size="small">
               <span className="material-icons">close</span>
@@ -918,16 +918,16 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
 
           {/* OTHER DETAILS */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
-            <InfoRow icon="calendar_today" label="Fecha" value={reservation.date} />
-            <InfoRow icon="schedule" label="Hora" value={reservation.time.slice(0, 5)} />
-            <InfoRow icon="people" label="Comensales" value={`${reservation.guests} personas`} />
-            <InfoRow icon="table_restaurant" label="Mesa" value={reservation.table_type?.name || 'Cualquiera'} />
-            <InfoRow icon="event" label="Evento" value={reservation.special_event?.name || 'Venta Estándar'} />
+            <InfoRow icon="calendar_today" label="FECHA" value={reservation.date} />
+            <InfoRow icon="schedule" label="HORA" value={reservation.time.slice(0, 5)} />
+            <InfoRow icon="people" label="PERSONAS" value={`${reservation.guests} personas`} />
+            <InfoRow icon="table_restaurant" label="MESA" value={reservation.table_type?.name || 'Cualquiera'} />
+            <InfoRow icon="event" label="EVENTO" value={reservation.special_event?.name || 'Venta Estándar'} />
             
             {reservation.special_requests && (
               <Box sx={{ mt: '8px' }}>
                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', mb: '4px' }}>
-                  Notas Especiales
+                  NOTAS ESPECIALES
                 </Typography>
                 <Paper sx={{ p: '12px', bgcolor: '#F8F9FA', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>

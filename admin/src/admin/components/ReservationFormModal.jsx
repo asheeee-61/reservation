@@ -14,7 +14,7 @@ export default function ReservationFormModal({ open, onClose, reservationData, o
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#F1F3F4' }}>
       <Box sx={{ p: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#FFFFFF', borderBottom: '1px solid #E0E0E0', position: 'sticky', top: 0, zIndex: 10 }}>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#202124' }}>
-          {reservationData ? 'Editar Reserva' : 'Nueva Reserva'}
+          {reservationData ? 'Editar reserva' : 'Nueva reserva'}
         </Typography>
         <IconButton onClick={onClose} size="small" sx={{ color: '#70757A' }}>
           <span className="material-icons">close</span>

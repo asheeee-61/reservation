@@ -107,7 +107,7 @@ export default function CustomerDetail() {
   }, [reservations]);
 
   if (loading) return <Box display="flex" justifyContent="center" py={10}><CircularProgress /></Box>;
-  if (!customer) return <Box display="flex" justifyContent="center" py={10}><Typography>Customer not found</Typography></Box>;
+  if (!customer) return <Box display="flex" justifyContent="center" py={10}><Typography>Cliente no encontrado</Typography></Box>;
 
   return (
     <Box sx={{ width: '100%', bgcolor: '#F1F3F4', minHeight: '100vh', boxSizing: 'border-box' }}>
@@ -147,7 +147,7 @@ export default function CustomerDetail() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <span className="material-icons" style={{ fontSize: 20, color: '#70757A' }}>mail</span>
                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>
-                    {customer.email || 'Sin email'}
+                    {customer.email || 'Sin correo'}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -193,9 +193,9 @@ export default function CustomerDetail() {
             <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'row', sm: 'row' }, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
               {[
                 { icon: 'calendar_today', value: stats.total, label: 'reservas en total', color: '#202124' },
-                { icon: 'event_busy', value: stats.noShows, label: 'no shows', color: stats.noShows > 0 ? '#D93025' : '#202124' },
+                { icon: 'event_busy', value: stats.noShows, label: 'no asistencias', color: stats.noShows > 0 ? '#D93025' : '#202124' },
                 { icon: 'people', value: `${stats.attendanceRate}%`, label: 'tasa de asistencia', color: stats.attendanceRate >= 80 ? '#137333' : (stats.attendanceRate >= 50 ? '#F9AB00' : '#D93025') },
-                { icon: 'group', value: stats.total === 1 ? parseInt(reservations[0].guests) : stats.avgParty, label: 'personas de media', color: '#202124' }
+                { icon: 'group', value: stats.total === 1 ? parseInt(reservations[0].guests) : stats.avgParty, label: 'promedio de personas', color: '#202124' }
               ].map((s, i) => (
                 <Paper key={i} sx={{ flex: { xs: '1 1 calc(50% - 8px)', md: 1 }, bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px', p: '16px', boxShadow: 'none' }}>
                   {loadingRes ? (
@@ -227,11 +227,11 @@ export default function CustomerDetail() {
               <Table>
                 <TableHead sx={{ bgcolor: '#F1F3F4' }}>
                   <TableRow>
-                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Fecha</TableCell>
-                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Hora</TableCell>
-                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Personas</TableCell>
-                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Tipo</TableCell>
-                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Estado</TableCell>
+                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>FECHA</TableCell>
+                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>HORA</TableCell>
+                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>PERSONAS</TableCell>
+                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>TIPO</TableCell>
+                    <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>ESTADO</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

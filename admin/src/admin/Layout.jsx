@@ -17,13 +17,13 @@ export default function Layout() {
 
   const menuItems = [
     { text: 'Calendario',   icon: 'calendar_month',    path: '/admin/calendar' },
-    { text: 'Reservations', icon: 'event',             path: '/admin/reservations' },
-    { text: 'Dashboard',    icon: 'dashboard',         path: '/admin' },
+    { text: 'Reservas',     icon: 'event',             path: '/admin/reservations' },
+    { text: 'Panel principal',icon: 'dashboard',       path: '/admin' },
     { text: 'Clientes',     icon: 'people',            path: '/admin/customers' },
-    { text: 'Tipos de Mesa',icon: 'table_restaurant',  path: '/admin/table-types' },
-    { text: 'Eventos',      icon: 'celebration',       path: '/admin/special-events' },
+    { text: 'Tipos de mesa',icon: 'table_restaurant',  path: '/admin/table-types' },
+    { text: 'Eventos especiales',icon: 'celebration',  path: '/admin/special-events' },
     { text: 'Horarios',     icon: 'schedule',          path: '/admin/schedule' },
-    { text: 'Settings',     icon: 'settings',          path: '/admin/settings' },
+    { text: 'Ajustes',      icon: 'settings',          path: '/admin/settings' },
     { text: 'Mi perfil',    icon: 'account_circle',    path: '/admin/profile' }
   ];
 
@@ -33,16 +33,16 @@ export default function Layout() {
   };
 
   const getPageTitle = (path) => {
-    if (path === '/admin' || path === '/admin/') return 'Dashboard';
-    if (path.startsWith('/admin/reservations')) return 'Reservations';
+    if (path === '/admin' || path === '/admin/') return 'Panel principal';
+    if (path.startsWith('/admin/reservations')) return 'Reservas';
     if (path.startsWith('/admin/customers')) return 'Clientes';
-    if (path.startsWith('/admin/table-types')) return 'Tipos de Mesa';
-    if (path.startsWith('/admin/special-events')) return 'Eventos';
+    if (path.startsWith('/admin/table-types')) return 'Tipos de mesa';
+    if (path.startsWith('/admin/special-events')) return 'Eventos especiales';
     if (path.startsWith('/admin/calendar')) return 'Calendario';
-    if (path.startsWith('/admin/schedule')) return 'Control de Horarios';
-    if (path.startsWith('/admin/settings')) return 'Settings';
-    if (path.startsWith('/admin/profile')) return 'Mi Perfil';
-    return 'Restaurant Admin';
+    if (path.startsWith('/admin/schedule')) return 'Control de horarios';
+    if (path.startsWith('/admin/settings')) return 'Ajustes';
+    if (path.startsWith('/admin/profile')) return 'Mi perfil';
+    return 'Panel de administración';
   };
 
   // Close user menu on outside click
@@ -83,7 +83,7 @@ export default function Layout() {
             [TABLET]: { fontSize: '16px' },
             [MOBILE]: { fontSize: '16px' }
           }}>
-            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>Restaurant Admin</Box>
+            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>Panel de administración</Box>
             <Box sx={{ display: 'block', [DESKTOP]: { display: 'none' } }}>R</Box>
           </Typography>
         </Box>
@@ -198,7 +198,7 @@ export default function Layout() {
                 }}>
                   {[
                     { label: 'Mi perfil', icon: 'person', action: () => { setUserMenuOpen(false); navigate('/admin/profile'); } },
-                    { label: 'Settings',  icon: 'settings', action: () => { setUserMenuOpen(false); navigate('/admin/settings'); } },
+                    { label: 'Ajustes',  icon: 'settings', action: () => { setUserMenuOpen(false); navigate('/admin/settings'); } },
                   ].map(item => (
                     <Box key={item.label} onClick={item.action} sx={{
                       display: 'flex', alignItems: 'center', height: 40, px: '12px', gap: '12px',
@@ -251,7 +251,7 @@ export default function Layout() {
         open={logoutModal}
         title="Cerrar sesión"
         body="¿Quieres salir del panel de administración?"
-        confirmLabel="Cerrar sesión"
+        confirmLabel="CERRAR SESIÓN"
         confirmColor="#D93025"
         onCancel={() => setLogoutModal(false)}
         onConfirm={handleLogout}

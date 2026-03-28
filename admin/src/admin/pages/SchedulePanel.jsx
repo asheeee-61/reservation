@@ -397,7 +397,7 @@ export default function SchedulePanel() {
         [TABLET]: { fontSize: '18px' },
         [MOBILE]: { fontSize: '16px' }
       }}>
-        Calendar Control
+        CONFIGURACIÓN DEL CALENDARIO
       </Typography>
 
       <Paper sx={{ width: '100%', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', p: 0, overflow: 'hidden' }}>
@@ -678,7 +678,7 @@ export default function SchedulePanel() {
                                       }}
                                       startIcon={<span className="material-icons" style={{ fontSize: 16 }}>refresh</span>}
                                     >
-                                      Regenerar slots
+                                      Regenerar franjas
                                     </Button>
                                   </Box>
                                 </Box>

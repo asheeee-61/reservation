@@ -289,7 +289,7 @@ export default function Settings() {
 
       {/* Restaurant Details Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Restaurant Details</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>DETALLES DEL RESTAURANTE</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Estos detalles son visibles para los clientes.</Typography>
         
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>
@@ -329,7 +329,7 @@ export default function Settings() {
 
       {/* Contacto para Cancelaciones Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Información de Contacto</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>INFORMACIÓN DE CONTACTO</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Enlaces para que los clientes puedan contactar con el restaurante.</Typography>
         
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mb: '24px' }}>
@@ -393,7 +393,7 @@ export default function Settings() {
 
       {/* Horario del Restaurante Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Rango Global para Aceptar Reservaciones</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>RANGO GLOBAL PARA ACEPTAR RESERVACIONES</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Define el rango horario en el que se pueden aceptar reservaciones. Ningún turno puede salir fuera de estos límites.</Typography>
 
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px' }}>
@@ -476,7 +476,7 @@ export default function Settings() {
 
       {/* Reservation Rules Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Reservation Rules</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>REGLAS DE RESERVA</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Configura límites generales para reservaciones públicas.</Typography>
         
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>
@@ -510,7 +510,7 @@ export default function Settings() {
 
       {/* Capacidad Total Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Capacidad Total</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>CAPACIDAD TOTAL</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>Número máximo de personas que el restaurante puede atender simultáneamente.</Typography>
 
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>

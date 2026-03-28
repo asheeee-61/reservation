@@ -84,13 +84,13 @@ export default function Customers() {
         [TABLET]: { fontSize: '18px' },
         [MOBILE]: { fontSize: '16px' }
       }}>
-        Customers Directory
+        DIRECTORIO DE CLIENTES
       </Typography>
 
       <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', [MOBILE]: { p: '16px' } }}>
         <TextField
           size="small"
-          placeholder="Search by name, email or phone..."
+          placeholder="Buscar por nombre, correo o teléfono..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
@@ -112,22 +112,22 @@ export default function Customers() {
         <Table sx={{ minWidth: 600 }}>
           <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Customer</TableCell>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Contact</TableCell>
-              <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Total Visits</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>CLIENTE</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>CONTACTO</TableCell>
+              <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>VISITAS TOTALES</TableCell>
               <TableCell sx={{ 
                 fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px',
                 [TABLET]: { display: 'none' } 
-              }}>Last Visit</TableCell>
-              <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Actions</TableCell>
+              }}>ÚLTIMA VISITA</TableCell>
+              <TableCell align="right" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>ACCIONES</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading && <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>Loading...</TableCell></TableRow>}
+            {loading && <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>Cargando...</TableCell></TableRow>}
             {!loading && customers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                  <Typography color="text.secondary" sx={{ fontFamily: 'Roboto' }}>No customers found.</Typography>
+                  <Typography color="text.secondary" sx={{ fontFamily: 'Roboto' }}>No se encontraron clientes.</Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -151,19 +151,19 @@ export default function Customers() {
                   </Box>
                 </TableCell>
                 <TableCell sx={{ [TABLET]: { display: 'none' } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{c.last_visit || 'Never'}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{c.last_visit || 'Nunca'}</Typography>
                 </TableCell>
                 <TableCell align="right">
                   <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                     <ActionBtn
                       icon="chat"
-                      tooltip="Send WhatsApp"
+                      tooltip="Enviar WhatsApp"
                       disabled={!c.phone}
                       onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/${sanitizePhone(c.phone)}`, '_blank'); }}
                     />
                     <ActionBtn
                       icon="mail"
-                      tooltip="Send Email"
+                      tooltip="Enviar correo"
                       disabled={!c.email}
                       onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${c.email}`; }}
                     />
@@ -188,7 +188,7 @@ export default function Customers() {
         [MOBILE]: { display: 'flex' }
       }}>
         {!loading && customers.length === 0 && (
-          <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No customers found.</Typography></Box>
+          <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No se encontraron clientes.</Typography></Box>
         )}
         {customers.map(c => (
           <Paper 
@@ -219,18 +219,18 @@ export default function Customers() {
                 {c.phone || '—'}
               </Typography>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px' }}>
-                {c.total_reservations || 0} reservas · {c.last_visit || 'Never'}
+                {c.total_reservations || 0} reservas · {c.last_visit || 'Nunca'}
               </Typography>
               <Box sx={{ display: 'flex', gap: '8px', mt: '8px' }}>
                 <ActionBtn
                   icon="chat"
-                  tooltip="Send WhatsApp"
+                  tooltip="Enviar WhatsApp"
                   disabled={!c.phone}
                   onClick={() => window.open(`https://wa.me/${sanitizePhone(c.phone)}`, '_blank')}
                 />
                 <ActionBtn
                   icon="mail"
-                  tooltip="Send Email"
+                  tooltip="Enviar correo"
                   disabled={!c.email}
                   onClick={() => { window.location.href = `mailto:${c.email}`; }}
                 />
