@@ -1,17 +1,79 @@
 @extends('emails.layout')
 
-@section('content')
-    <h2>¡Hola de nuevo {{ $reservation->customer->name }}!</h2>
-    <p>Le recordamos que su reserva en {{ config('app.restaurant_name', 'Nuestro Restaurante') }} es hoy. Le esperamos muy pronto.</p>
-    
-    <div class="info-box">
-        <div class="info-item"><span class="info-label">Fecha:</span> {{ \Carbon\Carbon::parse($reservation->date)->toFormattedDateString() }}</div>
-        <div class="info-item"><span class="info-label">Hora:</span> {{ $reservation->time }}</div>
-        <div class="info-item"><span class="info-label">Personas:</span> {{ $reservation->guests }}</div>
-        @if($reservation->tableType)
-            <div class="info-item"><span class="info-label">Ubicación:</span> {{ $reservation->tableType->name }}</div>
-        @endif
-    </div>
+@section('header')
+<tr>
+  <td class="email-header"
+      style="background: linear-gradient(135deg,
+             #F9AB00 0%, #E37400 100%);">
+    <p class="header-restaurant">
+      {{ config('app.restaurant_name', 'Hotaru Madrid') }}
+    </p>
+    <h1 class="header-title">
+      Recordatorio de reserva
+    </h1>
+    <p class="header-subtitle">
+      Hoy a las {{ $reservation->time }}
+    </p>
+    <span class="header-badge">Hoy</span>
+  </td>
+</tr>
+@endsection
 
-    <p>Recuerde avisarnos si por cualquier motivo no puede acudir.</p>
+@section('body')
+<p class="greeting">
+  Estimado/a {{ $reservation->customer->name }},
+</p>
+<p class="body-text">
+  Le recordamos que tiene una reserva en 
+  {{ config('app.restaurant_name', 'Hotaru Madrid') }} 
+  en aproximadamente 2 horas. Le esperamos.
+</p>
+
+<div class="details-card">
+  <div class="details-card-header">
+    Su reserva de hoy
+  </div>
+  <div class="details-row">
+    <span class="details-label">Hoy</span>
+    <span class="details-value">
+      {{ \Carbon\Carbon::parse($reservation->date)
+         ->locale('es')
+         ->isoFormat('dddd, D [de] MMMM') }}
+    </span>
+  </div>
+  <div class="details-row">
+    <span class="details-label">Hora</span>
+    <span class="details-value" 
+          style="color:#1A73E8; font-weight:500;">
+      {{ $reservation->time }}
+    </span>
+  </div>
+  <div class="details-row">
+    <span class="details-label">Personas</span>
+    <span class="details-value">
+      {{ $reservation->guests }}
+    </span>
+  </div>
+  <div class="details-row">
+    <span class="details-label">Zona</span>
+    <span class="details-value">
+      {{ $reservation->tableType->name ?? 'General' }}
+    </span>
+  </div>
+  <div class="details-row">
+    <span class="details-label">Referencia</span>
+    <span class="details-value">
+      #{{ $reservation->id }}
+    </span>
+  </div>
+</div>
+
+<div class="alert-box alert-warning">
+  <span class="alert-box-icon">!</span>
+  <span>
+    Si tiene algun imprevisto y no puede asistir, 
+    le agradeceriamos que nos lo comunicara 
+    con la mayor brevedad posible.
+  </span>
+</div>
 @endsection
