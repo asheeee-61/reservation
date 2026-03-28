@@ -36,34 +36,36 @@ router.post('/reminder-2h', async (req, res) => {
         const target = process.env.TEST_PHONE || customer.phone;
         await sendMessage(target, msg);
         
+        console.log(`✅ Reminder 2h sent to ${target}`);
         res.json({ status: 'sent', type: 'reminder-2h' });
     } catch (err) {
-        console.error('Failed to send reminder:', err.message);
+        console.error('❌ Failed to send reminder:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
     }
 });
 
 // 2. Post visit review
-router.post('/review-request', async (req, res) => {
-    const { customer } = req.body;
-    const reviewLink = process.env.REVIEW_LINK;
+router.post('/review', async (req, res) => {
+    const { customer, reviewLink } = req.body;
+    const link = reviewLink || process.env.REVIEW_LINK;
 
-    if (!customer?.phone || !reviewLink) {
+    if (!customer?.phone || !link) {
         return res.status(400).json({ error: 'Missing customer phone or review link' });
     }
 
     try {
         const msg = formatPostVisitReview({
             customerName: customer.name,
-            reviewLink
+            reviewLink: link
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
         await sendMessage(target, msg);
 
-        res.json({ status: 'sent', type: 'review-request' });
+        console.log(`✅ Review request sent to ${target}`);
+        res.json({ status: 'sent', type: 'review' });
     } catch (err) {
-        console.error('Failed to send review request:', err.message);
+        console.error('❌ Failed to send review request:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
     }
 });
@@ -85,9 +87,40 @@ router.post('/cancellation', async (req, res) => {
         const target = process.env.TEST_PHONE || customer.phone;
         await sendMessage(target, msg);
 
+        console.log(`✅ Cancellation notice sent to ${target}`);
         res.json({ status: 'sent', type: 'cancellation' });
     } catch (err) {
-        console.error('Failed to send cancellation notice:', err.message);
+        console.error('❌ Failed to send cancellation notice:', err.message);
+        res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
+    }
+});
+
+// 3.5. Confirmation (status update to confirmed)
+router.post('/confirmed', async (req, res) => {
+    const { reservation, customer } = req.body;
+
+    if (!reservation || !customer) {
+        return res.status(400).json({ error: 'Missing reservation or customer data' });
+    }
+
+    const data = {
+        id: reservation.id,
+        date: reservation.date,
+        time: reservation.time,
+        guests: reservation.guests,
+        customerName: customer.name
+    };
+
+    try {
+        const msg = formatClientConfirmation(data);
+        const target = process.env.TEST_PHONE || customer.phone;
+        
+        await sendMessage(target, msg);
+        
+        console.log(`✅ Confirmation sent to ${target} for reservation #${reservation.id}`);
+        res.json({ status: 'sent', type: 'confirmed' });
+    } catch (err) {
+        console.error('❌ Failed to send confirmation:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
     }
 });
@@ -123,9 +156,10 @@ router.post('/new-reservation', async (req, res) => {
             sendMessage(targetAdmin, adminMsg)
         ]);
 
+        console.log(`✅ New reservation notifications sent for #${reservation.id}`);
         res.json({ status: 'sent', details: results });
     } catch (err) {
-        console.error('Failed to send status update:', err.message);
+        console.error('❌ Failed to send status update:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
     }
 });
