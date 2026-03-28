@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
@@ -82,6 +82,30 @@ export default function CustomerDetail() {
     return name.substring(0, 2).toUpperCase();
   };
 
+  const stats = useMemo(() => {
+    if (!reservations || reservations.length === 0) {
+      return { total: 0, noShows: 0, attendanceRate: 0, avgParty: 0 };
+    }
+    
+    const total = reservations.length;
+    
+    const noShows = reservations.filter(r => 
+      r.status === 'NO_ASISTIÓ' || r.status === 'CANCELADA' || r.status === 'no_show' || r.status === 'cancelled'
+    ).length;
+    
+    const attended = reservations.filter(r =>
+      r.status === 'CONFIRMADA' || r.status === 'ASISTIÓ' || r.status === 'confirmed' || r.status === 'arrived'
+    ).length;
+    
+    const attendanceRate = Math.round((attended / total) * 100);
+    
+    const avgParty = (
+      reservations.reduce((sum, r) => sum + (parseInt(r.guests) || 0), 0) / total
+    ).toFixed(1);
+    
+    return { total, noShows, attendanceRate, avgParty };
+  }, [reservations]);
+
   if (loading) return <Box display="flex" justifyContent="center" py={10}><CircularProgress /></Box>;
   if (!customer) return <Box display="flex" justifyContent="center" py={10}><Typography>Customer not found</Typography></Box>;
 
@@ -162,9 +186,38 @@ export default function CustomerDetail() {
             </Box>
           </Paper>
 
-          {/* RIGHT CARD: Historial de reservas */}
-          <Paper sx={{ flex: 1, bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px', boxShadow: 'none', overflow: 'hidden' }}>
-            <Box sx={{ px: '24px', py: '20px', borderBottom: '1px solid #E0E0E0' }}>
+          {/* RIGHT WRAPPER */}
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
+            
+            {/* STATS ROW */}
+            <Box sx={{ display: 'flex', gap: '16px', flexDirection: { xs: 'row', sm: 'row' }, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+              {[
+                { icon: 'calendar_today', value: stats.total, label: 'reservas en total', color: '#202124' },
+                { icon: 'event_busy', value: stats.noShows, label: 'no shows', color: stats.noShows > 0 ? '#D93025' : '#202124' },
+                { icon: 'people', value: `${stats.attendanceRate}%`, label: 'tasa de asistencia', color: stats.attendanceRate >= 80 ? '#137333' : (stats.attendanceRate >= 50 ? '#F9AB00' : '#D93025') },
+                { icon: 'group', value: stats.total === 1 ? parseInt(reservations[0].guests) : stats.avgParty, label: 'personas de media', color: '#202124' }
+              ].map((s, i) => (
+                <Paper key={i} sx={{ flex: { xs: '1 1 calc(50% - 8px)', md: 1 }, bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px', p: '16px', boxShadow: 'none' }}>
+                  {loadingRes ? (
+                    <Box sx={{ width: '100%', height: 60, animation: 'pulse 1.5s infinite', bgcolor: '#F1F3F4', borderRadius: '4px' }}>
+                      <style>
+                        {`@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }`}
+                      </style>
+                    </Box>
+                  ) : (
+                    <>
+                      <span className="material-icons" style={{ fontSize: 20, color: '#1A73E8', marginBottom: '8px', display: 'block' }}>{s.icon}</span>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '24px', color: s.color, lineHeight: 1 }}>{s.value}</Typography>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px' }}>{s.label}</Typography>
+                    </>
+                  )}
+                </Paper>
+              ))}
+            </Box>
+
+            {/* RIGHT CARD: Historial de reservas */}
+            <Paper sx={{ bgcolor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '4px', boxShadow: 'none', overflow: 'hidden' }}>
+              <Box sx={{ px: '24px', py: '20px', borderBottom: '1px solid #E0E0E0' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#202124' }}>
                 Historial de reservas
               </Typography>
@@ -246,7 +299,8 @@ export default function CustomerDetail() {
                 onPerPageChange={(pp) => { setPerPage(pp); setPage(1); }}
               />
             )}
-          </Paper>
+            </Paper>
+          </Box>
         </Box>
       </Box>
 

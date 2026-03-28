@@ -15,9 +15,9 @@ import ReservationFormModal from '../components/ReservationFormModal';
 
 // --- CONSTANTS ---
 const STATUS_COLORS = {
-  'CONFIRMADA': { bg: '#E6F4EA', border: '#34A853', text: '#137333', dot: '#34A853', label: 'Confirmada' },
+  'CONFIRMADA': { bg: '#E8F0FE', border: '#1A73E8', text: '#1A73E8', dot: '#1A73E8', label: 'Confirmada' },
   'PENDIENTE':   { bg: '#FEF7E0', border: '#FBBC04', text: '#7D4A00', dot: '#FBBC04', label: 'Pendiente' },
-  'ASISTIÓ':     { bg: '#E8F0FE', border: '#1A73E8', text: '#1A73E8', dot: '#1A73E8', label: 'Asistió' },
+  'ASISTIÓ':     { bg: '#E6F4EA', border: '#34A853', text: '#137333', dot: '#34A853', label: 'Asistió' },
   'CANCELADA':   { bg: '#F1F3F4', border: '#DADCE0', text: '#80868B', dot: '#DADCE0', label: 'Cancelada' },
   'NO_ASISTIÓ':  { bg: '#FDECEA', border: '#C5221F', text: '#C5221F', dot: '#C5221F', label: 'No Asistió' }
 };

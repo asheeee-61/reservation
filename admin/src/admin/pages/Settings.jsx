@@ -25,6 +25,15 @@ export default function Settings() {
     return h * 60 + m;
   };
 
+  const getInitials = (name) => {
+    if (!name) return '??';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return name.substring(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -249,6 +258,34 @@ export default function Settings() {
       </Dialog>
       
       {savedMsg && <Alert severity="success" sx={{ mb: 2 }}>{savedMsg}</Alert>}
+
+      {/* Restaurant Identity Card */}
+      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', mb: '16px', display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ 
+            width: 96, height: 96, borderRadius: '50%',
+            bgcolor: '#1A73E8', color: 'white',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'Roboto', fontWeight: 500, fontSize: '36px', mb: '8px'
+          }}>
+            {getInitials(config.restaurant?.name)}
+          </Box>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', textAlign: 'center' }}>
+            Logo del restaurante
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
+            {config.restaurant?.name || 'Restaurante'}
+          </Typography>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '4px' }}>
+            {config.restaurant?.address || ''}
+          </Typography>
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '12px' }}>
+            Las iniciales se generan automáticamente desde el nombre del restaurante
+          </Typography>
+        </Box>
+      </Paper>
 
       {/* Restaurant Details Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>

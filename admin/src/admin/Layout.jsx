@@ -23,7 +23,8 @@ export default function Layout() {
     { text: 'Tipos de Mesa',icon: 'table_restaurant',  path: '/admin/table-types' },
     { text: 'Eventos',      icon: 'celebration',       path: '/admin/special-events' },
     { text: 'Horarios',     icon: 'schedule',          path: '/admin/schedule' },
-    { text: 'Settings',     icon: 'settings',          path: '/admin/settings' }
+    { text: 'Settings',     icon: 'settings',          path: '/admin/settings' },
+    { text: 'Mi perfil',    icon: 'account_circle',    path: '/admin/profile' }
   ];
 
   const handleLogout = () => {
@@ -40,6 +41,7 @@ export default function Layout() {
     if (path.startsWith('/admin/calendar')) return 'Calendario';
     if (path.startsWith('/admin/schedule')) return 'Control de Horarios';
     if (path.startsWith('/admin/settings')) return 'Settings';
+    if (path.startsWith('/admin/profile')) return 'Mi Perfil';
     return 'Restaurant Admin';
   };
 
@@ -195,8 +197,8 @@ export default function Layout() {
                   boxShadow: '0 2px 6px rgba(0,0,0,0.12)', zIndex: 1300, py: '4px',
                 }}>
                   {[
-                    { label: 'Mi perfil', icon: 'person', action: () => { setUserMenuOpen(false); navigate('/admin/settings'); } },
-                    { label: 'Ajustes',   icon: 'settings', action: () => { setUserMenuOpen(false); navigate('/admin/settings'); } },
+                    { label: 'Mi perfil', icon: 'person', action: () => { setUserMenuOpen(false); navigate('/admin/profile'); } },
+                    { label: 'Settings',  icon: 'settings', action: () => { setUserMenuOpen(false); navigate('/admin/settings'); } },
                   ].map(item => (
                     <Box key={item.label} onClick={item.action} sx={{
                       display: 'flex', alignItems: 'center', height: 40, px: '12px', gap: '12px',

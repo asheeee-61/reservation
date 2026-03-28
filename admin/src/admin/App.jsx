@@ -11,6 +11,7 @@ import CustomerDetail from './pages/CustomerDetail';
 import TableTypes from './pages/TableTypes';
 import SpecialEvents from './pages/SpecialEvents';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import CalendarPanel from './pages/CalendarPanel';
 import SchedulePanel from './pages/SchedulePanel';
 import Login from './pages/Login';
@@ -133,6 +134,7 @@ function App() {
           <Route path="table-types" element={<TableTypes />} />
           <Route path="special-events" element={<SpecialEvents />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="calendar" element={<CalendarPanel />} />
           <Route path="schedule" element={<SchedulePanel />} />
         </Route>
