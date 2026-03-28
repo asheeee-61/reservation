@@ -940,7 +940,7 @@ export default function SchedulePanel() {
                         const monthName = (MONTH_NAMES[d.getMonth()] || '').toLowerCase();
                         const label = isNaN(d.getTime()) ? dateStr : `${dayLabel}, ${d.getDate()} de ${monthName} ${d.getFullYear()}`;
                         return (
-                          <Box key={item.date} sx={{ 
+                          <Box key={`${dateStr}-${idx}`} sx={{ 
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                             p: '16px', borderBottom: idx < blockedDates.length - 1 ? '1px solid #E0E0E0' : 'none' 
                           }}>
