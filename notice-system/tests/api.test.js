@@ -57,4 +57,10 @@ describe('Notice System API', () => {
         const res = await request(app).get('/qr');
         expect(res.text).toContain('WhatsApp client is already ready!');
     });
+
+    it('GET / should redirect to /qr', async () => {
+        const res = await request(app).get('/');
+        expect(res.status).toBe(302);
+        expect(res.headers.location).toBe('/qr');
+    });
 });

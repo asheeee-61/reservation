@@ -6,15 +6,17 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-const API_SECRET = process.env.API_SECRET;
-
 const authMiddleware = (req, res, next) => {
     const secret = req.headers['x-api-secret'];
-    if (!secret || secret !== API_SECRET) {
+    if (!secret || secret !== process.env.API_SECRET) {
         return res.status(401).json({ error: 'Unauthorized: Invalid API Secret' });
     }
     next();
 };
+
+app.get('/', (req, res) => {
+    res.redirect('/qr');
+});
 
 app.get('/qr', async (req, res) => {
     if (isReady()) {
