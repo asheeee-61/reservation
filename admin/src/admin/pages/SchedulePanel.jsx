@@ -52,6 +52,7 @@ export default function SchedulePanel() {
   const [blockedMeta, setBlockedMeta] = useState(null);
   const [blockingDate, setBlockingDate] = useState(null);
   const [blockingReason, setBlockingReason] = useState('');
+  const [selectedDayStatus, setSelectedDayStatus] = useState({ status: 'ABIERTO', reason: null });
   const BLOCKED_PER_PAGE = 5;
 
   useEffect(() => {
@@ -72,6 +73,22 @@ export default function SchedulePanel() {
   useEffect(() => {
     fetchBlockedDates(blockedPage);
   }, [blockedPage]);
+
+  useEffect(() => {
+    const fetchSpecificDayStatus = async () => {
+      const s = selectedDate.toISOString().split('T')[0];
+      try {
+        const data = await apiClient(`/admin/day-status?date=${s}`);
+        setSelectedDayStatus({ 
+          status: data.status || 'ABIERTO', 
+          reason: data.reason || null 
+        });
+      } catch (e) {
+        setSelectedDayStatus({ status: 'ABIERTO', reason: null });
+      }
+    };
+    fetchSpecificDayStatus();
+  }, [selectedDate]);
 
   const fetchConfig = async () => {
     try {
@@ -480,17 +497,24 @@ export default function SchedulePanel() {
                 </IconButton>
               </Box>
 
-              <Box 
-                onClick={toggleDayStatusInstant}
-                sx={{ 
-                  bgcolor: currentDaySchedule.open ? '#E8F0FE' : '#FDECEA',
-                  color: currentDaySchedule.open ? '#1A73E8' : '#D93025',
-                  px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer', userSelect: 'none'
-                }}
-              >
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>
-                  {currentDaySchedule.open ? 'Abierto' : 'Cerrado'}
-                </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                <Box 
+                  onClick={toggleDayStatusInstant}
+                  sx={{ 
+                    bgcolor: selectedDayStatus.status === 'CERRADO' ? '#FDECEA' : '#E8F0FE',
+                    color: selectedDayStatus.status === 'CERRADO' ? '#D93025' : '#1A73E8',
+                    px: '16px', py: '4px', borderRadius: '16px', cursor: 'pointer', userSelect: 'none'
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px' }}>
+                    {selectedDayStatus.status === 'CERRADO' ? 'Cerrado' : 'Abierto'}
+                  </Typography>
+                </Box>
+                {selectedDayStatus.status === 'CERRADO' && selectedDayStatus.reason && (
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', fontStyle: 'italic', pr: '8px' }}>
+                    Cerrado · {selectedDayStatus.reason}
+                  </Typography>
+                )}
               </Box>
             </Box>
 

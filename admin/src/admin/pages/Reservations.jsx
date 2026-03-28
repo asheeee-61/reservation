@@ -11,6 +11,7 @@ import { apiClient } from '../services/apiClient';
 import CustomerAvatar from '../components/CustomerAvatar';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import TablePagination from '../components/TablePagination';
+import SourceBadge from '../components/SourceBadge';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -293,25 +294,7 @@ export default function Reservations() {
                   })() || <Box component="span" sx={{ color: '#BDBDBD' }}>—</Box>}
                 </TableCell>
                 <TableCell>
-                  {(() => {
-                    const src = res.source || 'client';
-                    const isAdmin = src === 'admin';
-                    return (
-                      <Box sx={{
-                        display: 'inline-flex', alignItems: 'center', gap: '4px',
-                        bgcolor: isAdmin ? '#E8F0FE' : '#F1F3F4',
-                        color: isAdmin ? '#1A73E8' : '#70757A',
-                        borderRadius: '4px', px: '8px', py: '4px',
-                      }}>
-                        <span className="material-icons" style={{ fontSize: 12 }}>
-                          {isAdmin ? 'admin_panel_settings' : 'person'}
-                        </span>
-                        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px' }}>
-                          {isAdmin ? 'Admin' : 'Cliente'}
-                        </Typography>
-                      </Box>
-                    );
-                  })()}
+                  <SourceBadge source={res.source} />
                 </TableCell>
                 <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">
@@ -411,9 +394,12 @@ export default function Reservations() {
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-                  #{res.reservation_id}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                    #{res.reservation_id}
+                  </Typography>
+                  <SourceBadge source={res.source} />
+                </Box>
                 <Box sx={{ bgcolor: chipColor.bg, color: chipColor.text, borderRadius: '4px', px: '8px', py: '4px' }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     {STATUS_LABELS[sKey] || res.status || 'PENDIENTE'}

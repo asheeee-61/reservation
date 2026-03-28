@@ -3,8 +3,13 @@ const QRCode = require('qrcode');
 const { sendMessage, formatClientMessage, formatAdminMessage, isReady, getLastQR } = require('./whatsapp');
 require('dotenv').config();
 
+const notifyRoutes = require('./notify');
+
 const app = express();
 app.use(express.json());
+
+// Notify routes
+app.use('/notify', notifyRoutes);
 
 // CORS manual middleware
 app.use((req, res, next) => {
@@ -71,47 +76,6 @@ app.get('/qr', async (req, res) => {
         `);
     } catch (err) {
         res.status(500).send('<h1>Error generating QR code</h1>');
-    }
-});
-
-app.post('/notify/new-reservation', authMiddleware, async (req, res) => {
-    const { reservation, customer, tableType, specialEvent, adminPhone } = req.body;
-
-    if (!reservation || !customer) {
-        return res.status(400).json({ error: 'Missing reservation or customer data' });
-    }
-
-    const data = {
-        id: reservation.id,
-        date: reservation.date,
-        time: reservation.time,
-        guests: reservation.guests,
-        customerName: customer.name,
-        customerPhone: customer.phone,
-        tableType: tableType ? tableType.name : null,
-        specialEvent: specialEvent ? specialEvent.name : null
-    };
-
-    try {
-        const clientMsg = formatClientMessage(data);
-        const adminMsg = formatAdminMessage(data);
-
-        // Determine target for testing/admin
-        const targetAdmin = process.env.TEST_PHONE || adminPhone;
-        const targetClient = process.env.TEST_PHONE || customer.phone;
-
-        // Fire and forget (optional, but requested avoid blocking)
-        // Here we send them and wait for the promises to settle but we don't care if one fails specifically if we have a log
-        const results = await Promise.allSettled([
-            sendMessage(targetClient, clientMsg),
-            sendMessage(targetAdmin, adminMsg)
-        ]);
-
-        console.log(`Notification sent for reservation #${reservation.id}`);
-        res.json({ status: 'sent', details: results });
-    } catch (err) {
-        console.error('Failed to send notification:', err.message);
-        res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
     }
 });
 

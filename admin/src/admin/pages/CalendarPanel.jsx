@@ -800,6 +800,8 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
   const [loading, setLoading] = useState(false);
   const [optimisticStatus, setOptimisticStatus] = useState(reservation?.status);
   const [toastOpen, setToastOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -810,16 +812,27 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
 
   const currentStatus = optimisticStatus || reservation.status;
 
-  const handleStatusUpdate = async (newStatus) => {
-    if (newStatus === currentStatus) return;
+  const handleStatusUpdate = async (newStatus, reason = null) => {
+    if (newStatus === currentStatus && !reason) return;
+    
+    if (newStatus === 'CANCELADA' && !reason) {
+      setConfirmCancelOpen(true);
+      return;
+    }
+
     setOptimisticStatus(newStatus);
     setToastOpen(true);
     setLoading(true);
     try {
       await apiClient(`/admin/reservations/${reservation.id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ 
+          status: newStatus,
+          cancellation_reason: reason 
+        })
       });
+      setConfirmCancelOpen(false);
+      setCancelReason('');
       onRefresh(); // Refresh background silently
     } catch (e) {
       console.error('Failed to update status', e);
@@ -991,6 +1004,91 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
           sx: { bgcolor: '#323232', color: '#FFFFFF', fontFamily: 'Roboto', fontSize: '14px', borderRadius: '4px' }
         }}
       />
+
+      {/* Cancellation Confirmation Dialog */}
+      <Dialog 
+        open={confirmCancelOpen} 
+        onClose={() => setConfirmCancelOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '100%',
+            maxWidth: '400px',
+            bgcolor: '#FFFFFF',
+            borderRadius: '4px',
+            p: '24px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+            m: '16px'
+          }
+        }}
+      >
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124' }}>
+          Cancelar reserva
+        </Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px' }}>
+          ¿Seguro que deseas cancelar esta reserva?<br/>
+          Esta acción no se puede deshacer.
+        </Typography>
+
+        <div style={{ marginTop: 16 }}>
+          <label style={{
+            fontFamily:    'Roboto, sans-serif',
+            fontSize:      12,
+            fontWeight:    500,
+            color:         '#70757A',
+            textTransform: 'uppercase',
+            letterSpacing: '1.5px',
+            display:       'block',
+            marginBottom:  6,
+          }}>
+            Motivo (opcional — se enviará al cliente)
+          </label>
+          <input
+            value={cancelReason}
+            onChange={e => setCancelReason(e.target.value)}
+            placeholder="Ej: Cierre por evento privado..."
+            maxLength={100}
+            style={{
+              width:        '100%',
+              height:       44,
+              border:       '1px solid #DADCE0',
+              borderRadius: 4,
+              padding:      '0 12px',
+              fontSize:     14,
+              fontFamily:   'Roboto, sans-serif',
+              color:        '#202124',
+              outline:      'none',
+              boxSizing:    'border-box',
+            }}
+          />
+        </div>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
+          <Button 
+            onClick={() => setConfirmCancelOpen(false)}
+            variant="outlined"
+            disabled={loading}
+            sx={{ 
+              height: 36, px: '24px', borderRadius: '4px', border: '1px solid #DADCE0', 
+              color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase'
+            }}
+          >
+            VOLVER
+          </Button>
+          <Button 
+            onClick={() => handleStatusUpdate('CANCELADA', cancelReason || null)}
+            variant="contained"
+            disabled={loading}
+            sx={{ 
+              height: 36, px: '24px', borderRadius: '4px', bgcolor: '#D93025', 
+              color: '#FFFFFF', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase',
+              boxShadow: 'none',
+              '&:hover': { bgcolor: '#B3261E', boxShadow: 'none' }
+            }}
+          >
+            {loading ? 'Guardando...' : 'CANCELAR RESERVA'}
+          </Button>
+        </Box>
+      </Dialog>
     </>
   );
 }

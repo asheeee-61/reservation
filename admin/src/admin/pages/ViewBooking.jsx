@@ -3,6 +3,7 @@ import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divid
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
 import CustomerAvatar from '../components/CustomerAvatar';
+import SourceBadge from '../components/SourceBadge';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -40,6 +41,7 @@ export default function ViewBooking() {
   const [resData, setResData] = useState(location.state?.reservation || null);
   const [loading, setLoading] = useState(!location.state?.reservation);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
   const [errorToast, setErrorToast] = useState(false);
   const [activities, setActivities] = useState([]);
@@ -67,12 +69,14 @@ export default function ViewBooking() {
   }, [id]);
 
 
-  const handleStatusUpdate = async (newStatus) => {
-    const fromStatus = resData?.status?.toUpperCase() || 'PENDIENTE';
+  const handleStatusUpdate = async (newStatus, reason = null) => {
     try {
       const response = await apiClient(`/admin/reservations/${resData.id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ 
+          status: newStatus,
+          cancellation_reason: reason
+        })
       });
       
       setResData(response.data);
@@ -85,14 +89,16 @@ export default function ViewBooking() {
       }
     } catch (e) {
       setErrorToast(true);
+      throw e;
     }
   };
 
   const handleCancelClick = async () => {
     setCancelLoading(true);
     try {
-      await handleStatusUpdate('NO_ASISTIÓ');
+      await handleStatusUpdate('CANCELADA', cancelReason || null);
       setCancelModalOpen(false);
+      setCancelReason('');
     } catch (e) {
       // Error handled in handleStatusUpdate
     } finally {
@@ -398,25 +404,7 @@ export default function ViewBooking() {
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '8px' }}>
                 Origen de la reserva
               </Typography>
-              {(() => {
-                const src = resData.source || 'client';
-                const isAdmin = src === 'admin';
-                return (
-                  <Box sx={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    bgcolor: isAdmin ? '#E8F0FE' : '#F1F3F4',
-                    color: isAdmin ? '#1A73E8' : '#70757A',
-                    borderRadius: '4px', px: '8px', py: '4px',
-                  }}>
-                    <span className="material-icons" style={{ fontSize: 14 }}>
-                      {isAdmin ? 'admin_panel_settings' : 'person'}
-                    </span>
-                    <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px' }}>
-                      {isAdmin ? 'Admin' : 'Cliente'}
-                    </Typography>
-                  </Box>
-                );
-              })()}
+                  <SourceBadge source={resData.source} />
             </Box>
 
             {/* Section 2 - Historial */}
@@ -477,6 +465,39 @@ export default function ViewBooking() {
           ¿Seguro que deseas cancelar la reserva #{resData.reservation_id || id}?<br/>
           Esta acción no se puede deshacer.
         </Typography>
+
+        <div style={{ marginTop: 16 }}>
+          <label style={{
+            fontFamily:    'Roboto, sans-serif',
+            fontSize:      12,
+            fontWeight:    500,
+            color:         '#70757A',
+            textTransform: 'uppercase',
+            letterSpacing: '1.5px',
+            display:       'block',
+            marginBottom:  6,
+          }}>
+            Motivo (opcional — se enviará al cliente)
+          </label>
+          <input
+            value={cancelReason}
+            onChange={e => setCancelReason(e.target.value)}
+            placeholder="Ej: Cierre por evento privado..."
+            maxLength={100}
+            style={{
+              width:        '100%',
+              height:       44,
+              border:       '1px solid #DADCE0',
+              borderRadius: 4,
+              padding:      '0 12px',
+              fontSize:     14,
+              fontFamily:   'Roboto, sans-serif',
+              color:        '#202124',
+              outline:      'none',
+              boxSizing:    'border-box',
+            }}
+          />
+        </div>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
           <Button 
             onClick={() => setCancelModalOpen(false)}

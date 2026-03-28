@@ -85,6 +85,7 @@ export default function Dashboard() {
       });
       setDayStatus(status);
       setToast({ open: true, message: `Día ${status.toLowerCase()}` });
+      fetchDashboardData();
     } catch (e) {
       console.error(e);
     } finally {
@@ -129,6 +130,7 @@ export default function Dashboard() {
             )}
           </Box>
         </Paper>
+      )}
 
       {/* ROW 1 — STATS */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: '16px' }}>
@@ -177,7 +179,6 @@ export default function Dashboard() {
                       {r.time}
                     </Typography>
                     <Box sx={{ flex: 1, ml: 2 }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
                           {r.customer?.name}
