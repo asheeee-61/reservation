@@ -44,7 +44,7 @@ export default function Settings() {
   const globalHours = useSettingsStore(state => state.globalHours);
   
   const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
-  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '' });
+  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', restaurantPhone: '', reviewLink: '' });
   const [savingGlobal, setSavingGlobal] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
   const [conflictModalOpen, setConflictModalOpen] = useState(false);
@@ -65,7 +65,9 @@ export default function Settings() {
       });
       setLocalContact({
         whatsappPhone: globalHours.whatsapp_phone || '',
-        instagramUsername: globalHours.instagram_username || ''
+        instagramUsername: globalHours.instagram_username || '',
+        restaurantPhone: globalHours.restaurant_phone || '',
+        reviewLink: globalHours.review_link || ''
       });
     }
   }, [globalHours]);
@@ -143,14 +145,18 @@ export default function Settings() {
           global_closing_time: localGlobal.closingTime,
           default_interval: localGlobal.defaultInterval,
           whatsapp_phone: localContact.whatsappPhone,
-          instagram_username: localContact.instagramUsername
+          instagram_username: localContact.instagramUsername,
+          restaurant_phone: localContact.restaurantPhone,
+          review_link: localContact.reviewLink
         })
       });
 
       useSettingsStore.getState().setGlobalHours({
         ...localGlobal,
         whatsapp_phone: localContact.whatsappPhone,
-        instagram_username: localContact.instagramUsername
+        instagram_username: localContact.instagramUsername,
+        restaurant_phone: localContact.restaurantPhone,
+        review_link: localContact.reviewLink
       });
       
       setToastMessage("Horario global guardado");
@@ -175,7 +181,9 @@ export default function Settings() {
           global_closing_time: localGlobal.closingTime,
           default_interval: localGlobal.defaultInterval,
           whatsapp_phone: localContact.whatsappPhone,
-          instagram_username: localContact.instagramUsername
+          instagram_username: localContact.instagramUsername,
+          restaurant_phone: localContact.restaurantPhone,
+          review_link: localContact.reviewLink
         })
       });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Box, Typography, Button, IconButton, Switch, 
   Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, FormControlLabel, CircularProgress
+  TextField, FormControlLabel, CircularProgress, LinearProgress
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 import TablePagination from '../components/TablePagination';
@@ -139,7 +139,6 @@ export default function TableTypes() {
     }
   };
 
-  if (loading) return <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>;
 
   return (
     <Box sx={{ p: 0 }}>
@@ -164,7 +163,9 @@ export default function TableTypes() {
       </Box>
 
       {/* List */}
-      {types.length === 0 ? (
+      <Box sx={{ position: 'relative' }}>
+        {loading && <LinearProgress sx={{ position: 'absolute', top: -12, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
+        {types.length === 0 && !loading ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 10 }}>
           <span className="material-icons" style={{ fontSize: 48, color: '#BDBDBD' }}>table_restaurant</span>
           <Typography sx={{ mt: 2, color: '#70757A', fontSize: '14px' }}>
@@ -242,6 +243,7 @@ export default function TableTypes() {
           ))}
         </Box>
       )}
+    </Box>
 
       <TablePagination
         meta={meta}

@@ -68,6 +68,8 @@ export default function CustomerDetail() {
   const [savingNotes, setSavingNotes] = useState(false);
   const [localNotes, setLocalNotes] = useState('');
   const [tagInput, setTagInput] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
 
   const fetchCustomer = useCallback(async () => {
     setLoading(true);
@@ -161,6 +163,30 @@ export default function CustomerDetail() {
     updateCustomerData({ tags: newTags });
   };
 
+  const handleStartEdit = () => {
+    setEditForm({
+      name: customer.name || '',
+      email: customer.email || '',
+      phone: customer.phone || ''
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveInfo = async () => {
+    if (!editForm.name.trim()) {
+      setToast({ open: true, message: 'El nombre es obligatorio' });
+      return;
+    }
+    await updateCustomerData(editForm);
+    setCustomer({ ...customer, ...editForm });
+    setIsEditing(false);
+    setToast({ open: true, message: 'Datos actualizados correctamente' });
+  };
+
   useEffect(() => {
     if (customer && localNotes !== customer.notes) {
       setSavingNotes(true);
@@ -237,20 +263,50 @@ export default function CustomerDetail() {
               }}
               size={72}
             />
-            <Typography sx={{ mt: '12px', fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124', textAlign: 'center' }}>
-              {customer.name}
-            </Typography>
+            {isEditing ? (
+              <TextField
+                fullWidth
+                size="small"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                sx={{ 
+                  mt: '12px', 
+                  '& .MuiOutlinedInput-root': { borderRadius: '4px', textAlign: 'center' },
+                  '& input': { textAlign: 'center', fontWeight: 500, fontSize: '18px', p: '8px' }
+                }}
+              />
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mt: '12px' }}>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124', textAlign: 'center' }}>
+                  {customer.name}
+                </Typography>
+                <IconButton size="small" onClick={handleStartEdit} sx={{ color: '#70757A', p: '4px' }}>
+                  <span className="material-icons" style={{ fontSize: 18 }}>edit</span>
+                </IconButton>
+              </Box>
+            )}
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0px' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '36px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                 <span className="material-icons" style={{ fontSize: 18, color: '#70757A' }}>mail_outline</span>
-                <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: customer.email ? '#202124' : '#BDBDBD', fontStyle: customer.email ? 'normal' : 'italic' }}>
-                  {customer.email || 'Sin correo'}
-                </Typography>
+                {isEditing ? (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    variant="standard"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    sx={{ '& input': { fontSize: '14px', fontFamily: 'Roboto', p: 0 } }}
+                  />
+                ) : (
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: customer.email ? '#202124' : '#BDBDBD', fontStyle: customer.email ? 'normal' : 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {customer.email || 'Sin correo'}
+                  </Typography>
+                )}
               </Box>
-              {customer.email && (
+              {!isEditing && customer.email && (
                 <Tooltip title="Enviar correo">
                   <IconButton 
                     size="small" 
@@ -264,13 +320,24 @@ export default function CustomerDetail() {
               )}
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '36px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                 <span className="material-icons" style={{ fontSize: 18, color: '#70757A' }}>phone</span>
-                <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: customer.phone ? '#202124' : '#BDBDBD', fontStyle: customer.phone ? 'normal' : 'italic' }}>
-                  {customer.phone || 'Sin teléfono'}
-                </Typography>
+                {isEditing ? (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    variant="standard"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    sx={{ '& input': { fontSize: '14px', fontFamily: 'Roboto', p: 0 } }}
+                  />
+                ) : (
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: customer.phone ? '#202124' : '#BDBDBD', fontStyle: customer.phone ? 'normal' : 'italic' }}>
+                    {customer.phone || 'Sin teléfono'}
+                  </Typography>
+                )}
               </Box>
-              {customer.phone && (
+              {!isEditing && customer.phone && (
                 <Tooltip title="Enviar WhatsApp">
                   <IconButton 
                     size="small" 
@@ -291,6 +358,29 @@ export default function CustomerDetail() {
               </Typography>
             </Box>
           </Box>
+
+          {isEditing && (
+            <Box sx={{ display: 'flex', gap: '8px', mt: '16px' }}>
+              <Button 
+                fullWidth 
+                variant="contained" 
+                size="small"
+                onClick={handleSaveInfo}
+                sx={{ bgcolor: '#1A73E8', boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' } }}
+              >
+                GUARDAR
+              </Button>
+              <Button 
+                fullWidth 
+                variant="outlined" 
+                size="small"
+                onClick={handleCancelEdit}
+                sx={{ color: '#70757A', borderColor: '#E0E0E0', '&:hover': { bgcolor: '#F1F3F4', borderColor: '#E0E0E0' } }}
+              >
+                CANCELAR
+              </Button>
+            </Box>
+          )}
 
           <Divider sx={{ my: '20px', borderColor: '#E0E0E0' }} />
 

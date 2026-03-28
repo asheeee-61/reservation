@@ -20,8 +20,9 @@ const STATUS_CHIP = {
 };
 
 const DAY_STATUS_UI = {
-  'ABIERTO':   { bg: '#E6F4EA', text: '#137333', label: 'Abierto',   icon: 'check_circle', btn: 'Cerrar día',   next: 'CERRADO' },
+  'ABIERTO':   { bg: '#E6F4EA', text: '#137333', label: 'Abierto',   icon: 'check_circle', btn: 'Cerrar día',   next: 'BLOQUEADO' },
   'CERRADO':   { bg: '#FEF7E0', text: '#7D4A00', label: 'Cerrado',   icon: 'pause_circle', btn: 'Reabrir día',  next: 'ABIERTO' },
+  'BLOQUEADO': { bg: '#FDECEA', text: '#D93025', label: 'Bloqueado',  icon: 'block',        btn: 'Reabrir día',  next: 'ABIERTO' },
 };
 
 export default function Dashboard() {
@@ -38,7 +39,7 @@ export default function Dashboard() {
   const [togglingStatus, setTogglingStatus] = useState(false);
 
   // Modals
-  const [confirmModal, setConfirmModal] = useState({ open: false, type: '' });
+  const [confirmModal, setConfirmModal] = useState({ open: false, type: '', reason: '' });
   
   // Feedback
   const [toast, setToast] = useState({ open: false, message: '' });
@@ -76,12 +77,12 @@ export default function Dashboard() {
     }
   };
 
-  const updateDayStatus = async (status) => {
+  const updateDayStatus = async (status, reason = null) => {
     setTogglingStatus(true);
     try {
       await apiClient('/admin/day-status', {
         method: 'PATCH',
-        body: JSON.stringify({ date: TODAY, status }),
+        body: JSON.stringify({ date: TODAY, status, reason }),
       });
       setDayStatus(status);
       setToast({ open: true, message: `Día ${status.toLowerCase()}` });
@@ -90,13 +91,13 @@ export default function Dashboard() {
       console.error(e);
     } finally {
       setTogglingStatus(false);
-      setConfirmModal({ open: false, type: '' });
+      setConfirmModal({ open: false, type: '', reason: '' });
     }
   };
 
   const handleToggleClick = () => {
     if (dayStatus === 'ABIERTO') {
-      setConfirmModal({ open: true, type: 'CERRADO' });
+      setConfirmModal({ open: true, type: 'BLOQUEADO', reason: '' });
     } else {
       updateDayStatus('ABIERTO');
     }
@@ -304,10 +305,13 @@ export default function Dashboard() {
       <ConfirmModal
         open={confirmModal.open}
         title="Cerrar día"
-        body="¿Seguro que quieres cerrar este día? No se permitirán nuevas reservas web."
+        body="¿Motivo del cierre? No se permitirán nuevas reservas web."
+        showInput={confirmModal.type === 'BLOQUEADO'}
+        inputValue={confirmModal.reason}
+        onInputChange={(val) => setConfirmModal({ ...confirmModal, reason: val })}
         confirmLabel="CERRAR DÍA"
-        onConfirm={() => updateDayStatus('CERRADO')}
-        onCancel={() => setConfirmModal({ open: false, type: '' })}
+        onConfirm={() => updateDayStatus('BLOQUEADO', confirmModal.reason)}
+        onCancel={() => setConfirmModal({ open: false, type: '', reason: '' })}
       />
 
       {/* Toast */}

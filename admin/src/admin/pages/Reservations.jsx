@@ -4,7 +4,7 @@ import {
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, MenuItem, Select, FormControl,
   IconButton, Tooltip, Stack, TextField, InputAdornment, 
-  Fab, CircularProgress, Divider, Snackbar
+  Fab, CircularProgress, Divider, Snackbar, LinearProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/apiClient';
@@ -167,8 +167,10 @@ export default function Reservations() {
       {/* DESKTOP & TABLET TABLE VIEW */}
       <Paper sx={{ 
         display: 'none', [DESKTOP]: { display: 'block' }, [TABLET]: { display: 'block' },
-        overflowX: 'auto', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' 
+        overflow: 'hidden', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none',
+        position: 'relative'
       }}>
+        {loading && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
         <Table sx={{ minWidth: 650 }}>
           <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
@@ -184,9 +186,7 @@ export default function Reservations() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading ? (
-              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
-            ) : reservations.length === 0 ? (
+            {reservations.length === 0 && !loading ? (
               <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No se encontraron reservas</Typography></TableCell></TableRow>
             ) : reservations.map(res => (
               <TableRow 
@@ -374,11 +374,11 @@ export default function Reservations() {
       {/* MOBILE CARD VIEW */}
       <Box sx={{ 
         display: 'none', flexDirection: 'column', gap: '8px',
-        [MOBILE]: { display: 'flex' }
+        [MOBILE]: { display: 'flex' },
+        position: 'relative'
       }}>
-        {loading ? (
-          <Box display="flex" justifyContent="center" py={3}><CircularProgress /></Box>
-        ) : reservations.length === 0 ? (
+        {loading && <LinearProgress sx={{ position: 'absolute', top: -12, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
+        {!loading && reservations.length === 0 ? (
           <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No se encontraron reservas</Typography></Box>
         ) : reservations.map(res => {
           const sKey = res.status?.toUpperCase() || 'PENDIENTE';

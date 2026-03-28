@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
-  TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar, Chip
+  TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar, Chip, LinearProgress
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 import CustomerAvatar from '../components/CustomerAvatar';
@@ -99,8 +99,10 @@ export default function Customers() {
       {/* DESKTOP & TABLET TABLE VIEW */}
       <Paper sx={{ 
         display: 'none', [DESKTOP]: { display: 'block' }, [TABLET]: { display: 'block' },
-        overflowX: 'auto', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' 
+        overflow: 'hidden', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none',
+        position: 'relative'
       }}>
+        {loading && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
         <Table sx={{ minWidth: 600 }}>
           <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
@@ -115,8 +117,7 @@ export default function Customers() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading && <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>Cargando...</TableCell></TableRow>}
-            {!loading && customers.length === 0 && (
+            {customers.length === 0 && !loading && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                   <Typography color="text.secondary" sx={{ fontFamily: 'Roboto' }}>No se encontraron clientes.</Typography>
@@ -205,8 +206,10 @@ export default function Customers() {
       {/* MOBILE CARD VIEW */}
       <Box sx={{ 
         display: 'none', flexDirection: 'column', gap: '8px',
-        [MOBILE]: { display: 'flex' }
+        [MOBILE]: { display: 'flex' },
+        position: 'relative'
       }}>
+        {loading && <LinearProgress sx={{ position: 'absolute', top: -12, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
         {!loading && customers.length === 0 && (
           <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No se encontraron clientes.</Typography></Box>
         )}

@@ -1,6 +1,11 @@
-import { Dialog, Typography, Box, Button } from '@mui/material';
+import { Dialog, Typography, Box, Button, TextField } from '@mui/material';
 
-export function ConfirmModal({ open, title, body, confirmLabel, confirmColor = '#D93025', confirmDisabled, onCancel, onConfirm }) {
+export function ConfirmModal({ 
+  open, title, body, confirmLabel, 
+  confirmColor = '#D93025', confirmDisabled, 
+  onCancel, onConfirm,
+  showInput = false, inputValue = '', onInputChange, inputPlaceholder = 'Motivo...'
+}) {
   return (
     <Dialog
       open={open}
@@ -21,6 +26,24 @@ export function ConfirmModal({ open, title, body, confirmLabel, confirmColor = '
       <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px' }}>
         {body}
       </Typography>
+
+      {showInput && (
+        <Box sx={{ mt: 2 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder={inputPlaceholder}
+            value={inputValue}
+            onChange={(e) => onInputChange(e.target.value)}
+            autoFocus
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '4px' },
+              '& .MuiInputBase-input': { fontFamily: 'Roboto', fontSize: '14px' }
+            }}
+          />
+        </Box>
+      )}
+
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
         <Button
           onClick={onCancel}
@@ -37,7 +60,7 @@ export function ConfirmModal({ open, title, body, confirmLabel, confirmColor = '
         <Button
           onClick={onConfirm}
           variant="contained"
-          disabled={confirmDisabled}
+          disabled={confirmDisabled || (showInput && !inputValue.trim())}
           disableElevation
           sx={{
             height: 36, px: '24px', borderRadius: '4px',
@@ -45,6 +68,7 @@ export function ConfirmModal({ open, title, body, confirmLabel, confirmColor = '
             fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase',
             boxShadow: 'none',
             '&:hover': { bgcolor: confirmColor, filter: 'brightness(0.9)', boxShadow: 'none' },
+            '&.Mui-disabled': { bgcolor: '#F1F3F4', color: '#BDBDBD' }
           }}
         >
           {confirmLabel}
