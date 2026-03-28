@@ -37,10 +37,17 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        $customer->loadCount([
+            'reservations as total_reservations',
+            'reservations as no_shows' => function ($query) {
+                $query->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
+            }
+        ]);
+
         $stats = [
-            'total_reservations' => $customer->reservations()->count(),
+            'total_reservations' => $customer->total_reservations ?? 0,
             'last_visit'         => $customer->reservations()->max('date'),
-            'no_shows'           => $customer->reservations()->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO)->count(),
+            'no_shows'           => $customer->no_shows ?? 0,
         ];
 
         $stats['attendance_ratio'] = $stats['total_reservations'] > 0 

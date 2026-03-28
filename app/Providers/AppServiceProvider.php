@@ -19,6 +19,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (config('app.debug')) {
+            \Illuminate\Support\Facades\DB::listen(function($query) {
+                if ($query->time > 100) { // log queries over 100ms
+                    \Illuminate\Support\Facades\Log::warning('Slow query: ' . $query->sql, [
+                        'time' => $query->time,
+                        'bindings' => $query->bindings
+                    ]);
+                }
+            });
+        }
     }
 }

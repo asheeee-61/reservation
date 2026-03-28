@@ -32,10 +32,11 @@ class SettingsController extends Controller
             'capacity' => []
         ];
 
-        $savedConfig = [];
-        if (Storage::exists('config.json')) {
-            $savedConfig = json_decode(Storage::get('config.json'), true) ?? [];
-        }
+        $savedConfig = \Illuminate\Support\Facades\Cache::rememberForever('config.json', function() {
+            return Storage::exists('config.json') 
+                ? (json_decode(Storage::get('config.json'), true) ?? []) 
+                : [];
+        });
 
         $setting = Setting::firstOrCreate(
             [],
@@ -82,6 +83,7 @@ class SettingsController extends Controller
 
         $configData = $request->except(['global_opening_time', 'global_closing_time', 'default_interval']);
         Storage::put('config.json', json_encode($configData, JSON_PRETTY_PRINT));
+        \Illuminate\Support\Facades\Cache::forget('config.json');
 
         return response()->json(['success' => true]);
     }
@@ -91,11 +93,10 @@ class SettingsController extends Controller
         $perPage = max(1, (int) $request->query('per_page', 10));
         $page    = max(1, (int) $request->query('page', 1));
 
-        $all = [];
-        if (Storage::exists('config.json')) {
-            $config = json_decode(Storage::get('config.json'), true) ?? [];
-            $all = $config['blockedDays'] ?? [];
-        }
+        $config = \Illuminate\Support\Facades\Cache::rememberForever('config.json', function() {
+            return Storage::exists('config.json') ? (json_decode(Storage::get('config.json'), true) ?? []) : [];
+        });
+        $all = $config['blockedDays'] ?? [];
 
         sort($all); // ensure ascending chronological order
 

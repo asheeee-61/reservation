@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\DayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class ReservationController extends Controller
 {
@@ -57,6 +58,24 @@ class ReservationController extends Controller
         return response()->json($reservation);
     }
 
+    public function dashboard(Request $request)
+    {
+        $date = $request->query('date', date('Y-m-d'));
+        
+        $reservations = Reservation::with(['customer', 'tableType', 'specialEvent'])
+            ->where('date', $date)
+            ->latest()
+            ->get();
+
+        $statusRecord = DayStatus::where('date', $date)->value('status');
+        $dayStatus = $statusRecord ?: DayStatus::STATUS_ABIERTO;
+
+        return response()->json([
+            'reservations' => $reservations,
+            'dayStatus'    => $dayStatus
+        ]);
+    }
+
     // Customer: Get available slots dynamically
     public function availableSlots(Request $request)
     {
@@ -81,19 +100,18 @@ class ReservationController extends Controller
             'blockedDays' => []
         ];
 
-        if (!\Illuminate\Support\Facades\Storage::exists('config.json')) {
-            $config = $defaultConfig;
-        } else {
-            $savedConfig = json_decode(\Illuminate\Support\Facades\Storage::get('config.json'), true);
-            $config = array_replace_recursive($defaultConfig, $savedConfig);
-        }
+        $savedConfig = \Illuminate\Support\Facades\Cache::rememberForever('config.json', function() {
+            return \Illuminate\Support\Facades\Storage::exists('config.json') 
+                ? (json_decode(\Illuminate\Support\Facades\Storage::get('config.json'), true) ?? []) 
+                : [];
+        });
+        $config = array_replace_recursive($defaultConfig, $savedConfig);
         
         $dayOfWeek = strtolower(date('l', strtotime($date)));
         $dayConfig = $config['schedule'][$dayOfWeek] ?? ['open' => false, 'slots' => []];
 
         // Check explicit day status from DB
-        $statusRecord = DayStatus::where('date', $date)->first();
-        $dayStatus = $statusRecord ? $statusRecord->status : DayStatus::STATUS_ABIERTO;
+        $dayStatus = DayStatus::where('date', $date)->value('status') ?: DayStatus::STATUS_ABIERTO;
 
         if (!$dayConfig['open'] || collect($config['blockedDays'] ?? [])->contains($date) || $dayStatus !== DayStatus::STATUS_ABIERTO) {
             return response()->json([]);
@@ -213,6 +231,8 @@ class ReservationController extends Controller
         if (!empty($validated['user']['phone'])) {
             Log::info("WHATSAPP NOTIFICATION: Booking $resId confirmed for {$validated['user']['phone']}. Will be implemented later.");
         }
+
+        $this->sendWhatsAppNotification($reservation);
 
         $this->logActivity($reservation, 'Reserva creada', 'creation');
 
@@ -367,12 +387,12 @@ class ReservationController extends Controller
             ]
         ];
 
-        if (\Illuminate\Support\Facades\Storage::exists('config.json')) {
-            $savedConfig = json_decode(\Illuminate\Support\Facades\Storage::get('config.json'), true);
-            $config = array_replace_recursive($defaultConfig, $savedConfig);
-        } else {
-            $config = $defaultConfig;
-        }
+        $savedConfig = \Illuminate\Support\Facades\Cache::rememberForever('config.json', function() {
+            return \Illuminate\Support\Facades\Storage::exists('config.json') 
+                ? (json_decode(\Illuminate\Support\Facades\Storage::get('config.json'), true) ?? []) 
+                : [];
+        });
+        $config = array_replace_recursive($defaultConfig, $savedConfig);
 
         $dayOfWeek = strtolower(date('l', strtotime($date)));
         $dayConfig = $config['schedule'][$dayOfWeek] ?? ['open' => false, 'shifts' => []];
@@ -449,5 +469,49 @@ class ReservationController extends Controller
         }
 
         return false;
+    }
+
+    private function sendWhatsAppNotification(
+        Reservation $reservation
+    ): void {
+        try {
+            $noticeUrl = env('NOTICE_SYSTEM_URL');
+            if (!$noticeUrl) return; // skip if not configured
+            
+            $reservation->load([
+                'customer', 
+                'tableType', 
+                'specialEvent'
+            ]);
+
+            Http::timeout(5) // don't block the response
+                ->withHeaders([
+                    'x-api-secret' => env('NOTICE_SYSTEM_SECRET')
+                ])
+                ->post("{$noticeUrl}/notify/new-reservation", [
+                    'reservation'  => [
+                        'id'     => $reservation->reservation_id, // Use human readable ID
+                        'date'   => $reservation->date,
+                        'time'   => $reservation->time,
+                        'guests' => $reservation->guests,
+                    ],
+                    'customer' => [
+                        'name'  => $reservation->customer->name,
+                        'phone' => $reservation->customer->phone,
+                    ],
+                    'tableType'    => $reservation->tableType 
+                        ? ['name' => $reservation->tableType->name] 
+                        : null,
+                    'specialEvent' => $reservation->specialEvent 
+                        ? ['name' => $reservation->specialEvent->name] 
+                        : null,
+                    'adminPhone'   => env('RESTAURANT_PHONE'),
+                ]);
+
+        } catch (\Exception $e) {
+            // Never fail the reservation if WhatsApp fails
+            Log::warning('WhatsApp notification failed: ' 
+                . $e->getMessage());
+        }
     }
 }
