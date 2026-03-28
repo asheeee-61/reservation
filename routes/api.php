@@ -21,6 +21,7 @@ Route::get('/table-types', [TableTypeController::class, 'publicIndex']);
 use App\Http\Controllers\SpecialEventController;
 Route::get('/special-events', [SpecialEventController::class, 'publicIndex']);
 Route::get('/day-status', [DayStatusController::class, 'show']);
+Route::get('/availability', [ReservationController::class, 'availability']);
 
 // Admin Authentication
 Route::post('/admin/login', [AuthController::class, 'login']);

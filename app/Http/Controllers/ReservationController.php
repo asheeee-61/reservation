@@ -347,6 +347,74 @@ class ReservationController extends Controller
         return response()->json(['success' => true, 'data' => $reservation->load(['customer', 'tableType', 'specialEvent', 'activities'])]);
     }
 
+    public function availability(Request $request)
+    {
+        $date = $request->query('date');
+        $guests = (int) $request->query('guests', 1);
+
+        if (!$date) return response()->json(['slots' => [], 'shifts' => []]);
+
+        $defaultConfig = [
+            'totalCapacity' => 40,
+            'schedule' => [
+                'monday' => ['open' => true, 'shifts' => []],
+                'tuesday' => ['open' => true, 'shifts' => []],
+                'wednesday' => ['open' => true, 'shifts' => []],
+                'thursday' => ['open' => true, 'shifts' => []],
+                'friday' => ['open' => true, 'shifts' => []],
+                'saturday' => ['open' => true, 'shifts' => []],
+                'sunday' => ['open' => true, 'shifts' => []],
+            ]
+        ];
+
+        if (\Illuminate\Support\Facades\Storage::exists('config.json')) {
+            $savedConfig = json_decode(\Illuminate\Support\Facades\Storage::get('config.json'), true);
+            $config = array_replace_recursive($defaultConfig, $savedConfig);
+        } else {
+            $config = $defaultConfig;
+        }
+
+        $dayOfWeek = strtolower(date('l', strtotime($date)));
+        $dayConfig = $config['schedule'][$dayOfWeek] ?? ['open' => false, 'shifts' => []];
+
+        if (!$dayConfig['open']) return response()->json(['slots' => [], 'shifts' => []]);
+
+        $totalCapacity = $config['totalCapacity'] ?? 40;
+        $reservedGuestsForSlots = \App\Models\Reservation::where('date', $date)
+            ->whereIn('status', [Reservation::STATUS_CONFIRMADA, Reservation::STATUS_PENDIENTE])
+            ->selectRaw('time, SUM(guests) as total_guests')
+            ->groupBy('time')
+            ->pluck('total_guests', 'time');
+
+        $slots = [];
+        $shifts = [];
+
+        $rawShifts = $dayConfig['shifts'] ?? [];
+        foreach ($rawShifts as $index => $rawShift) {
+            $shiftSlots = [];
+            foreach ($rawShift['slots'] as $time => $isOpen) {
+                if ($isOpen) {
+                    $booked = (int) $reservedGuestsForSlots->get($time, 0);
+                    if (($totalCapacity - $booked) >= $guests) {
+                        $shiftSlots[] = $time;
+                        $slots[] = $time;
+                    }
+                }
+            }
+            if (!empty($shiftSlots)) {
+                $shifts[] = [
+                    'name' => "Turno " . ($index + 1),
+                    'slots' => $shiftSlots
+                ];
+            }
+        }
+
+        return response()->json([
+            'slots' => $slots,
+            'shifts' => $shifts
+        ]);
+    }
+
     private function logActivity($reservation, $description, $type = 'status_change', $metadata = null)
     {
         \App\Models\ReservationActivity::create([
