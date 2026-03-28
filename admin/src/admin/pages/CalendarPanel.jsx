@@ -4,13 +4,14 @@ import {
   Box, Typography, Button, IconButton, Paper, 
   CircularProgress, Tooltip, Avatar, Divider,
   Dialog, DialogContent, DialogActions, TextField,
-  Select, MenuItem, FormControl, Drawer, Slide,
+  Select, MenuItem, FormControl, Drawer, SwipeableDrawer, Slide,
   Grid, InputAdornment, List, ListItem, ListItemText,
-  ListItemAvatar, Alert, DialogTitle
+  ListItemAvatar, Alert, DialogTitle, Snackbar
 } from '@mui/material';
 import { apiClient } from '../services/apiClient';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
+import ReservationFormModal from '../components/ReservationFormModal';
 
 // --- CONSTANTS ---
 const STATUS_COLORS = {
@@ -373,25 +374,26 @@ export default function CalendarPanel() {
           onClose={() => setSelectedRes(null)} 
           onRefresh={fetchReservations}
           onEdit={(res) => {
-            setSelectedRes(null);
             setBookingInitialData(res);
             setIsBookingModalOpen(true);
           }}
         />
         
-        <BookingModal 
-          open={isBookingModalOpen} 
-          initialData={bookingInitialData}
-          onClose={() => {
-            setIsBookingModalOpen(false);
-            setBookingInitialData(null);
-          }}
-          onSuccess={() => {
-            setIsBookingModalOpen(false);
-            setBookingInitialData(null);
-            fetchReservations();
-          }}
-        />
+        {isBookingModalOpen && (
+          <ReservationFormModal 
+            open={isBookingModalOpen} 
+            reservationData={bookingInitialData}
+            onClose={() => {
+              setIsBookingModalOpen(false);
+              setBookingInitialData(null);
+            }}
+            onSuccess={() => {
+              setIsBookingModalOpen(false);
+              setBookingInitialData(null);
+              fetchReservations();
+            }}
+          />
+        )}
 
         {/* Drag Confirmation */}
         <Dialog open={!!confirmMove} onClose={() => setConfirmMove(null)}>
@@ -795,132 +797,196 @@ function CurrentTimeLine({ startMins }) {
 
 function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
   const [loading, setLoading] = useState(false);
+  const [optimisticStatus, setOptimisticStatus] = useState(reservation?.status);
+  const [toastOpen, setToastOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (reservation) setOptimisticStatus(reservation.status);
+  }, [reservation]);
 
   if (!reservation) return null;
 
+  const currentStatus = optimisticStatus || reservation.status;
+
   const handleStatusUpdate = async (newStatus) => {
+    if (newStatus === currentStatus) return;
+    setOptimisticStatus(newStatus);
+    setToastOpen(true);
     setLoading(true);
     try {
       await apiClient(`/admin/reservations/${reservation.id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
       });
-      onRefresh();
-      onClose();
+      onRefresh(); // Refresh background silently
     } catch (e) {
       console.error('Failed to update status', e);
+      setOptimisticStatus(reservation.status); // Revert
     } finally {
       setLoading(false);
     }
   };
 
-  const colors = STATUS_COLORS[reservation.status?.toUpperCase()] || STATUS_COLORS.PENDIENTE;
+  const STATUS_BUTTONS = [
+    { label: 'Pendiente', value: 'PENDIENTE', activeBg: '#F9AB00' },
+    { label: 'Confirmada', value: 'CONFIRMADA', activeBg: '#1A73E8' },
+    { label: 'Asistió', value: 'ASISTIÓ', activeBg: '#137333' },
+    { label: 'Cancelada', value: 'CANCELADA', activeBg: '#D93025' }
+  ];
 
   return (
-    <Drawer
-      anchor="right"
-      open={!!reservation}
-      onClose={onClose}
-      PaperProps={{ sx: { width: { xs: '100%', sm: 400 }, borderLeft: 'none', boxShadow: '-4px 0 12px rgba(0,0,0,0.1)' } }}
-    >
-      <Box sx={{ p: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' }}>
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
-            Detalles de Reserva
-          </Typography>
-          <IconButton onClick={onClose} size="small">
-            <span className="material-icons">close</span>
-          </IconButton>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '24px' }}>
-          <Avatar sx={{ width: 48, height: 48, bgcolor: '#1A73E8' }}>
-            {reservation.customer?.name?.[0].toUpperCase() || '?'}
-          </Avatar>
-          <Box>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#202124' }}>
-              {reservation.customer?.name}
+    <>
+      <SwipeableDrawer
+        anchor="right"
+        open={true}
+        onClose={onClose}
+        onOpen={() => {}}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 400 }, borderLeft: 'none', boxShadow: '-4px 0 12px rgba(0,0,0,0.1)' } }}
+      >
+        <Box sx={{ p: '24px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
+              Detalles de Reserva
             </Typography>
-            <Box sx={{ px: '8px', py: '2px', borderRadius: '4px', bgcolor: colors.bg, display: 'inline-block', mt: '4px' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: colors.text, textTransform: 'uppercase' }}>
-                {colors.label}
+            <IconButton onClick={onClose} size="small">
+              <span className="material-icons">close</span>
+            </IconButton>
+          </Box>
+
+          {/* CUSTOMER HEADER INFO */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', mb: '24px' }}>
+            <Avatar 
+              sx={{ width: 48, height: 48, bgcolor: '#1A73E8', cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.8 } }}
+              onClick={() => { onClose(); navigate(`/admin/customers/${reservation.customer?.id}`); }}
+            >
+              {reservation.customer?.name?.[0].toUpperCase() || '?'}
+            </Avatar>
+            <Box>
+              <Typography 
+                sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '18px', color: '#1A73E8', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                onClick={() => { onClose(); navigate(`/admin/customers/${reservation.customer?.id}`); }}
+              >
+                {reservation.customer?.name}
               </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mt: '4px' }}>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>
+                  {reservation.customer?.phone || 'Sin teléfono'}
+                </Typography>
+                {(() => {
+                  const colors = STATUS_COLORS[currentStatus?.toUpperCase()] || STATUS_COLORS.PENDIENTE;
+                  return (
+                    <Box sx={{ px: '8px', py: '2px', borderRadius: '4px', bgcolor: colors.bg, display: 'inline-block' }}>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: colors.text, textTransform: 'uppercase' }}>
+                        {colors.label}
+                      </Typography>
+                    </Box>
+                  );
+                })()}
+              </Box>
             </Box>
           </Box>
-        </Box>
 
-        <Divider sx={{ mb: '24px' }} />
+          <Divider sx={{ mb: '24px' }} />
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
-          <InfoRow icon="calendar_today" label="Fecha" value={reservation.date} />
-          <InfoRow icon="schedule" label="Hora" value={reservation.time.slice(0, 5)} />
-          <InfoRow icon="people" label="Comensales" value={`${reservation.guests} personas`} />
-          <InfoRow icon="table_restaurant" label="Mesa" value={reservation.table_type?.name || 'Cualquiera'} />
-          <InfoRow icon="event" label="Evento" value={reservation.special_event?.name || 'Venta Estándar'} />
-          <InfoRow icon="phone" label="Teléfono" value={reservation.customer?.phone || 'Sin teléfono'} />
-          <InfoRow icon="email" label="Email" value={reservation.customer?.email || 'Sin email'} />
-          
-          {reservation.special_requests && (
-            <Box sx={{ mt: '8px' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', mb: '4px' }}>
-                Notas Especiales
-              </Typography>
-              <Paper sx={{ p: '12px', bgcolor: '#F8F9FA', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
-                <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
-                  {reservation.special_requests}
+          {/* STATUS BUTTONS */}
+          <Box sx={{ display: 'flex', gap: '8px', mb: '24px', flexWrap: 'wrap' }}>
+            {STATUS_BUTTONS.map((btn) => {
+              const isActive = currentStatus?.toUpperCase() === btn.value;
+              return (
+                <Button
+                  key={btn.value}
+                  onClick={() => handleStatusUpdate(btn.value)}
+                  disabled={loading && currentStatus !== btn.value}
+                  sx={{
+                    flex: 1, minWidth: '45%', gap: '6px', height: 32, borderRadius: '4px',
+                    fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', textTransform: 'none',
+                    border: isActive ? 'none' : '1px solid #DADCE0',
+                    color: isActive ? '#FFFFFF' : '#70757A',
+                    bgcolor: isActive ? btn.activeBg : 'transparent',
+                    '&:hover': {
+                      bgcolor: isActive ? btn.activeBg : '#F1F3F4'
+                    }
+                  }}
+                >
+                  {btn.label}
+                </Button>
+              );
+            })}
+          </Box>
+
+          {/* OTHER DETAILS */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+            <InfoRow icon="calendar_today" label="Fecha" value={reservation.date} />
+            <InfoRow icon="schedule" label="Hora" value={reservation.time.slice(0, 5)} />
+            <InfoRow icon="people" label="Comensales" value={`${reservation.guests} personas`} />
+            <InfoRow icon="table_restaurant" label="Mesa" value={reservation.table_type?.name || 'Cualquiera'} />
+            <InfoRow icon="event" label="Evento" value={reservation.special_event?.name || 'Venta Estándar'} />
+            
+            {reservation.special_requests && (
+              <Box sx={{ mt: '8px' }}>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', mb: '4px' }}>
+                  Notas Especiales
                 </Typography>
-              </Paper>
-            </Box>
-          )}
+                <Paper sx={{ p: '12px', bgcolor: '#F8F9FA', boxShadow: 'none', border: '1px solid #E0E0E0' }}>
+                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
+                    {reservation.special_requests}
+                  </Typography>
+                </Paper>
+              </Box>
+            )}
+          </Box>
+
+          {/* QUICK ACTIONS SECTION */}
+          <Box sx={{ mt: '32px', mb: '16px' }}>
+            <Divider sx={{ border: '1px solid #E0E0E0', mb: '16px' }} />
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', mb: '8px' }}>
+              ACCIONES
+            </Typography>
+            
+            <List sx={{ p: 0 }}>
+              <ListItem 
+                button onClick={() => { onClose(); navigate(`/admin/reservations/view/${reservation.id}`); }}
+                sx={{ height: 56, px: '8px', borderBottom: '1px solid #E0E0E0' }}
+              >
+                <span className="material-icons" style={{ color: '#70757A', fontSize: 20, marginRight: 16 }}>open_in_new</span>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124' }}>Ver detalles completos</Typography>
+              </ListItem>
+              
+              <ListItem 
+                button onClick={() => onEdit(reservation)}
+                sx={{ height: 56, px: '8px', borderBottom: '1px solid #E0E0E0' }}
+              >
+                <span className="material-icons" style={{ color: '#70757A', fontSize: 20, marginRight: 16 }}>edit</span>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124' }}>Editar reserva</Typography>
+              </ListItem>
+
+              {currentStatus !== 'CANCELADA' && (
+                <ListItem 
+                  button onClick={() => handleStatusUpdate('CANCELADA')}
+                  sx={{ height: 56, px: '8px' }}
+                >
+                  <span className="material-icons" style={{ color: '#D93025', fontSize: 20, marginRight: 16 }}>error_outline</span>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#D93025' }}>Cancelar reserva</Typography>
+                </ListItem>
+              )}
+            </List>
+          </Box>
         </Box>
+      </SwipeableDrawer>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 12, mt: '24px' }}>
-          <Button 
-            fullWidth variant="text" onClick={() => navigate(`/admin/reservations/${reservation.id}`)}
-            sx={{ color: '#1A73E8', textTransform: 'none', fontWeight: 500, mb: 1 }}
-          >
-            Ver detalles completos
-          </Button>
-          {reservation.status === 'PENDIENTE' && (
-            <Button 
-              fullWidth variant="contained" onClick={() => handleStatusUpdate('CONFIRMADA')}
-              disabled={loading}
-              sx={{ bgcolor: '#34A853', '&:hover': { bgcolor: '#2D8E47' }, textTransform: 'none', py: '10px' }}
-            >
-              Confirmar Reserva
-            </Button>
-          )}
-          {reservation.status === 'CONFIRMADA' && (
-            <Button 
-              fullWidth variant="contained" onClick={() => handleStatusUpdate('ASISTIÓ')}
-              disabled={loading}
-              sx={{ bgcolor: '#1A73E8', '&:hover': { bgcolor: '#1557B0' }, textTransform: 'none', py: '10px' }}
-            >
-              Marcar como Llegado
-            </Button>
-          )}
-
-          {/* EDIT BUTTON */}
-          <Button 
-            fullWidth variant="outlined" onClick={() => onEdit(reservation)}
-            disabled={loading}
-            sx={{ color: '#1A73E8', borderColor: '#DADCE0', '&:hover': { bgcolor: '#E8F0FE', borderColor: '#1A73E8' }, textTransform: 'none', py: '10px' }}
-          >
-            Editar Reserva
-          </Button>
-
-          {reservation.status !== 'CANCELADA' && (
-            <Button 
-              fullWidth variant="outlined" onClick={() => handleStatusUpdate('CANCELADA')}
-              disabled={loading}
-              sx={{ color: '#D93025', borderColor: '#DADCE0', '&:hover': { bgcolor: '#FEEBEE', borderColor: '#D93025' }, textTransform: 'none', py: '10px' }}
-            >
-              Cancelar Reserva
-            </Button>
-          )}
-        </Box>
-      </Box>
-    </Drawer>
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={2000}
+        onClose={() => setToastOpen(false)}
+        message="Estado actualizado"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        ContentProps={{
+          sx: { bgcolor: '#323232', color: '#FFFFFF', fontFamily: 'Roboto', fontSize: '14px', borderRadius: '4px' }
+        }}
+      />
+    </>
   );
 }
 
@@ -937,406 +1003,5 @@ function InfoRow({ icon, label, value }) {
         </Typography>
       </Box>
     </Box>
-  );
-}
-
-function BookingModal({ open, initialData, onClose, onSuccess }) {
-  const [loading, setLoading] = useState(false);
-  const adminCalendar = useSettingsStore(state => state.adminCalendar);
-  const globalSettings = useSettingsStore(state => state.globalSettings);
-  const storeLoading = useSettingsStore(state => state.loading);
-
-  const [form, setForm] = useState({
-    name: '', phone: '', email: '', date: '', time: '', guests: 2, notes: '', status: 'CONFIRMADA'
-  });
-
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [customersResults, setCustomersResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [showResults, setShowResults] = useState(false);
-  const searchRef = useRef(null);
-
-  const [tableTypes, setTableTypes] = useState([]);
-  const [specialEvents, setSpecialEvents] = useState([]);
-  const [tableTypeId, setTableTypeId] = useState('');
-  const [specialEventId, setSpecialEventId] = useState('');
-  const [showNotes, setShowNotes] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      if (initialData?.id) {
-        // Edit Mode
-        setForm({
-          name: initialData.customer?.name || '',
-          phone: initialData.customer?.phone || '',
-          email: initialData.customer?.email || '',
-          date: initialData.date,
-          time: initialData.time.slice(0, 5),
-          guests: initialData.guests,
-          notes: initialData.special_requests || '',
-          status: initialData.status
-        });
-        setSelectedCustomer(initialData.customer);
-        setTableTypeId(initialData.table_type_id || '');
-        setSpecialEventId(initialData.special_event_id || '');
-        setShowNotes(!!initialData.special_requests);
-      } else {
-        // New Mode
-        setForm({
-          name: '', phone: '', email: '', 
-          date: initialData?.date || formatDateISO(new Date()),
-          time: initialData?.time || '',
-          guests: globalSettings?.minGuests || 2,
-          notes: '',
-          status: 'CONFIRMADA'
-        });
-        setSelectedCustomer(null);
-        setCustomerSearch('');
-        setShowNotes(false);
-      }
-      fetchDependencies();
-    }
-  }, [open, initialData, globalSettings]);
-
-  const fetchDependencies = async () => {
-    try {
-      const [tRes, eRes] = await Promise.all([
-        apiClient('/admin/table-types'),
-        apiClient('/admin/special-events')
-      ]);
-      const activeTypes = (tRes.data ?? tRes).filter(t => t.is_active);
-      const activeEvents = (eRes.data ?? eRes).filter(e => e.is_active);
-      setTableTypes(activeTypes);
-      setSpecialEvents(activeEvents);
-      if (!initialData?.id) {
-        if (activeTypes.length > 0) setTableTypeId(activeTypes[0].id);
-        if (activeEvents.length > 0) setSpecialEventId('');
-      }
-    } catch (err) { console.error(err); }
-  };
-
-  // Customer search logic
-  useEffect(() => {
-    if (customerSearch.length < 2) {
-      setCustomersResults([]);
-      setShowResults(false);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const data = await apiClient(`/admin/customers?search=${encodeURIComponent(customerSearch)}`);
-        setCustomersResults(data.data ?? data);
-        setShowResults(true);
-      } catch (err) { console.error(err); }
-      finally { setIsSearching(false); }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [customerSearch]);
-
-  const handleSelectCustomer = (customer) => {
-    setSelectedCustomer(customer);
-    setForm(prev => ({ ...prev, name: customer.name, email: customer.email || '', phone: customer.phone || '' }));
-    setCustomerSearch('');
-    setShowResults(false);
-  };
-
-  const dayNameKey = form.date ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date(form.date + 'T12:00:00').getDay()] : '';
-  const dayConfig = adminCalendar?.schedule?.[dayNameKey];
-  
-  const availableSlots = useMemo(() => {
-    if (!dayConfig?.open || !dayConfig?.shifts) return [];
-    const slots = [];
-    dayConfig.shifts.forEach(shift => {
-      const oMins = toMinutes(shift.openingTime);
-      let cMins = toMinutes(shift.closingTime);
-      if (cMins <= oMins) cMins += 1440;
-      for (let t = oMins; t <= cMins; t += shift.interval) {
-        slots.push(toTimeString(t));
-      }
-    });
-    return slots;
-  }, [dayConfig]);
-
-  useEffect(() => {
-    if (!initialData?.id && availableSlots.length > 0 && !form.time) {
-      setForm(prev => ({ ...prev, time: availableSlots[0] }));
-    }
-  }, [availableSlots, initialData]);
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const payload = {
-        ...(selectedCustomer ? { customer_id: selectedCustomer.id } : { user: { name: form.name, phone: form.phone, email: form.email || null } }),
-        date: form.date,
-        slot: { time: form.time }, // for adminStore/store
-        time: form.time, // for update
-        guests: form.guests,
-        table_type_id: tableTypeId,
-        special_event_id: specialEventId || null,
-        special_requests: form.notes,
-        status: form.status,
-        name: form.name, // for update
-        email: form.email, // for update
-        phone: form.phone // for update
-      };
-
-      if (initialData?.id) {
-        await apiClient(`/admin/reservations/${initialData.id}`, { method: 'PUT', body: JSON.stringify(payload) });
-      } else {
-        await apiClient('/admin/reservations', { method: 'POST', body: JSON.stringify(payload) });
-      }
-      onSuccess();
-    } catch (e) {
-      console.error(e);
-      alert('Error al guardar la reserva');
-    } finally { setLoading(false); }
-  };
-
-  return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
-      fullWidth 
-      PaperProps={{ 
-        sx: { 
-          borderRadius: '4px', 
-          p: 0,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
-        } 
-      }}
-    >
-      <DialogTitle sx={{ 
-        m: 0, 
-        p: '20px 24px', 
-        fontFamily: 'Roboto', 
-        fontWeight: 500, 
-        fontSize: '18px',
-        color: '#202124',
-        borderBottom: '1px solid #E0E0E0', 
-        bgcolor: '#FFFFFF',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        {initialData?.id ? 'Editar Reserva' : 'Nueva Reserva'}
-        <IconButton onClick={onClose} size="small" sx={{ color: '#5F6368' }}>
-          <span className="material-icons">close</span>
-        </IconButton>
-      </DialogTitle>
-      
-      <DialogContent sx={{ p: '24px', mt: 1, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#DADCE0', borderRadius: 2 } }}>
-        <Grid container spacing={4}>
-          {/* CLIENTE PANEL */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>account_circle</span>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#1A73E8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Cliente
-              </Typography>
-            </Box>
-            
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              {selectedCustomer ? (
-                <Paper variant="outlined" sx={{ p: '12px 16px', bgcolor: '#F8F9FA', borderRadius: '4px', border: '1px solid #DADCE0', position: 'relative', overflow: 'hidden' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Avatar sx={{ width: 40, height: 40, bgcolor: '#1A73E8', fontSize: 16 }}>{selectedCustomer.name[0]}</Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#202124' }}>{selectedCustomer.name}</Typography>
-                      <Typography sx={{ fontSize: 12, color: '#1A73E8', fontWeight: 500 }}>Cliente seleccionado</Typography>
-                    </Box>
-                    <IconButton size="small" onClick={() => setSelectedCustomer(null)} sx={{ color: '#5F6368' }}>
-                      <span className="material-icons" style={{ fontSize: 20 }}>close</span>
-                    </IconButton>
-                  </Box>
-                </Paper>
-              ) : (
-                <Box sx={{ position: 'relative' }}>
-                  <TextField 
-                    fullWidth label="Nombre del Cliente" size="small"
-                    value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
-                    onFocus={() => customerSearch.length >= 2 && setShowResults(true)}
-                    placeholder="Escribe para buscar o crear..."
-                    InputProps={{ 
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>search</span>
-                        </InputAdornment>
-                      ),
-                      endAdornment: isSearching ? <CircularProgress size={16} /> : null
-                    }}
-                  />
-                  {showResults && (
-                    <Paper 
-                      elevation={4}
-                      sx={{ 
-                        position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, mt: 0.5, 
-                        border: '1px solid #E0E0E0', borderRadius: '4px', overflow: 'hidden'
-                      }}
-                    >
-                      <List size="small" sx={{ p: 0 }}>
-                        {customersResults.map(c => (
-                          <ListItem key={c.id} button onClick={() => handleSelectCustomer(c)} sx={{ '&:hover': { bgcolor: '#F1F3F4' } }}>
-                            <ListItemText 
-                              primary={c.name} 
-                              secondary={c.phone || c.email} 
-                              primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}
-                              secondaryTypographyProps={{ fontSize: 12 }}
-                            />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Paper>
-                  )}
-                </Box>
-              )}
-              
-              <TextField 
-                fullWidth label="WhatsApp" size="small" value={form.phone} 
-                onChange={e => setForm({...form, phone: e.target.value})} 
-                placeholder="+34 000 000 000"
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>phone</span>
-                    </InputAdornment>
-                  )
-                }}
-              />
-              <TextField 
-                fullWidth label="Email" size="small" value={form.email} 
-                onChange={e => setForm({...form, email: e.target.value})} 
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>email</span>
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Box>
-          </Grid>
-
-          {/* RESERVA PANEL */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-              <span className="material-icons" style={{ color: '#1A73E8', fontSize: 20 }}>event_note</span>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#1A73E8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Reserva
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField 
-                  sx={{ flex: 1 }} type="date" label="Fecha" size="small" value={form.date} 
-                  onChange={e => setForm({...form, date: e.target.value})} InputLabelProps={{ shrink: true }} 
-                />
-                <FormControl sx={{ flex: 1 }} size="small">
-                  <Select 
-                    value={form.time} onChange={e => setForm({...form, time: e.target.value})}
-                    displayEmpty renderValue={val => val || 'Slot'}
-                    startAdornment={
-                      <InputAdornment position="start" sx={{ mr: 1, ml: -0.5 }}>
-                        <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>schedule</span>
-                      </InputAdornment>
-                    }
-                  >
-                    {availableSlots.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              </Box>
-
-              <Box sx={{ 
-                display: 'flex', alignItems: 'center', gap: 2, 
-                p: '8px 12px', border: '1px solid #DADCE0', borderRadius: '4px',
-                bgcolor: '#FFFFFF'
-              }}>
-                <Typography sx={{ flex: 1, fontSize: 14, color: '#202124', fontWeight: 500 }}>Comensales:</Typography>
-                <IconButton size="small" onClick={() => setForm({...form, guests: Math.max(1, form.guests - 1)})} sx={{ color: '#5F6368' }}>
-                  <span className="material-icons" style={{ fontSize: 22 }}>remove_circle_outline</span>
-                </IconButton>
-                <Typography sx={{ width: 24, textAlign: 'center', fontWeight: 501, fontSize: '15px', color: '#202124' }}>{form.guests}</Typography>
-                <IconButton size="small" onClick={() => setForm({...form, guests: form.guests + 1})} sx={{ color: '#5F6368' }}>
-                  <span className="material-icons" style={{ fontSize: 22 }}>add_circle_outline</span>
-                </IconButton>
-              </Box>
-
-              <FormControl fullWidth size="small">
-                <Select 
-                  value={tableTypeId} onChange={e => setTableTypeId(e.target.value)} 
-                  displayEmpty renderValue={v => tableTypes.find(t=>t.id===v)?.name || 'Tipo de Mesa'}
-                  startAdornment={
-                    <InputAdornment position="start" sx={{ mr: 1, ml: -0.5 }}>
-                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>table_restaurant</span>
-                    </InputAdornment>
-                  }
-                >
-                  {tableTypes.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth size="small">
-                <Select 
-                  value={specialEventId} onChange={e => setSpecialEventId(e.target.value)} 
-                  displayEmpty renderValue={v => specialEvents.find(e=>e.id===v)?.name || 'Evento Especial (Opcional)'}
-                  startAdornment={
-                    <InputAdornment position="start" sx={{ mr: 1, ml: -0.5 }}>
-                      <span className="material-icons" style={{ color: '#70757A', fontSize: 18 }}>stars</span>
-                    </InputAdornment>
-                  }
-                >
-                  <MenuItem value="">Ninguno</MenuItem>
-                  {specialEvents.map(e => <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>)}
-                </Select>
-              </FormControl>
-
-              {!showNotes ? (
-                <Button 
-                  onClick={() => setShowNotes(true)} 
-                  startIcon={<span className="material-icons" style={{ fontSize: 18 }}>add</span>}
-                  sx={{ 
-                    color: '#1A73E8', textTransform: 'none', alignSelf: 'flex-start', p: '2px 8px',
-                    fontSize: '13px', fontWeight: 500, '&:hover': { bgcolor: '#E8F0FE' }
-                  }}
-                >
-                  Añadir nota
-                </Button>
-              ) : (
-                <TextField 
-                  fullWidth multiline rows={2} label="Notas" size="small" value={form.notes} 
-                  onChange={e => setForm({...form, notes: e.target.value})} 
-                  autoFocus
-                />
-              )}
-            </Box>
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions sx={{ p: '16px 24px', bgcolor: '#FFFFFF', borderTop: '1px solid #E0E0E0', gap: 1 }}>
-        <Button 
-          onClick={onClose} 
-          sx={{ 
-            color: '#5F6368', textTransform: 'uppercase', fontWeight: 500, fontSize: '13px', px: 2,
-            letterSpacing: '0.5px'
-          }}
-        >
-          Cancelar
-        </Button>
-        <Button 
-          variant="contained" onClick={handleSubmit} disabled={loading || !form.name || !form.phone || !form.time}
-          sx={{ 
-            bgcolor: '#1A73E8', boxShadow: 'none', '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' },
-            textTransform: 'uppercase', fontWeight: 500, fontSize: '13px', px: 3, py: 1,
-            letterSpacing: '0.5px'
-          }}
-        >
-          {loading ? <CircularProgress size={18} color="inherit" /> : (initialData?.id ? 'Guardar Cambios' : 'Guardar Reserva')}
-        </Button>
-      </DialogActions>
-    </Dialog>
   );
 }

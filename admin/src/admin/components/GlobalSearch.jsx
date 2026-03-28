@@ -96,7 +96,7 @@ export default function GlobalSearch() {
   const handleSelectCustomer = (id) => {
     setOpen(false);
     setQuery('');
-    navigate(`/admin/customers`);
+    navigate(`/admin/customers/${id}`);
   };
 
   const totalResults =

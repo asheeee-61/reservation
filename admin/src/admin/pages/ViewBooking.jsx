@@ -308,13 +308,19 @@ export default function ViewBooking() {
               {resData.customer?.name ? (
                 <>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#E8F0FE', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                    <Box 
+                      onClick={() => navigate(`/admin/customers/${resData.customer.id}`)}
+                      sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#E8F0FE', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.8 } }}
+                    >
                       <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#1A73E8' }}>
                         {getInitials(resData.customer.name)}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                      <Typography 
+                        onClick={() => navigate(`/admin/customers/${resData.customer.id}`)}
+                        sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#1A73E8', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                      >
                         {resData.customer.name}
                       </Typography>
                       {resData.customer.email && (

@@ -191,7 +191,16 @@ export default function Reservations() {
               >
                 <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.reservation_id}</TableCell>
                 <TableCell>
-                  <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>{res.customer?.name || 'N/A'}</Typography>
+                  {res.customer?.id ? (
+                    <Typography 
+                      onClick={(e) => { e.stopPropagation(); navigate(`/admin/customers/${res.customer.id}`); }}
+                      sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#1A73E8', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                    >
+                      {res.customer.name}
+                    </Typography>
+                  ) : (
+                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#202124' }}>N/A</Typography>
+                  )}
                   {res.special_requests && (
                     <Typography noWrap sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', mt: '2px', maxWidth: 200 }} display="block">
                       Note: {res.special_requests}
