@@ -52,7 +52,9 @@ class SettingsController extends Controller
             'global_closing_time' => substr($setting->global_closing_time, 0, 5),
             'default_interval' => $setting->default_interval,
             'whatsapp_phone' => $setting->whatsapp_phone,
-            'instagram_username' => $setting->instagram_username
+            'instagram_username' => $setting->instagram_username,
+            'restaurant_phone' => $setting->restaurant_phone,
+            'review_link' => $setting->review_link
         ]));
     }
 
@@ -65,6 +67,8 @@ class SettingsController extends Controller
                 'default_interval'    => 'required|integer|in:15,30,45,60,90,120',
                 'whatsapp_phone'      => 'nullable|string|max:20',
                 'instagram_username'  => 'nullable|string|max:100',
+                'restaurant_phone'    => 'nullable|string|max:20',
+                'review_link'         => 'nullable|string|max:500',
             ]);
 
             $setting = Setting::firstOrCreate([], [
@@ -78,6 +82,8 @@ class SettingsController extends Controller
             $setting->default_interval = $request->default_interval;
             $setting->whatsapp_phone = $request->whatsapp_phone;
             $setting->instagram_username = $request->instagram_username;
+            $setting->restaurant_phone = $request->restaurant_phone;
+            $setting->review_link = $request->review_link;
             $setting->save();
         }
 

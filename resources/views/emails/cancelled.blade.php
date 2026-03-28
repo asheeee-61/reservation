@@ -4,7 +4,7 @@
 <tr>
   <td class="email-header"
       style="background: linear-gradient(135deg,
-             #EA4335 0%, #C5221F 100%);">
+             #1A73E8 0%, #1557B0 100%);">
     <p class="header-restaurant">
       {{ config('app.restaurant_name', 'Hotaru Madrid') }}
     </p>
@@ -28,8 +28,7 @@
   Le pedimos disculpas por los inconvenientes causados.
 </p>
 
-<span class="reference-chip" 
-      style="background:#FDECEA; color:#C5221F;">
+<span class="reference-chip">
   Reserva cancelada: #{{ $reservation->reservation_id }}
 </span>
 

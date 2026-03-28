@@ -9,6 +9,10 @@ class Setting extends Model
     protected $fillable = [
         'global_opening_time',
         'global_closing_time',
-        'default_interval'
+        'default_interval',
+        'whatsapp_phone',
+        'instagram_username',
+        'restaurant_phone',
+        'review_link'
     ];
 }

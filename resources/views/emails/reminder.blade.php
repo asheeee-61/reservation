@@ -4,7 +4,7 @@
 <tr>
   <td class="email-header"
       style="background: linear-gradient(135deg,
-             #F9AB00 0%, #E37400 100%);">
+             #1A73E8 0%, #1557B0 100%);">
     <p class="header-restaurant">
       {{ config('app.restaurant_name', 'Hotaru Madrid') }}
     </p>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Reservation;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -98,6 +99,10 @@ class NotificationService
             ]
         ];
 
+        $settings = Setting::first();
+        $adminPhone = $settings->restaurant_phone ?? config('notice.admin_phone');
+        $reviewLink = $settings->review_link ?? config('notice.review_link', 'https://g.page/r/YOUR_RESTAURANT_ID/review');
+
         return match($type) {
             'received' => array_merge($base, [
                 'reservation' => [
@@ -108,7 +113,7 @@ class NotificationService
                 ],
                 'tableType'    => $reservation->tableType ? ['name' => $reservation->tableType->name] : null,
                 'specialEvent' => $reservation->specialEvent ? ['name' => $reservation->specialEvent->name] : null,
-                'adminPhone'   => config('notice.admin_phone'),
+                'adminPhone'   => $adminPhone,
             ]),
             'confirmed' => array_merge($base, [
                 'reservation' => [
@@ -128,7 +133,7 @@ class NotificationService
                 ]
             ]),
             'review' => array_merge($base, [
-                'reviewLink' => config('notice.review_link') ?? 'https://g.page/r/YOUR_RESTAURANT_ID/review'
+                'reviewLink' => $reviewLink
             ]),
             default => $base
         };

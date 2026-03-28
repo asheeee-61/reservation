@@ -205,25 +205,10 @@
       flex-shrink: 0;
       margin-top: 1px;
     }
-    .alert-info {
+    .alert-info, .alert-success, .alert-warning, .alert-error {
       background: #E8F0FE;
       border-left: 3px solid #1A73E8;
       color: #174EA6;
-    }
-    .alert-success {
-      background: #E6F4EA;
-      border-left: 3px solid #34A853;
-      color: #137333;
-    }
-    .alert-warning {
-      background: #FEF7E0;
-      border-left: 3px solid #F9AB00;
-      color: #7D4A00;
-    }
-    .alert-error {
-      background: #FDECEA;
-      border-left: 3px solid #EA4335;
-      color: #C5221F;
     }
 
     /* CTA Button */
