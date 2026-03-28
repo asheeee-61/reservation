@@ -228,10 +228,6 @@ class ReservationController extends Controller
             'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
 
-        if (!empty($validated['user']['phone'])) {
-            Log::info("WHATSAPP NOTIFICATION: Booking $resId confirmed for {$validated['user']['phone']}. Will be implemented later.");
-        }
-
         $this->sendWhatsAppNotification($reservation);
 
         $this->logActivity($reservation, 'Reserva creada', 'creation');
@@ -475,7 +471,7 @@ class ReservationController extends Controller
         Reservation $reservation
     ): void {
         try {
-            $noticeUrl = env('NOTICE_SYSTEM_URL');
+            $noticeUrl = config('notice.url');
             if (!$noticeUrl) return; // skip if not configured
             
             $reservation->load([
@@ -486,7 +482,7 @@ class ReservationController extends Controller
 
             Http::timeout(5) // don't block the response
                 ->withHeaders([
-                    'x-api-secret' => env('NOTICE_SYSTEM_SECRET')
+                    'x-api-secret' => config('notice.secret')
                 ])
                 ->post("{$noticeUrl}/notify/new-reservation", [
                     'reservation'  => [
@@ -505,7 +501,7 @@ class ReservationController extends Controller
                     'specialEvent' => $reservation->specialEvent 
                         ? ['name' => $reservation->specialEvent->name] 
                         : null,
-                    'adminPhone'   => env('RESTAURANT_PHONE'),
+                    'adminPhone'   => config('notice.admin_phone'),
                 ]);
 
         } catch (\Exception $e) {
