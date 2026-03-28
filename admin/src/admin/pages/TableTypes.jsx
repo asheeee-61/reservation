@@ -19,21 +19,27 @@ export default function TableTypes() {
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
 
-  const fetchTypes = useCallback(async (p = 1, pp = 10) => {
+  const fetchTypes = useCallback(async (p = page, pp = perPage, signal) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({ page: p, per_page: pp });
-      const data = await apiClient(`/admin/table-types?${params.toString()}`);
+      const data = await apiClient(`/admin/table-types?${params.toString()}`, { signal });
       setTypes(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (err) {
-      console.error(err);
+      if (err.name !== 'AbortError') {
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage]);
 
-  useEffect(() => { fetchTypes(page, perPage); }, [page, perPage]);
+  useEffect(() => { 
+    const controller = new AbortController();
+    fetchTypes(page, perPage, controller.signal);
+    return () => controller.abort();
+  }, [page, perPage, fetchTypes]);
 
   const handleOpenModal = (type = null) => {
     if (type) {

@@ -82,40 +82,43 @@ export default function ReservationForm({ initialData, compact = false, onSucces
   useEffect(() => { fetchGlobalHours(); }, [fetchGlobalHours]);
 
   useEffect(() => {
-    const fetchTableTypes = async () => {
-      setTableTypesLoading(true); setTableTypesError(false);
+    const fetchFormMetadata = async () => {
+      setTableTypesLoading(true);
+      setSpecialEventsLoading(true);
+      setTableTypesError(false);
+      setSpecialEventsError(false);
+
       try {
-        const res = await apiClient('/admin/table-types');
-        const types = Array.isArray(res) ? res : (res.data ?? []);
+        const [typesRes, eventsRes] = await Promise.all([
+          apiClient('/admin/table-types'),
+          apiClient('/admin/special-events')
+        ]);
+
+        // Process Table Types
+        const types = Array.isArray(typesRes) ? typesRes : (typesRes.data ?? []);
         const activeTypes = types.filter(t => t.is_active || t.id === initialData?.table_type_id);
         setTableTypes(activeTypes);
         if (!tableTypeId && activeTypes.length > 0) {
           setTableTypeId(activeTypes[0].id);
         }
-      } catch (err) {
-        setTableTypesError(true); console.error(err);
-      } finally {
-        setTableTypesLoading(false);
-      }
-    };
 
-    const fetchSpecialEvents = async () => {
-      setSpecialEventsLoading(true); setSpecialEventsError(false);
-      try {
-        const evRes = await apiClient('/admin/special-events');
-        const events = Array.isArray(evRes) ? evRes : (evRes.data ?? []);
+        // Process Special Events
+        const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data ?? []);
         const activeEvents = events.filter(e => e.is_active || e.id === initialData?.special_event_id);
         setSpecialEvents(activeEvents);
+
       } catch (err) {
-        setSpecialEventsError(true); console.error(err);
+        setTableTypesError(true);
+        setSpecialEventsError(true);
+        console.error('Error fetching form metadata:', err);
       } finally {
+        setTableTypesLoading(false);
         setSpecialEventsLoading(false);
       }
     };
 
-    fetchTableTypes();
-    fetchSpecialEvents();
-  }, [initialData?.table_type_id, initialData?.special_event_id]); // Added deps but tableTypeId state is also fine
+    fetchFormMetadata();
+  }, [initialData?.table_type_id, initialData?.special_event_id]);
 
   useEffect(() => {
     if (customerSearch.length < 2) {

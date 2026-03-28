@@ -1,7 +1,30 @@
 export const API_BASE_URL = 'http://localhost:8000/api';
 
+const cache = new Map();
+const CACHEABLE_ENDPOINTS = [
+  '/admin/table-types',
+  '/admin/special-events',
+  '/config'
+];
+
 export const apiClient = async (endpoint, options = {}) => {
   const token = localStorage.getItem('admin_token');
+  const method = options.method || 'GET';
+
+  // Module-level caching for static data
+  if (method === 'GET' && CACHEABLE_ENDPOINTS.includes(endpoint.split('?')[0])) {
+    if (cache.has(endpoint)) {
+      return cache.get(endpoint);
+    }
+  }
+
+  // Clear relevant cache on mutations
+  if (method !== 'GET') {
+    if (endpoint.includes('/admin/table-types')) cache.delete('/admin/table-types');
+    if (endpoint.includes('/admin/special-events')) cache.delete('/admin/special-events');
+    if (endpoint.includes('/admin/config')) cache.delete('/admin/config');
+    if (endpoint.includes('/config')) cache.delete('/config');
+  }
   
   const headers = {
     'Content-Type': 'application/json',
@@ -16,6 +39,10 @@ export const apiClient = async (endpoint, options = {}) => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('admin_token');
+      // Potential redirect if needed
+    }
     let errorMessage = 'An error occurred';
     try {
       const errorData = await response.json();
@@ -24,5 +51,12 @@ export const apiClient = async (endpoint, options = {}) => {
     throw new Error(errorMessage);
   }
 
-  return response.json();
+  const result = await response.json();
+
+  // Store in cache if cacheable
+  if (method === 'GET' && CACHEABLE_ENDPOINTS.includes(endpoint.split('?')[0])) {
+    cache.set(endpoint, result);
+  }
+
+  return result;
 };

@@ -38,26 +38,30 @@ export default function Reservations() {
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
 
-  const fetchReservations = useCallback(async (p = page, pp = perPage, search = searchTerm, status = statusFilter) => {
+  const fetchReservations = useCallback(async (p = page, pp = perPage, search = searchTerm, status = statusFilter, signal) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: p, per_page: pp });
       if (search) params.append('search', search);
       if (status && status !== 'all') params.append('status', status);
-      const data = await apiClient(`/admin/reservations?${params.toString()}`);
+      const data = await apiClient(`/admin/reservations?${params.toString()}`, { signal });
       setReservations(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (e) {
-      console.error(e);
+      if (e.name !== 'AbortError') {
+        console.error(e);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage, searchTerm, statusFilter]);
 
   // Single unified fetch — reacts to any filter/page/perPage change
   useEffect(() => {
-    fetchReservations(page, perPage, searchTerm, statusFilter);
-  }, [page, perPage, searchTerm, statusFilter]);
+    const controller = new AbortController();
+    fetchReservations(page, perPage, searchTerm, statusFilter, controller.signal);
+    return () => controller.abort();
+  }, [page, perPage, searchTerm, statusFilter, fetchReservations]);
 
   const handleStatusChange = async (id, newStatus) => {
     const previous = [...reservations];

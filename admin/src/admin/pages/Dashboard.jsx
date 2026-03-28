@@ -32,7 +32,6 @@ export default function Dashboard() {
 
   // Day Status
   const [dayStatus, setDayStatus] = useState('ABIERTO');
-  const [loadingStatus, setLoadingStatus] = useState(true);
   const [togglingStatus, setTogglingStatus] = useState(false);
 
   // Modals
@@ -41,12 +40,13 @@ export default function Dashboard() {
   // Feedback
   const [toast, setToast] = useState({ open: false, message: '' });
 
-  const fetchToday = useCallback(async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoadingToday(true);
     try {
-      const data = await apiClient(`/admin/reservations?per_page=100&date=${TODAY}`);
-      const list = (data.data ?? []).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+      const data = await apiClient(`/admin/dashboard?date=${TODAY}`);
+      const list = (data.reservations || []).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       setTodayRes(list);
+      setDayStatus(data.dayStatus || 'ABIERTO');
     } catch (e) {
       console.error(e);
     } finally {
@@ -54,22 +54,9 @@ export default function Dashboard() {
     }
   }, []);
 
-  const fetchDayStatus = useCallback(async () => {
-    setLoadingStatus(true);
-    try {
-      const data = await apiClient(`/day-status?date=${TODAY}`);
-      setDayStatus(data.status || 'ABIERTO');
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingStatus(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchToday();
-    fetchDayStatus();
-  }, [fetchToday, fetchDayStatus]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {

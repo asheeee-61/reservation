@@ -19,21 +19,27 @@ export default function SpecialEvents() {
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
 
-  const fetchEvents = useCallback(async (p = 1, pp = 10) => {
+  const fetchEvents = useCallback(async (p = page, pp = perPage, signal) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({ page: p, per_page: pp });
-      const data = await apiClient(`/admin/special-events?${params.toString()}`);
+      const data = await apiClient(`/admin/special-events?${params.toString()}`, { signal });
       setEvents(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (err) {
-      console.error(err);
+      if (err.name !== 'AbortError') {
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage]);
 
-  useEffect(() => { fetchEvents(page, perPage); }, [page, perPage]);
+  useEffect(() => { 
+    const controller = new AbortController();
+    fetchEvents(page, perPage, controller.signal);
+    return () => controller.abort();
+  }, [page, perPage, fetchEvents]);
 
   const handleOpenModal = (event = null) => {
     if (event) {

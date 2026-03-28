@@ -17,31 +17,29 @@ export default function Customers() {
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
 
-  const fetchCustomers = useCallback(async (p = 1, pp = 10, search = '') => {
+  const fetchCustomers = useCallback(async (p = page, pp = perPage, search = searchTerm, signal) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: p, per_page: pp });
       if (search) params.append('search', search);
-      const data = await apiClient(`/admin/customers?${params.toString()}`);
+      const data = await apiClient(`/admin/customers?${params.toString()}`, { signal });
       setCustomers(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (e) {
-      console.error(e);
+      if (e.name !== 'AbortError') {
+        console.error(e);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage, searchTerm]);
 
-  // Reset to page 1 when search changes
+  // Unified fetch effect with AbortController
   useEffect(() => {
-    fetchCustomers(1, perPage, searchTerm);
-    setPage(1);
-  }, [searchTerm]);
-
-  // Fetch when page or perPage changes
-  useEffect(() => {
-    fetchCustomers(page, perPage, searchTerm);
-  }, [page, perPage]);
+    const controller = new AbortController();
+    fetchCustomers(page, perPage, searchTerm, controller.signal);
+    return () => controller.abort();
+  }, [page, perPage, searchTerm, fetchCustomers]);
 
   const handlePageChange = (newPage) => setPage(newPage);
   const handlePerPageChange = (newPer) => { setPerPage(newPer); setPage(1); };
