@@ -30,6 +30,9 @@ class Reservation extends Model
         'source',
         'table_type_id',
         'special_event_id',
+        'reminder_2h_sent_at',
+        'review_sent_at',
+        'cancellation_reason',
     ];
 
     public function customer()

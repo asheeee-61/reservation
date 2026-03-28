@@ -8,6 +8,7 @@ use App\Models\DayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use App\Services\NotificationService;
 
 class ReservationController extends Controller
 {
@@ -277,7 +278,12 @@ class ReservationController extends Controller
             'special_event_id' => $validated['special_event_id'] ?? null,
         ]);
 
-        $this->sendWhatsAppNotification($reservation);
+        $notificationService = app(NotificationService::class);
+        if ($status === Reservation::STATUS_PENDIENTE) {
+            $notificationService->notify('received', $reservation);
+        } else {
+            $notificationService->notify('confirmed', $reservation);
+        }
 
         $this->logActivity($reservation, 'Reserva creada', 'creation');
 
@@ -300,14 +306,19 @@ class ReservationController extends Controller
             ]);
 
             $oldStatus = $reservation->status;
-            $reservation->update(['status' => $validated['status']]);
+            $reservation->update([
+                'status' => $validated['status'],
+                'cancellation_reason' => $request->input('cancellation_reason')
+            ]);
             
             $this->logActivity(
                 $reservation, 
                 "Estado cambiado de $oldStatus a {$validated['status']}", 
                 'status_change',
-                ['from' => $oldStatus, 'to' => $validated['status']]
+                ['from' => $oldStatus, 'to' => $validated['status'], 'reason' => $request->input('cancellation_reason')]
             );
+
+            $this->handleStatusNotification($reservation, $oldStatus);
 
             return response()->json([
                 'success' => true,
@@ -379,6 +390,7 @@ class ReservationController extends Controller
                 'status_change',
                 ['from' => $oldStatus, 'to' => $reservation->status]
             );
+            $this->handleStatusNotification($reservation, $oldStatus);
         }
 
         return response()->json([
@@ -400,14 +412,19 @@ class ReservationController extends Controller
         }
 
         $reservation->status = $request->status;
+        if ($request->filled('cancellation_reason')) {
+            $reservation->cancellation_reason = $request->cancellation_reason;
+        }
         $reservation->save();
 
         $this->logActivity(
             $reservation, 
             "Estado cambiado de $oldStatus a {$request->status}", 
             'status_change',
-            ['from' => $oldStatus, 'to' => $request->status]
+            ['from' => $oldStatus, 'to' => $request->status, 'reason' => $reservation->cancellation_reason]
         );
+
+        $this->handleStatusNotification($reservation, $oldStatus);
 
         return response()->json(['success' => true, 'data' => $reservation->load(['customer', 'tableType', 'specialEvent', 'activities'])]);
     }
@@ -516,47 +533,18 @@ class ReservationController extends Controller
         return false;
     }
 
-    private function sendWhatsAppNotification(
-        Reservation $reservation
-    ): void {
-        try {
-            $noticeUrl = config('notice.url');
-            if (!$noticeUrl) return; // skip if not configured
-            
-            $reservation->load([
-                'customer', 
-                'tableType', 
-                'specialEvent'
-            ]);
+    private function handleStatusNotification(Reservation $reservation, string $oldStatus): void
+    {
+        // Only send if status actually changed
+        if ($oldStatus === $reservation->status) return;
 
-            Http::timeout(5) // don't block the response
-                ->withHeaders([
-                    'x-api-secret' => config('notice.secret')
-                ])
-                ->post("{$noticeUrl}/notify/new-reservation", [
-                    'reservation'  => [
-                        'id'     => $reservation->reservation_id, // Use human readable ID
-                        'date'   => $reservation->date,
-                        'time'   => $reservation->time,
-                        'guests' => $reservation->guests,
-                    ],
-                    'customer' => [
-                        'name'  => $reservation->customer->name,
-                        'phone' => $reservation->customer->phone,
-                    ],
-                    'tableType'    => $reservation->tableType 
-                        ? ['name' => $reservation->tableType->name] 
-                        : null,
-                    'specialEvent' => $reservation->specialEvent 
-                        ? ['name' => $reservation->specialEvent->name] 
-                        : null,
-                    'adminPhone'   => config('notice.admin_phone'),
-                ]);
+        $notificationService = app(NotificationService::class);
 
-        } catch (\Exception $e) {
-            // Never fail the reservation if WhatsApp fails
-            Log::warning('WhatsApp notification failed: ' 
-                . $e->getMessage());
+        if ($reservation->status === Reservation::STATUS_CONFIRMADA) {
+            $notificationService->notify('confirmed', $reservation);
+        } elseif ($reservation->status === Reservation::STATUS_CANCELADA) {
+            $notificationService->notify('cancelled', $reservation);
         }
     }
+
 }
