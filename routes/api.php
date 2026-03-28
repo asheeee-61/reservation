@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\DayStatusController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Storage;
 
 // Public Endpoints (Customer Frontend)
@@ -55,4 +56,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/blocked-dates', [SettingsController::class, 'blockedDates']);
     Route::get('/search', [SearchController::class, 'index']);
     Route::patch('/day-status', [DayStatusController::class, 'update']);
+    Route::get('/me', [ProfileController::class, 'show']);
+    Route::patch('/me', [ProfileController::class, 'update']);
 });
