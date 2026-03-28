@@ -49,7 +49,7 @@
   <span class="alert-box-icon">i</span>
   <span>
     Referencia de su visita: 
-    <strong>#{{ $reservation->id }}</strong>
+    <strong>#{{ $reservation->reservation_id }}</strong>
   </span>
 </div>
 

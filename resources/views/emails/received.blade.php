@@ -31,7 +31,7 @@
 </p>
 
 <span class="reference-chip">
-  Referencia: #{{ $reservation->id }}
+  Referencia: #{{ $reservation->reservation_id }}
 </span>
 
 <div class="details-card">

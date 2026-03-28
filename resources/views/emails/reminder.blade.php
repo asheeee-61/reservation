@@ -63,7 +63,7 @@
   <div class="details-row">
     <span class="details-label">Referencia</span>
     <span class="details-value">
-      #{{ $reservation->id }}
+      #{{ $reservation->reservation_id }}
     </span>
   </div>
 </div>

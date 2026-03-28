@@ -251,7 +251,7 @@ class ReservationController extends Controller
             }
         }
 
-        $resId = '#' . rand(1000, 9999);
+        $resId = (string) rand(1000, 9999);
 
         if ($request->filled('customer_id')) {
             $customer = Customer::findOrFail($request->customer_id);

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
-            $table->string('reservation_id')->unique(); // e.g., #4812
+            $table->string('reservation_id')->unique(); // e.g., 4812
             $table->string('name');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();

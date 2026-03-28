@@ -30,7 +30,7 @@
 
 <span class="reference-chip" 
       style="background:#FDECEA; color:#C5221F;">
-  Reserva cancelada: #{{ $reservation->id }}
+  Reserva cancelada: #{{ $reservation->reservation_id }}
 </span>
 
 <div class="details-card">

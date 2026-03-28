@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/config', [SettingsController::class, 'updateConfig']);
     Route::get('/blocked-dates', [DayStatusController::class, 'index']);
     Route::get('/search', [SearchController::class, 'index']);
+    Route::get('/day-status', [DayStatusController::class, 'show']);
     Route::patch('/day-status', [DayStatusController::class, 'update']);
     Route::get('/me', [ProfileController::class, 'show']);
     Route::patch('/me', [ProfileController::class, 'update']);
