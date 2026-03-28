@@ -195,7 +195,7 @@ export default function Reservations() {
                 onClick={() => navigate(`/admin/reservations/view/${res.id}`, { state: { reservation: res } })}
                 sx={{ cursor: 'pointer' }}
               >
-                <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.reservation_id}</TableCell>
+                <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>#{res.reservation_id}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {res.customer ? (

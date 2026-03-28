@@ -243,7 +243,8 @@ export default function SchedulePanel() {
   const addShift = (day) => {
     setConfig(prev => {
       const dayConf = prev.schedule[day];
-      const newShifts = [...dayConf.shifts, { id: 2, openingTime: '20:00', closingTime: globalHours.closingTime === '00:00' ? '23:30' : globalHours.closingTime, interval: globalHours.defaultInterval || 30, slots: {} }];
+      const nextId = Math.max(0, ...dayConf.shifts.map(s => s.id)) + 1;
+      const newShifts = [...dayConf.shifts, { id: nextId, openingTime: '20:00', closingTime: globalHours.closingTime === '00:00' ? '23:30' : globalHours.closingTime, interval: globalHours.defaultInterval || 30, slots: {} }];
       return { ...prev, schedule: { ...prev.schedule, [day]: { ...dayConf, shifts: newShifts } } };
     });
   };
@@ -551,7 +552,7 @@ export default function SchedulePanel() {
             </Box>
 
             {currentDaySchedule.shifts.map((shift, idx) => (
-              <Box key={shift.id} sx={{ mb: 4 }}>
+              <Box key={`${shift.id}-${idx}`} sx={{ mb: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', mr: 2 }}>
                     Turno {idx + 1} ({shift.openingTime} – {shift.closingTime} {toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? '' : ''})
@@ -675,7 +676,7 @@ export default function SchedulePanel() {
                           const isValid = (cMins - oMins) >= 30;
 
                           return (
-                            <Box key={shift.id} sx={{ bgcolor: '#FFF', border: `1px solid ${!isValid ? '#D93025' : '#E0E0E0'}`, borderRadius: '4px', p: { xs: '12px', md: '16px' } }}>
+                            <Box key={`${shift.id}-${idx}`} sx={{ bgcolor: '#FFF', border: `1px solid ${!isValid ? '#D93025' : '#E0E0E0'}`, borderRadius: '4px', p: { xs: '12px', md: '16px' } }}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                                 <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', color: '#70757A' }}>Turno {idx + 1} &nbsp;&nbsp; {shift.openingTime} – {shift.closingTime} <span style={{fontSize: '11px'}}>{toMinutes(shift.closingTime) <= toMinutes(shift.openingTime) ? '' : ''}</span></Typography>
                                 {idx === 1 && (
@@ -933,8 +934,11 @@ export default function SchedulePanel() {
                   ) : (
                     <Box sx={{ border: '1px solid #E0E0E0', borderRadius: '4px', bgcolor: '#FFFFFF' }}>
                       {blockedDates.map((item, idx) => {
-                        const d = new Date(item.date + 'T12:00:00');
-                        const label = `${DAY_LABELS[dayNameMapping[d.getDay()]]}, ${d.getDate()} de ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+                        const dateStr = item.date || item;
+                        const d = new Date(dateStr + 'T12:00:00');
+                        const dayLabel = DAY_LABELS[dayNameMapping[d.getDay()]] || '---';
+                        const monthName = (MONTH_NAMES[d.getMonth()] || '').toLowerCase();
+                        const label = isNaN(d.getTime()) ? dateStr : `${dayLabel}, ${d.getDate()} de ${monthName} ${d.getFullYear()}`;
                         return (
                           <Box key={item.date} sx={{ 
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
