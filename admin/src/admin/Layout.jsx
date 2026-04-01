@@ -12,6 +12,8 @@ import DayStatusButton from './components/DayStatusButton';
 import RestaurantLogo from '../shared/RestaurantLogo';
 import { ConfirmModal } from './components/ConfirmModal';
 import { apiClient } from '../shared/api';
+import Wizard from './components/Wizard';
+import { useWizardStore } from './store/useWizardStore';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -178,27 +180,31 @@ export default function Layout() {
           </Typography>
 
           {/* Desktop: Global Search */}
-          <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500, ml: { lg: '24px' } }}>
+          <Box id="wizard-header-search" sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500, ml: { lg: '24px' } }}>
             <GlobalSearch />
           </Box>
 
           {/* Right side: Quick Actions + User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, ml: 'auto' }}>
             {/* Quick action buttons — desktop only */}
-            <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
+            <Box id="wizard-header-actions" sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
               <QuickActions />
             </Box>
 
             {/* Copy links dropdown — desktop only */}
-            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
+            <Box id="wizard-header-copy" sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
               <CopyLinksDropdown />
             </Box>
 
             {/* Day Status */}
-            <DayStatusButton dayStatus={dayStatus} onStatusChange={setDayStatus} />
+            <Box id="wizard-header-daystatus">
+              <DayStatusButton dayStatus={dayStatus} onStatusChange={setDayStatus} />
+            </Box>
 
             {/* WhatsApp Connection Status */}
-            <WhatsAppStatus />
+            <Box id="wizard-header-whatsapp">
+              <WhatsAppStatus />
+            </Box>
 
             {/* User menu — desktop */}
             <Box ref={userMenuRef} sx={{ display: 'none', [DESKTOP]: { display: 'block' }, position: 'relative' }}>
@@ -288,6 +294,7 @@ export default function Layout() {
         onCancel={() => setLogoutModal(false)}
         onConfirm={handleLogout}
       />
+      <Wizard />
     </Box>
   );
 }

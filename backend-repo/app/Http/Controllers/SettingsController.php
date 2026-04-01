@@ -72,6 +72,22 @@ class SettingsController extends Controller
             'reservation_link' => $setting->reservation_link,
             'logo_url' => $logoUrl,
             'business_name' => $setting->business_name,
+            'notification_settings' => $setting->notification_settings ?: [
+                'email' => [
+                    'received' => true,
+                    'confirmed' => true,
+                    'cancelled' => true,
+                    'reminder_2h' => true,
+                    'review' => true
+                ],
+                'whatsapp' => [
+                    'received' => true,
+                    'confirmed' => true,
+                    'cancelled' => true,
+                    'reminder_2h' => ['active' => true, 'hours' => 2],
+                    'review' => ['active' => true, 'hours' => 2]
+                ]
+            ],
             'dayStatuses' => $dayStatuses
         ]));
     }
@@ -108,6 +124,7 @@ class SettingsController extends Controller
         if ($request->has('review_link')) $setting->review_link = $request->review_link;
         if ($request->has('google_maps_link')) $setting->google_maps_link = $request->google_maps_link;
         if ($request->has('reservation_link')) $setting->reservation_link = $request->reservation_link;
+        if ($request->has('notification_settings')) $setting->notification_settings = $request->notification_settings;
 
         if ($request->hasFile('menu_pdf')) {
             if ($setting->menu_pdf && Storage::disk('public')->exists($setting->menu_pdf)) {
@@ -168,5 +185,31 @@ class SettingsController extends Controller
                 'last_page'    => $lastPage,
             ],
         ]);
+    }
+
+    public function previewTemplate(Request $request, $type)
+    {
+        $reservation = \App\Models\Reservation::latest()->first() ?: new \App\Models\Reservation([
+            'reservation_id' => 'PREVIEW123',
+            'date' => date('Y-m-d'),
+            'time' => '20:00',
+            'guests' => 2,
+        ]);
+        
+        $setting = Setting::first();
+        $settings = $setting ? $setting->toArray() : [];
+
+        $mailable = match($type) {
+            'received'  => new \App\Mail\ReservationReceived($reservation, $settings),
+            'confirmed' => new \App\Mail\ReservationConfirmed($reservation, $settings),
+            'cancelled' => new \App\Mail\ReservationCancelled($reservation, $settings),
+            'reminder'  => new \App\Mail\ReservationReminder($reservation, $settings),
+            'review'    => new \App\Mail\PostVisitReview($reservation, $settings),
+            default     => null
+        };
+
+        if (!$mailable) return response()->json(['error' => 'Invalid template type'], 400);
+
+        return $mailable->render();
     }
 }

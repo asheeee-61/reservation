@@ -281,7 +281,7 @@ export default function Settings() {
       </Dialog>
 
       {/* Restaurant Identity Card */}
-      <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', mb: '16px', display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'center' }}>
+      <Paper id="wizard-identity" sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', mb: '16px', display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <RestaurantLogo
             logoUrl={logoPreview}
@@ -370,7 +370,7 @@ export default function Settings() {
       </Paper>
 
       {/* Contacto para Cancelaciones Card */}
-      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+      <Paper id="wizard-contact" sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>INFORMACIÓN DE CONTACTO</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Enlaces para que los clientes puedan contactar con el negocio.</Typography>
         
@@ -538,7 +538,7 @@ export default function Settings() {
       </Paper>
 
       {/* Horario del Restaurante Card */}
-      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+      <Paper id="wizard-global-hours" sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>RANGO GLOBAL PARA ACEPTAR RESERVACIONES</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Define el rango horario en el que se pueden aceptar reservaciones. Ningún turno puede salir fuera de estos límites.</Typography>
 

@@ -154,6 +154,7 @@ export default function Events() {
           EVENTOS
         </Typography>
         <Button 
+          id="wizard-add-event"
           variant="contained"
           startIcon={<span className="material-icons" style={{ fontSize: 16 }}>add</span>}
           onClick={() => handleOpenModal()}

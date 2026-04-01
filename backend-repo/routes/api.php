@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);
+    Route::get('/templates/preview/{type}', [SettingsController::class, 'previewTemplate']);
     Route::get('/blocked-dates', [DayStatusController::class, 'index']);
     Route::get('/search', [SearchController::class, 'index']);
     Route::get('/day-status', [DayStatusController::class, 'show']);

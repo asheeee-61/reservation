@@ -37,9 +37,12 @@ class SendPostVisitReviews extends Command
         foreach ($reservations as $res) {
             /** @var Reservation $res */
             $resDateTime = \Carbon\Carbon::parse($res->date . ' ' . $res->time);
+            $settings = \App\Models\Setting::first();
+            $notificationSettings = $settings ? $settings->notification_settings : null;
+            $hours = $notificationSettings['whatsapp']['review']['hours'] ?? 2;
             
-            // Send review 2 hours after the reservation time
-            if ($resDateTime->addHours(2)->isPast()) {
+            // Send review X hours after the reservation time
+            if ($resDateTime->addHours($hours)->isPast()) {
                 $notificationService->notify('review', $res);
                 $res->update(['review_sent_at' => now()]);
                 $this->info("Review request sent for reservation #{$res->reservation_id}");

@@ -45,6 +45,18 @@ class NotificationService
             $noticeUrl = config('notice.url');
             if (!$noticeUrl) return;
 
+            $settings = Setting::first();
+            $notificationSettings = $settings ? $settings->notification_settings : null;
+            
+            if ($notificationSettings && isset($notificationSettings['whatsapp'][$type])) {
+                $config = $notificationSettings['whatsapp'][$type];
+                if (is_array($config)) {
+                    if (!($config['active'] ?? true)) return;
+                } else if (!$config) {
+                    return;
+                }
+            }
+
             $endpoint = match($type) {
                 'received'  => '/notify/new-reservation',
                 'confirmed' => '/notify/confirmed',
@@ -73,6 +85,11 @@ class NotificationService
         try {
             $settingsModel = Setting::first();
             $settings = $settingsModel ? $settingsModel->toArray() : [];
+
+            $notificationSettings = $settingsModel ? $settingsModel->notification_settings : null;
+            if ($notificationSettings && isset($notificationSettings['email'][$type]) && !$notificationSettings['email'][$type]) {
+                return;
+            }
 
             $mailable = match($type) {
                 'received'  => new ReservationReceived($reservation, $settings),

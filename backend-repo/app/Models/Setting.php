@@ -19,5 +19,10 @@ class Setting extends Model
         'menu_pdf',
         'reservation_link',
         'logo',
+        'notification_settings',
+    ];
+
+    protected $casts = [
+        'notification_settings' => 'array',
     ];
 }

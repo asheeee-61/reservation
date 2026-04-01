@@ -61,7 +61,7 @@ app.get('/', tokenAuth, (req, res) => {
 });
 
 app.get('/monitoring', tokenAuth, (req, res) => {
-    res.send(renderMonitoring());
+    res.send(renderMonitoring(process.env.BACKEND_URL));
 });
 
 app.get('/qr', tokenAuth, async (req, res) => {

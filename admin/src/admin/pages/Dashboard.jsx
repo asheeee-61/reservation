@@ -84,7 +84,7 @@ export default function Dashboard() {
       });
       setTodayRes(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
       toast.success('Estado actualizado');
-    } catch (e) {
+    } catch {
       toast.error('Error al actualizar');
     } finally {
       setUpdatingStatuses(prev => ({ ...prev, [id]: false }));

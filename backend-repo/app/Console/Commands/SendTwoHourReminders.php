@@ -38,9 +38,13 @@ class SendTwoHourReminders extends Command
         foreach ($reservations as $res) {
             /** @var Reservation $res */
             $resDateTime = \Carbon\Carbon::parse($res->date . ' ' . $res->time);
+            $settings = \App\Models\Setting::first();
+            $notificationSettings = $settings ? $settings->notification_settings : null;
+            $hours = $notificationSettings['whatsapp']['reminder_2h']['hours'] ?? 2;
+            $mins = $hours * 60;
             
-            // Check if within 2 hour window (120 mins)
-            if ($resDateTime->isFuture() && $resDateTime->diffInMinutes($now) <= 120) {
+            // Check if within the configured hour window
+            if ($resDateTime->isFuture() && $resDateTime->diffInMinutes($now) <= $mins) {
                 $notificationService->notify('reminder_2h', $res);
                 $res->update(['reminder_2h_sent_at' => now()]);
                 $this->info("Reminder sent for reservation #{$res->reservation_id}");

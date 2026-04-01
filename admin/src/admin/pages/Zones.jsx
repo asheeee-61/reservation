@@ -157,6 +157,7 @@ export default function Zones() {
           ZONAS
         </Typography>
         <Button 
+          id="wizard-add-zone"
           variant="contained"
           startIcon={<span className="material-icons" style={{ fontSize: 16 }}>add</span>}
           onClick={() => handleOpenModal()}
