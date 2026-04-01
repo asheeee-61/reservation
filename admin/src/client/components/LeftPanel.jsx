@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { 
   Box, Typography, MenuItem, Select, FormControl,
-  InputAdornment, Button, Grid, CircularProgress, Divider, Skeleton
+  InputAdornment, Button, Grid, CircularProgress, Divider, Skeleton,
+  Popover, IconButton
 } from '@mui/material';
+
+const DAYS_OF_WEEK = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 import { useReservationStore } from '../store/useReservationStore';
 import { getAvailableSlots } from '../services/reservationService';
@@ -29,9 +33,13 @@ export default function LeftPanel({ onAutoAdvance }) {
   const [loading, setLoading] = useState(false);
   const [continuing, setContinuing] = useState(false);
   const [slots, setSlots] = useState([]);
-  const dateInputRef = useRef(null);
   const timeSlotsRef = useRef(null);
   const cacheKey = `${date}-${guests}`;
+
+  // Calendar popover state
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     let active = true;
@@ -67,15 +75,110 @@ export default function LeftPanel({ onAutoAdvance }) {
     };
   }, [date, guests, config, cacheKey, slotsCache, setSlotsCache]);
 
-  const handleDateClick = () => {
-    if (dateInputRef.current) {
-      if (typeof dateInputRef.current.showPicker === 'function') {
-        dateInputRef.current.showPicker();
-      } else {
-        dateInputRef.current.focus();
-        dateInputRef.current.click();
-      }
+  const handleOpenDatePicker = (event) => {
+    // Determine month/year from selected date directly for better UX
+    if (date) {
+      const d = new Date(date);
+      setCalendarMonth(d.getMonth());
+      setCalendarYear(d.getFullYear());
     }
+    setAnchorEl(event.currentTarget);
+  };
+  const handleCloseDatePicker = () => setAnchorEl(null);
+
+  const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+
+  const handlePrevMonth = () => {
+    if (calendarMonth === 0) {
+      setCalendarMonth(11); setCalendarYear(y => y - 1);
+    } else {
+      setCalendarMonth(m => m - 1);
+    }
+  };
+  const handleNextMonth = () => {
+    if (calendarMonth === 11) {
+      setCalendarMonth(0); setCalendarYear(y => y + 1);
+    } else {
+      setCalendarMonth(m => m + 1);
+    }
+  };
+
+  const renderCalendarDays = () => {
+    const daysInMonth = getDaysInMonth(calendarMonth, calendarYear);
+    const firstDay = getFirstDayOfMonth(calendarMonth, calendarYear);
+    const blanks = Array.from({ length: firstDay });
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    
+    const todayTarget = new Date();
+    todayTarget.setHours(0,0,0,0);
+
+    return (
+      <Grid container spacing={0.5} sx={{ p: '16px', width: 280 }}>
+        {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map(d => (
+          <Grid size={12/7} key={d} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A', fontWeight: 500 }}>{d}</Typography>
+          </Grid>
+        ))}
+        {blanks.map((_, i) => <Grid size={12/7} key={`blank-${i}`} />)}
+        {days.map(d => {
+          const dateObj = new Date(calendarYear, calendarMonth, d);
+          dateObj.setHours(0,0,0,0);
+          
+          const y = dateObj.getFullYear();
+          const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const dayStr = String(dateObj.getDate()).padStart(2, '0');
+          const fDate = `${y}-${m}-${dayStr}`;
+          
+          const isPast = dateObj < todayTarget;
+          const isBlocked = config?.blockedDays?.includes(fDate);
+          
+          const dayNameLocal = DAYS_OF_WEEK[dateObj.getDay()];
+          const dayConfigLocal = config?.schedule?.[dayNameLocal];
+          const isClosedDay = !dayConfigLocal?.open;
+          
+          const isSelected = date === fDate;
+          
+          let color = '#202124';
+          let bgcolor = 'transparent';
+          let disabled = false;
+          let fontWeight = 400;
+
+          if (isPast) {
+            color = '#BDBDBD';
+            disabled = true;
+          } else if (isBlocked || isClosedDay) {
+            color = isBlocked ? '#D93025' : '#BDBDBD';
+            disabled = isBlocked; 
+          }
+          
+          if (isClosedDay && !isBlocked) {
+            disabled = true;
+            color = '#BDBDBD';
+          }
+
+          return (
+            <Grid size={12/7} key={d} sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+              <Button 
+                disabled={disabled}
+                onClick={() => {
+                  setDate(fDate);
+                  handleCloseDatePicker();
+                }}
+                sx={{ 
+                  minWidth: 0, width: 32, height: 32, borderRadius: '50%', p: 0,
+                  color, bgcolor, fontWeight, fontFamily: 'Roboto', fontSize: '13px',
+                  '&:hover': { bgcolor: isSelected ? '#1557B0' : disabled ? 'transparent' : '#F1F3F4' },
+                  '&.Mui-disabled': { color }
+                }}
+              >
+                {d}
+              </Button>
+            </Grid>
+          );
+        })}
+      </Grid>
+    );
   };
 
   useEffect(() => {
@@ -154,7 +257,7 @@ export default function LeftPanel({ onAutoAdvance }) {
             </Typography>
             <Button
               variant="outlined"
-              onClick={handleDateClick}
+              onClick={handleOpenDatePicker}
               endIcon={<span className="material-icons" style={{ color: '#70757A' }}>arrow_drop_down</span>}
               sx={{ 
                 width: '100%', 
@@ -181,14 +284,20 @@ export default function LeftPanel({ onAutoAdvance }) {
             >
               {formatDateLabel(date)}
             </Button>
-            <input 
-              type="date"
-              ref={dateInputRef}
-              value={date}
-              min={new Date().toISOString().split('T')[0]}
-              onChange={(e) => setDate(e.target.value)}
-              style={{ position: 'absolute', opacity: 0, width: 0, height: 0, border: 0, padding: 0, overflow: 'hidden' }}
-            />
+            <Popover
+              open={Boolean(anchorEl)} anchorEl={anchorEl} onClose={handleCloseDatePicker}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              PaperProps={{ sx: { mt: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', borderRadius: '8px' } }}
+            >
+              <Box sx={{ p: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #E0E0E0' }}>
+                <IconButton onClick={handlePrevMonth} size="small"><span className="material-icons" style={{fontSize: 20}}>chevron_left</span></IconButton>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                  {MONTHS[calendarMonth]} {calendarYear}
+                </Typography>
+                <IconButton onClick={handleNextMonth} size="small"><span className="material-icons" style={{fontSize: 20}}>chevron_right</span></IconButton>
+              </Box>
+              {renderCalendarDays()}
+            </Popover>
           </Box>
         </Box>
 
