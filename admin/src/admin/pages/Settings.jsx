@@ -153,14 +153,7 @@ export default function Settings() {
           review_link: localContact.reviewLink
         })
       });
-
-      useSettingsStore.getState().setGlobalHours({
-        ...localGlobal,
-        whatsapp_phone: localContact.whatsappPhone,
-        instagram_username: localContact.instagramUsername,
-        restaurant_phone: localContact.restaurantPhone,
-        review_link: localContact.reviewLink
-      });
+      await fetchGlobalHours();
       
       setToastMessage("Horario global guardado");
       setToastOpen(true);
@@ -209,6 +202,7 @@ export default function Settings() {
       setLogoFile(null);
       setLocalLinks(prev => ({ ...prev, menuPdfFile: null }));
       await fetchConfig();
+      await fetchGlobalHours();
       setToastMessage("Información de contacto guardada");
       setToastOpen(true);
       setTimeout(() => setToastOpen(false), 2000);
@@ -228,6 +222,7 @@ export default function Settings() {
         method: 'POST',
         body: JSON.stringify(config)
       });
+      await fetchGlobalHours();
       setSavedMsg(isCap ? "Capacidades guardadas exitosamente." : "Detalles guardados exitosamente.");
       setTimeout(() => setSavedMsg(''), 3000);
     } catch (e) {

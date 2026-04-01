@@ -51,5 +51,5 @@ export const useSettingsStore = create((set) => ({
       set({ loading: false });
     }
   },
-  setGlobalHours: (hours) => set({ globalHours: hours })
+  setGlobalHours: (hours) => set((state) => ({ globalHours: { ...state.globalHours, ...hours } }))
 }));
