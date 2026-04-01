@@ -3,11 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, Button, CircularProgress,
-  Snackbar, Divider, IconButton, Tooltip, Chip, TextField, Autocomplete
+  Divider, IconButton, Tooltip, Chip, TextField, Autocomplete
 } from '@mui/material';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import CustomerAvatar from '../components/CustomerAvatar';
 import TablePagination from '../components/TablePagination';
+import { BackButton } from '../components/BackButton';
+import { useToast } from '../components/Toast/ToastContext';
+import { PageHeaderSkeleton, CardSkeleton, TableSkeleton } from '../components/Skeletons';
+import { EmptyState } from '../components/EmptyState';
 
 const STATUS_CHIP_STYLE = {
   'PENDIENTE':  { bg: '#FEF7E0', text: '#7D4A00', label: 'Pendiente' },
@@ -64,7 +68,7 @@ export default function CustomerDetail() {
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
 
-  const [toast, setToast] = useState({ open: false, message: '' });
+  const toast = useToast();
   const [savingNotes, setSavingNotes] = useState(false);
   const [localNotes, setLocalNotes] = useState('');
   const [tagInput, setTagInput] = useState('');
@@ -144,7 +148,7 @@ export default function CustomerDetail() {
       });
     } catch (e) {
       console.error(e);
-      setToast({ open: true, message: 'Error al guardar cambios' });
+      toast.error('Error al guardar cambios');
     }
   };
 
@@ -178,13 +182,13 @@ export default function CustomerDetail() {
 
   const handleSaveInfo = async () => {
     if (!editForm.name.trim()) {
-      setToast({ open: true, message: 'El nombre es obligatorio' });
+      toast.error('El nombre es obligatorio');
       return;
     }
     await updateCustomerData(editForm);
     setCustomer({ ...customer, ...editForm });
     setIsEditing(false);
-    setToast({ open: true, message: 'Datos actualizados correctamente' });
+    toast.success('Datos actualizados correctamente');
   };
 
   useEffect(() => {
@@ -199,8 +203,14 @@ export default function CustomerDetail() {
     }
   }, [localNotes, id]);
 
-  if (loading) return <Box display="flex" justifyContent="center" py={10}><CircularProgress /></Box>;
-  if (!customer) return <Box display="flex" justifyContent="center" py={10}><Typography>Cliente no encontrado</Typography></Box>;
+  if (loading) return (
+    <Box p={3} display="flex" flexDirection="column" gap={3}>
+      <PageHeaderSkeleton />
+      <CardSkeleton />
+      <TableSkeleton rows={3} cols={5} />
+    </Box>
+  );
+  if (!customer) return <EmptyState icon="person_off" title="Cliente no encontrado" message="El cliente solicitado no existe o fue eliminado." />;
 
   const avgDisplay = Number.isInteger(stats.avgParty) 
     ? stats.avgParty.toString() 
@@ -211,17 +221,7 @@ export default function CustomerDetail() {
       
       {/* ROW 1: BACK BUTTON */}
       <Box sx={{ mb: '24px' }}>
-        <Button 
-          startIcon={<span className="material-icons" style={{ fontSize: 18 }}>arrow_back</span>} 
-          onClick={() => navigate('/admin/customers')} 
-          sx={{ 
-            color: '#1A73E8', textTransform: 'uppercase', fontFamily: '"Roboto", sans-serif', 
-            fontWeight: 500, fontSize: '13px', p: 0, minWidth: 0,
-            '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
-          }}
-        >
-          VOLVER A CLIENTES
-        </Button>
+        <BackButton fallback="/admin/customers" />
       </Box>
 
       {/* ROW 2: STATS ROW */}
@@ -479,12 +479,19 @@ export default function CustomerDetail() {
               </TableHead>
               <TableBody>
                 {loadingRes ? (
-                  <TableRow><TableCell colSpan={5} align="center" sx={{ py: 5 }}><CircularProgress size={24} /></TableCell></TableRow>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      {Array.from({ length: 5 }).map((_, j) => (
+                        <TableCell key={`skeleton-${i}-${j}`}>
+                          <Box sx={{ width: '100%', height: 20, bgcolor: '#F1F3F4', borderRadius: 1, animation: 'pulse 1.5s infinite ease-in-out' }} />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
                 ) : reservations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: '40px' }}>
-                      <span className="material-icons" style={{ fontSize: 32, color: '#BDBDBD', marginBottom: '8px', display: 'block' }}>calendar_today</span>
-                      <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#70757A' }}>Sin historial de reservas</Typography>
+                    <TableCell colSpan={5} align="center" sx={{ py: 0, borderBottom: 'none' }}>
+                      <Box sx={{ py: 4 }}><EmptyState icon="calendar_today" title="Sin historial" message="No se encontraron reservas para este cliente." /></Box>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -541,12 +548,6 @@ export default function CustomerDetail() {
         </Paper>
       </Box>
 
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={4000}
-        onClose={() => setToast({ ...toast, open: false })}
-        message={toast.message}
-      />
     </Box>
   );
 }

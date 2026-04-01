@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  Box, Typography, Button, CircularProgress, 
+  Box, Typography, Button, 
   Paper, Radio, RadioGroup, FormControlLabel, FormControl,
   List, ListItem, ListItemButton, ListItemText, ListItemIcon,
   IconButton
 } from '@mui/material';
+import { PageHeaderSkeleton, CardSkeleton } from '../../admin/components/Skeletons';
 import { useReservationStore } from '../store/useReservationStore';
 import { getTableTypes } from '../services/reservationService';
 
@@ -34,8 +35,10 @@ export default function TableTypeSelection({ onBack, onAutoAdvance }) {
 
   if (loading && !cachedTypes) {
     return (
-      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', height: '100%', alignItems: 'center' }}>
-        <CircularProgress />
+      <Box p={3} display="flex" flexDirection="column" gap={3}>
+        <PageHeaderSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
       </Box>
     );
   }

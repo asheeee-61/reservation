@@ -16,6 +16,7 @@ import CalendarPanel from './pages/CalendarPanel';
 import SchedulePanel from './pages/SchedulePanel';
 import Login from './pages/Login';
 import { useAuthStore } from './store/useAuthStore';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const theme = createTheme({
   spacing: 4,
@@ -122,21 +123,21 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Routes>
-        <Route path="login" element={<Login />} />
+        <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="reservations" element={<Reservations />} />
-          <Route path="reservations/view/:id" element={<ViewBooking />} />
-          <Route path="reservations/new" element={<NewBooking />} />
-          <Route path="reservations/edit/:id" element={<EditBooking />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="customers/:id" element={<CustomerDetail />} />
-          <Route path="table-types" element={<TableTypes />} />
-          <Route path="special-events" element={<SpecialEvents />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="calendar" element={<CalendarPanel />} />
-          <Route path="schedule" element={<SchedulePanel />} />
+          <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="reservations" element={<ErrorBoundary><Reservations /></ErrorBoundary>} />
+          <Route path="reservations/view/:id" element={<ErrorBoundary><ViewBooking /></ErrorBoundary>} />
+          <Route path="reservations/new" element={<ErrorBoundary><NewBooking /></ErrorBoundary>} />
+          <Route path="reservations/edit/:id" element={<ErrorBoundary><EditBooking /></ErrorBoundary>} />
+          <Route path="customers" element={<ErrorBoundary><Customers /></ErrorBoundary>} />
+          <Route path="customers/:id" element={<ErrorBoundary><CustomerDetail /></ErrorBoundary>} />
+          <Route path="table-types" element={<ErrorBoundary><TableTypes /></ErrorBoundary>} />
+          <Route path="special-events" element={<ErrorBoundary><SpecialEvents /></ErrorBoundary>} />
+          <Route path="settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
+          <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+          <Route path="calendar" element={<ErrorBoundary><CalendarPanel /></ErrorBoundary>} />
+          <Route path="schedule" element={<ErrorBoundary><SchedulePanel /></ErrorBoundary>} />
         </Route>
         {/* Redirect any other /admin/* to /admin/ */}
         <Route path="*" element={<Navigate to="/admin" replace />} />

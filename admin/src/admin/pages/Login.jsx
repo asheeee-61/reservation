@@ -2,12 +2,14 @@ import { Box, Typography, TextField, Button, Paper } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import { useToast } from '../components/Toast/ToastContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const login = useAuthStore(state => state.login);
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,10 +24,10 @@ export default function Login() {
         login(data.token, data.user);
         navigate('/');
       } else {
-        alert(data.message || 'Error al iniciar sesión');
+        toast.error(data.message || 'Error al iniciar sesión');
       }
     } catch (error) {
-      alert('Error al iniciar sesión: ' + error.message);
+      toast.error('Error al iniciar sesión: ' + error.message);
     }
   };
 

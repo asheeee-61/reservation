@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../services/apiClient';
+import { API_BASE_URL } from '../../shared/api';
 import CustomerAvatar from './CustomerAvatar';
 
 export default function GlobalSearch() {

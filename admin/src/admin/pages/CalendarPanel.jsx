@@ -6,13 +6,14 @@ import {
   Dialog, DialogContent, DialogActions, TextField,
   Select, MenuItem, FormControl, Drawer, SwipeableDrawer, Slide,
   Grid, InputAdornment, List, ListItem, ListItemText,
-  ListItemAvatar, Alert, DialogTitle, Snackbar
+  ListItemAvatar, Alert, DialogTitle
 } from '@mui/material';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import CustomerAvatar from '../components/CustomerAvatar';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import ReservationFormModal from '../components/ReservationFormModal';
+import { useToast } from '../components/Toast/ToastContext';
 
 // --- CONSTANTS ---
 const STATUS_COLORS = {
@@ -85,6 +86,7 @@ const getWeekRange = (date) => {
 
 export default function CalendarPanel() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('month'); // month, week, day
   const [loading, setLoading] = useState(false);
@@ -799,7 +801,7 @@ function CurrentTimeLine({ startMins }) {
 function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
   const [loading, setLoading] = useState(false);
   const [optimisticStatus, setOptimisticStatus] = useState(reservation?.status);
-  const [toastOpen, setToastOpen] = useState(false);
+  const toast = useToast();
   const [cancelReason, setCancelReason] = useState('');
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const navigate = useNavigate();
@@ -821,7 +823,7 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
     }
 
     setOptimisticStatus(newStatus);
-    setToastOpen(true);
+    toast.success('Estado actualizado');
     setLoading(true);
     try {
       await apiClient(`/admin/reservations/${reservation.id}/status`, {
@@ -994,16 +996,7 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
         </Box>
       </SwipeableDrawer>
 
-      <Snackbar
-        open={toastOpen}
-        autoHideDuration={2000}
-        onClose={() => setToastOpen(false)}
-        message="Estado actualizado"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        ContentProps={{
-          sx: { bgcolor: '#323232', color: '#FFFFFF', fontFamily: 'Roboto', fontSize: '14px', borderRadius: '4px' }
-        }}
-      />
+
 
       {/* Cancellation Confirmation Dialog */}
       <Dialog 

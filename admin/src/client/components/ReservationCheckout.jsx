@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { 
   Button, TextField, Typography, Box, CircularProgress,
-  IconButton, Alert, Backdrop, Container, Paper, Divider
+  IconButton, Backdrop, Container, Paper, Divider
 } from '@mui/material';
+import { useToast } from '../../admin/components/Toast/ToastContext';
 
 import { useReservationStore } from '../store/useReservationStore';
 import { createReservation } from '../services/reservationService';
@@ -10,7 +11,7 @@ import { createReservation } from '../services/reservationService';
 export default function ReservationCheckout({ onBack, onSuccess }) {
   const store = useReservationStore();
   const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
+  const toast = useToast();
 
   const { 
     date, guests, selectedSlot, selectedTableType, selectedSpecialEvent, 
@@ -27,7 +28,6 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
 
   const handleConfirm = async () => {
     setSubmitting(true);
-    setErrorMsg(null);
     try {
       const payload = { 
         date, 
@@ -40,12 +40,13 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
       const res = await createReservation(payload);
       if (res.success) {
         useReservationStore.setState({ reservationId: res.reservationId });
+        toast.success("Reserva confirmada con éxito");
         onSuccess(res.reservationId);
       } else {
-        setErrorMsg(res.message || "Error al realizar la reserva.");
+        toast.error(res.message || "Error al realizar la reserva.");
       }
     } catch (err) {
-      setErrorMsg(err.message || "Ha ocurrido un error.");
+      toast.error(err.message || "Ha ocurrido un error.");
     } finally {
       setSubmitting(false);
     }
@@ -152,12 +153,6 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
                 InputProps={{ sx: { fontSize: '16px' } }}
               />
             </Box>
-
-            {errorMsg && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {errorMsg}
-              </Alert>
-            )}
 
             <Divider sx={{ my: 3 }} />
 

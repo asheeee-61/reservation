@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Typography, Box, Paper, Button, CircularProgress, MenuItem, Select, FormControl, Snackbar } from '@mui/material';
+import { Typography, Box, Paper, Button, MenuItem, Select, FormControl } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import { ConfirmModal } from '../components/ConfirmModal';
 import SourceBadge from '../components/SourceBadge';
+import { useToast } from '../components/Toast/ToastContext';
+import { TableSkeleton } from '../components/Skeletons';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -42,7 +46,8 @@ export default function Dashboard() {
   const [confirmModal, setConfirmModal] = useState({ open: false, type: '', reason: '' });
   
   // Feedback
-  const [toast, setToast] = useState({ open: false, message: '' });
+  const toast = useToast();
+  const [error, setError] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
     setLoadingToday(true);
@@ -54,7 +59,7 @@ export default function Dashboard() {
       setDayReason(data.dayReason || null);
       setBySource(data.bySource || {});
     } catch (e) {
-      console.error(e);
+      if (e.name !== 'AbortError') setError(true);
     } finally {
       setLoadingToday(false);
     }
@@ -71,9 +76,9 @@ export default function Dashboard() {
         body: JSON.stringify({ status: newStatus }),
       });
       setTodayRes(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
-      setToast({ open: true, message: 'Estado actualizado' });
+      toast.success('Estado actualizado');
     } catch (e) {
-      console.error(e);
+      toast.error('Error al actualizar');
     }
   };
 
@@ -85,10 +90,10 @@ export default function Dashboard() {
         body: JSON.stringify({ date: TODAY, status, reason }),
       });
       setDayStatus(status);
-      setToast({ open: true, message: `Día ${status.toLowerCase()}` });
+      toast.success(`Día ${status.toLowerCase()}`);
       fetchDashboardData();
     } catch (e) {
-      console.error(e);
+      toast.error('Error al actualizar el estado del día');
     } finally {
       setTogglingStatus(false);
       setConfirmModal({ open: false, type: '', reason: '' });
@@ -113,6 +118,15 @@ export default function Dashboard() {
   const noPhone = todayRes.filter(r => !r.customer?.phone);
   if (noPhone.length > 0) alerts.push({ icon: 'phone_disabled', text: `${noPhone.length} clientes sin teléfono`, path: '/admin/customers' });
   if (guestsToday > 30) alerts.push({ icon: 'warning', text: `Alta ocupación hoy`, path: '/admin/reservations' });
+
+  if (error) {
+    return (
+      <ErrorState 
+        message="Error al cargar el panel de control."
+        onRetry={fetchDashboardData}
+      />
+    );
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -153,9 +167,11 @@ export default function Dashboard() {
           </Box>
 
           {loadingToday ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={24} /></Box>
+            <Box p={3}>
+              <TableSkeleton rows={4} cols={1} />
+            </Box>
           ) : todayRes.length === 0 ? (
-            <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="text.secondary">Sin reservas para hoy</Typography></Box>
+            <EmptyState icon="event_busy" title="Sin reservas" message="No hay reservas para hoy" />
           ) : (
             <Box>
               {todayRes.map((r, idx) => {
@@ -312,14 +328,6 @@ export default function Dashboard() {
         confirmLabel="CERRAR DÍA"
         onConfirm={() => updateDayStatus('BLOQUEADO', confirmModal.reason)}
         onCancel={() => setConfirmModal({ open: false, type: '', reason: '' })}
-      />
-
-      {/* Toast */}
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={3000}
-        onClose={() => setToast({ ...toast, open: false })}
-        message={toast.message}
       />
     </Box>
   );

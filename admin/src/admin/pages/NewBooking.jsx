@@ -2,13 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   Typography, Box, Paper, TextField, 
   Button, Select, MenuItem, FormControl, InputLabel,
-  Popover, IconButton, Grid, InputAdornment, Alert,
+  Popover, IconButton, Grid, InputAdornment, 
   List, ListItem, ListItemText, ListItemAvatar, Avatar, CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import CustomerAvatar from '../components/CustomerAvatar';
+import { BackButton } from '../components/BackButton';
+import { useToast } from '../components/Toast/ToastContext';
 
 const toMinutes = (time) => {
   const [h, m] = time.split(':').map(Number);
@@ -28,7 +30,7 @@ const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 
 export default function NewBooking() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
+  const toast = useToast();
   
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const adminCalendar = useSettingsStore(state => state.adminCalendar);
@@ -253,7 +255,6 @@ export default function NewBooking() {
   const handleAddBooking = async () => {
     if (!isFormValid) return;
     setSaveStatus('loading');
-    setErrorMsg(null);
     try {
       // If existing customer: check if we need to update their profile first
       if (selectedCustomer) {
@@ -305,7 +306,7 @@ export default function NewBooking() {
     } catch (e) {
       console.error(e);
       setSaveStatus('error');
-      setErrorMsg('Error al guardar la reserva');
+      toast.error('Error al guardar la reserva');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
@@ -416,23 +417,8 @@ export default function NewBooking() {
   return (
     <Box sx={{ maxWidth: 1000, display: 'flex', flexDirection: 'column', gap: '24px', mx: 'auto' }}>
       <Box sx={{ mb: '8px' }}>
-        <Button 
-          startIcon={<span className="material-icons" style={{ fontSize: 16 }}>arrow_back</span>} 
-          onClick={() => navigate('/admin/reservations')} 
-          sx={{ 
-            color: '#1A73E8', textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: 13, letterSpacing: '1.25px', p: 0,
-            '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
-          }}
-        >
-          VOLVER A RESERVAS
-        </Button>
+        <BackButton fallback="/admin/reservations" />
       </Box>
-
-      {errorMsg && (
-        <Alert severity="error" sx={{ borderRadius: '4px' }}>
-          {errorMsg}
-        </Alert>
-      )}
 
       {/* TWO PANEL CONTAINER */}
       <Box sx={{ 

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ReservationForm from '../components/ReservationForm';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
+import { PageHeaderSkeleton, CardSkeleton } from '../components/Skeletons';
+import { ErrorState } from '../components/ErrorState';
 
 export default function EditBooking() {
   const navigate = useNavigate();
@@ -25,18 +27,15 @@ export default function EditBooking() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <CircularProgress />
+      <Box p={3} display="flex" flexDirection="column" gap={3}>
+        <PageHeaderSkeleton />
+        <CardSkeleton />
       </Box>
     );
   }
 
   if (errorMsg) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">{errorMsg}</Alert>
-      </Box>
-    );
+    return <ErrorState message={errorMsg} onRetry={() => window.location.reload()} />;
   }
 
   return (

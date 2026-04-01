@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   Typography, Box, Paper, TextField, 
   Button, Select, MenuItem, FormControl, InputLabel,
-  Popover, IconButton, Grid, InputAdornment, Alert,
+  Popover, IconButton, Grid, InputAdornment, 
   List, ListItem, ListItemText, ListItemAvatar, Avatar, CircularProgress
 } from '@mui/material';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import CustomerAvatar from './CustomerAvatar';
+import { BackButton } from './BackButton';
+import { useToast } from './Toast/ToastContext';
 
 const toMinutes = (time) => {
   const [h, m] = time.split(':').map(Number);
@@ -37,7 +39,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
+  const toast = useToast();
   
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const adminCalendar = useSettingsStore(state => state.adminCalendar);
@@ -215,7 +217,6 @@ export default function ReservationForm({ initialData, compact = false, onSucces
   const handleSaveBooking = async () => {
     if (!isFormValid) return;
     setSaveStatus('loading');
-    setErrorMsg(null);
     try {
       if (selectedCustomer) {
         const hasChanged = formState.phone !== (selectedCustomer.phone || '') || formState.email !== (selectedCustomer.email || '');
@@ -250,7 +251,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
     } catch (e) {
       console.error(e);
       setSaveStatus('error');
-      setErrorMsg('Error al guardar la reserva');
+      toast.error('Error al guardar la reserva');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
@@ -314,17 +315,9 @@ export default function ReservationForm({ initialData, compact = false, onSucces
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {!compact && (
         <Box sx={{ mb: '8px' }}>
-          <Button 
-            startIcon={<span className="material-icons" style={{ fontSize: 16 }}>arrow_back</span>} 
-            onClick={onCancel} 
-            sx={{ color: '#1A73E8', textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500, fontSize: 13, letterSpacing: '1.25px', p: 0, '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' } }}
-          >
-            VOLVER A RESERVAS
-          </Button>
+          <BackButton fallback="/admin/reservations" />
         </Box>
       )}
-
-      {errorMsg && <Alert severity="error" sx={{ borderRadius: '4px' }}>{errorMsg}</Alert>}
 
       <Box sx={{ display: 'flex', gap: '24px', flexDirection: compact ? 'column' : { xs: 'column', md: 'row' }, alignItems: 'flex-start' }}>
         

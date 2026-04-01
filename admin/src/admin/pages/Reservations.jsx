@@ -4,14 +4,18 @@ import {
   Typography, Box, Paper, Table, TableBody, TableCell, 
   TableHead, TableRow, MenuItem, Select, FormControl,
   IconButton, Tooltip, Stack, TextField, InputAdornment, 
-  Fab, CircularProgress, Divider, Snackbar, LinearProgress
+  Fab, Divider 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import CustomerAvatar from '../components/CustomerAvatar';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import TablePagination from '../components/TablePagination';
 import SourceBadge from '../components/SourceBadge';
+import { useToast } from '../components/Toast/ToastContext';
+import { TableSkeleton, PageHeaderSkeleton } from '../components/Skeletons';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -33,15 +37,17 @@ export default function Reservations() {
   const navigate = useNavigate();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [toastOpen, setToastOpen] = useState(false);
+  const toast = useToast();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
 
   const fetchReservations = useCallback(async (p = page, pp = perPage, search = searchTerm, status = statusFilter, signal) => {
     setLoading(true);
+    setError(false);
     try {
       const params = new URLSearchParams({ page: p, per_page: pp });
       if (search) params.append('search', search);
@@ -50,11 +56,9 @@ export default function Reservations() {
       setReservations(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (e) {
-      if (e.name !== 'AbortError') {
-        console.error(e);
-      }
+      if (e.name !== 'AbortError') setError(true);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [page, perPage, searchTerm, statusFilter]);
 
@@ -76,9 +80,9 @@ export default function Reservations() {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
       });
-      setToastOpen(true);
+      toast.success('Estado actualizado correctamente');
     } catch (e) {
-      alert('Failed to update status');
+      toast.error('Error al actualizar el estado');
       setReservations(previous);
     }
   };
@@ -102,18 +106,34 @@ export default function Reservations() {
     setPage(1);
   };
 
+  if (error) {
+    return (
+      <ErrorState 
+        message="Error al cargar los datos."
+        onRetry={() => {
+          const controller = new AbortController();
+          fetchReservations(page, perPage, searchTerm, statusFilter, controller.signal);
+        }}
+      />
+    );
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography sx={{ 
-          fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
-          [DESKTOP]: { fontSize: '20px' },
-          [TABLET]: { fontSize: '18px' },
-          [MOBILE]: { fontSize: '16px' }
-        }}>
-          Reservas
-        </Typography>
-      </Box>
+      {loading ? (
+        <PageHeaderSkeleton />
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography sx={{ 
+            fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
+            [DESKTOP]: { fontSize: '20px' },
+            [TABLET]: { fontSize: '18px' },
+            [MOBILE]: { fontSize: '16px' }
+          }}>
+            Reservas
+          </Typography>
+        </Box>
+      )}
 
       {/* FILTERS */}
       <Paper sx={{ 
@@ -170,9 +190,20 @@ export default function Reservations() {
         overflow: 'hidden', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none',
         position: 'relative'
       }}>
-        {loading && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
+        {loading ? (
+          <Box p={3}>
+            <TableSkeleton rows={8} cols={9} />
+          </Box>
+        ) : reservations.length === 0 ? (
+          <EmptyState 
+            icon="event_note" 
+            title="Sin resultados" 
+            message="No hay reservas que mostrar" 
+          />
+        ) : (
+        <>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>#</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Cliente</TableCell>
@@ -186,9 +217,7 @@ export default function Reservations() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {reservations.length === 0 && !loading ? (
-              <TableRow><TableCell colSpan={9} align="center" sx={{ py: 3 }}><Typography color="text.secondary">No se encontraron reservas</Typography></TableCell></TableRow>
-            ) : reservations.map(res => (
+            {reservations.map(res => (
               <TableRow 
                 key={res.id} 
                 hover
@@ -369,6 +398,8 @@ export default function Reservations() {
           onPageChange={handlePageChange}
           onPerPageChange={handlePerPageChange}
         />
+        </>
+        )}
       </Paper>
 
       {/* MOBILE CARD VIEW */}
@@ -377,11 +408,20 @@ export default function Reservations() {
         [MOBILE]: { display: 'flex' },
         position: 'relative'
       }}>
-        {loading && <LinearProgress sx={{ position: 'absolute', top: -12, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
-        {!loading && reservations.length === 0 ? (
-          <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No se encontraron reservas</Typography></Box>
-        ) : reservations.map(res => {
-          const sKey = res.status?.toUpperCase() || 'PENDIENTE';
+        {loading ? (
+          <Box p={2} display="flex" flexDirection="column" gap={2}>
+            <TableSkeleton rows={4} cols={1} />
+          </Box>
+        ) : reservations.length === 0 ? (
+          <EmptyState 
+            icon="event_note" 
+            title="Sin resultados" 
+            message="No hay reservas que mostrar" 
+          />
+        ) : (
+          <>
+            {reservations.map(res => {
+              const sKey = res.status?.toUpperCase() || 'PENDIENTE';
           const chipColor = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#202124' };
           return (
             <Paper 
@@ -436,15 +476,9 @@ export default function Reservations() {
           onPageChange={handlePageChange}
           onPerPageChange={handlePerPageChange}
         />
+        </>
+        )}
       </Box>
-
-      <Snackbar
-        open={toastOpen}
-        autoHideDuration={3000}
-        onClose={() => setToastOpen(false)}
-        message="Estado actualizado"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
 
       <Fab 
         color="primary" 

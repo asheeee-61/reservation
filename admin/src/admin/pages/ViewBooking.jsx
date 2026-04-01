@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Typography, Box, Paper, Button, Dialog, Snackbar, Tooltip, Stack, Divider, IconButton, Select, MenuItem, FormControl, CircularProgress } from '@mui/material';
+import { Typography, Box, Paper, Button, Dialog, Tooltip, Stack, Divider, IconButton, Select, MenuItem, FormControl } from '@mui/material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import CustomerAvatar from '../components/CustomerAvatar';
 import SourceBadge from '../components/SourceBadge';
+import { useToast } from '../components/Toast/ToastContext';
+import { PageHeaderSkeleton, CardSkeleton } from '../components/Skeletons';
+import { BackButton } from '../components/BackButton';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -43,7 +46,7 @@ export default function ViewBooking() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
-  const [errorToast, setErrorToast] = useState(false);
+  const toast = useToast();
   const [activities, setActivities] = useState([]);
 
   useEffect(() => {
@@ -88,7 +91,7 @@ export default function ViewBooking() {
         })));
       }
     } catch (e) {
-      setErrorToast(true);
+      toast.error('Error al actualizar el estado');
       throw e;
     }
   };
@@ -108,8 +111,11 @@ export default function ViewBooking() {
 
   if (loading || !resData) {
     return (
-      <Box sx={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: '#F1F3F4' }}>
-        <CircularProgress />
+      <Box p={3} display="flex" flexDirection="column" gap={3}>
+        <PageHeaderSkeleton />
+        <Box display="flex" gap={3} flexDirection={{ xs: 'column', md: 'row' }}>
+          <Box flex={1}><CardSkeleton /></Box>
+        </Box>
       </Box>
     );
   }
@@ -123,19 +129,7 @@ export default function ViewBooking() {
         
         {/* TOP BAR */}
         <Box sx={{ mb: '24px' }}>
-          <Button 
-            startIcon={<span className="material-icons" style={{ fontSize: 16 }}>arrow_back</span>} 
-            onClick={() => navigate('/admin/reservations')} 
-            disableRipple
-            sx={{ 
-              color: '#1A73E8', textTransform: 'uppercase', fontFamily: 'Roboto', 
-              fontWeight: 500, fontSize: '13px', letterSpacing: '1.25px', padding: 0,
-              minWidth: 0, minHeight: { xs: 44, md: 36 },
-              '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
-            }}
-          >
-            VOLVER A RESERVAS
-          </Button>
+          <BackButton fallback="/admin/reservations" />
         </Box>
 
         {/* TWO COLUMN LAYOUT */}
@@ -525,25 +519,6 @@ export default function ViewBooking() {
           </Button>
         </Box>
       </Dialog>
-
-      {/* Error Toast */}
-      <Snackbar
-        open={errorToast}
-        autoHideDuration={4000}
-        onClose={() => setErrorToast(false)}
-        message="Error al actualizar el estado"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        ContentProps={{
-          sx: {
-            bgcolor: '#D93025',
-            color: '#FFFFFF',
-            borderRadius: '4px',
-            fontFamily: 'Roboto',
-            fontWeight: 400,
-            fontSize: '14px'
-          }
-        }}
-      />
     </Box>
   );
 }

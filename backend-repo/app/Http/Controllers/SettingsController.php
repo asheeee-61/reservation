@@ -55,6 +55,10 @@ class SettingsController extends Controller
             ? asset('storage/' . $setting->logo)
             : null;
 
+        $dayStatuses = \App\Models\DayStatus::where('status', '!=', \App\Models\DayStatus::STATUS_ABIERTO)
+            ->get()
+            ->keyBy('date');
+
         return response()->json(array_merge($defaultConfig, $savedConfig, [
             'global_opening_time' => substr($setting->global_opening_time, 0, 5),
             'global_closing_time' => substr($setting->global_closing_time, 0, 5),
@@ -67,6 +71,7 @@ class SettingsController extends Controller
             'menu_pdf_url' => $menuPdfUrl,
             'reservation_link' => $setting->reservation_link,
             'logo_url' => $logoUrl,
+            'dayStatuses' => $dayStatuses
         ]));
     }
 

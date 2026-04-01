@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, TextField, Button } from '@mui/material';
 import { useAuthStore } from '../store/useAuthStore';
-import { API_BASE_URL } from '../services/apiClient';
+import { useToast } from '../components/Toast/ToastContext';
+import { PageHeaderSkeleton, CardSkeleton } from '../components/Skeletons';
+import { API_BASE_URL } from '../../shared/api';
 
 export default function Profile() {
   const { token, user: userStore, setUser: setUserStore } = useAuthStore();
@@ -16,8 +18,7 @@ export default function Profile() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [passwordError, setPasswordError] = useState('');
   
-  // Toast State
-  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+  const toast = useToast();
 
   // Initials logic
   const getInitials = (fullName) => {
@@ -89,11 +90,10 @@ export default function Profile() {
       setPassword('');
       setPasswordConfirmation('');
       
-      // Keep styling strictly to spec
-      setToast({ open: true, message: 'Perfil actualizado', severity: 'success' });
+      toast.success('Perfil actualizado');
     } catch (e) {
       console.error(e);
-      setToast({ open: true, message: 'Error al guardar', severity: 'error' });
+      toast.error('Error al guardar');
     } finally {
       setSaving(false);
     }
@@ -101,8 +101,9 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress size={40} sx={{ color: '#1A73E8' }} />
+      <Box p={3} display="flex" flexDirection="column" gap={3}>
+        <PageHeaderSkeleton />
+        <CardSkeleton />
       </Box>
     );
   }
@@ -265,34 +266,10 @@ export default function Profile() {
             '&.Mui-disabled': { bgcolor: '#1A73E8', color: 'white', opacity: 0.7 }
           }}
         >
-          {saving ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              GUARDANDO...
-              <CircularProgress size={16} sx={{ color: 'white' }} />
-            </Box>
-          ) : 'GUARDAR CAMBIOS'}
+          {saving ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'}
         </Button>
       </Box>
 
-      {/* Snackbar for Toast Notifications */}
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={toast.severity === 'success' ? 2000 : 3000}
-        onClose={() => setToast(t => ({ ...t, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={() => setToast(t => ({ ...t, open: false }))} 
-          severity={toast.severity} 
-          sx={{ 
-            bgcolor: toast.severity === 'success' ? '#323232' : undefined,
-            color: toast.severity === 'success' ? 'white' : undefined,
-            '& .MuiAlert-icon': toast.severity === 'success' ? { color: 'white' } : {}
-          }}
-        >
-          {toast.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

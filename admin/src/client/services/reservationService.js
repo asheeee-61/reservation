@@ -1,4 +1,4 @@
-import { mockFetch } from './apiClient';
+import { mockFetch } from '../../shared/api';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 

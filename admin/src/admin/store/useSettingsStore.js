@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 
 export const useSettingsStore = create((set) => ({
   globalHours: {

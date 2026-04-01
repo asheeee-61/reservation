@@ -2,13 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Box, Typography, Button, IconButton, Switch, 
   Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, FormControlLabel, CircularProgress, LinearProgress
+  TextField, FormControlLabel
 } from '@mui/material';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import TablePagination from '../components/TablePagination';
+import { useToast } from '../components/Toast/ToastContext';
+import { TableSkeleton } from '../components/Skeletons';
+import { EmptyState } from '../components/EmptyState';
 
 export default function TableTypes() {
   const [types, setTypes] = useState([]);
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -68,8 +72,9 @@ export default function TableTypes() {
       }
       setModalOpen(false);
       fetchTypes(page, perPage);
+      toast.success('Tipo de mesa guardado');
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message || 'Error al guardar');
     } finally {
       setSubmitting(false);
     }
@@ -83,8 +88,9 @@ export default function TableTypes() {
       setDeleteModalOpen(false);
       fetchTypes(1, perPage);
       setPage(1);
+      toast.success('Tipo de mesa eliminado');
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message || 'Error al eliminar');
     } finally {
       setSubmitting(false);
     }
@@ -103,8 +109,9 @@ export default function TableTypes() {
         })
       });
       setTypes(types.map(t => t.id === type.id ? updatedType : t));
+      toast.success('Estado actualizado');
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message || 'Error al actualizar');
     }
   };
 
@@ -163,16 +170,20 @@ export default function TableTypes() {
       </Box>
 
       {/* List */}
-      <Box sx={{ position: 'relative' }}>
-        {loading && <LinearProgress sx={{ position: 'absolute', top: -12, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
-        {types.length === 0 && !loading ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 10 }}>
-          <span className="material-icons" style={{ fontSize: 48, color: '#BDBDBD' }}>table_restaurant</span>
-          <Typography sx={{ mt: 2, color: '#70757A', fontSize: '14px' }}>
-            No hay tipos de mesa. Añade el primero.
-          </Typography>
-        </Box>
-      ) : (
+      <Box sx={{ position: 'relative', mt: 3 }}>
+        {loading ? (
+          <Box p={3}><TableSkeleton rows={5} cols={3} /></Box>
+        ) : types.length === 0 ? (
+          <EmptyState 
+            icon="table_restaurant" 
+            title="Sin tipos de mesa" 
+            message="No hay tipos de mesa. Añade el primero." 
+            action={{
+              label: 'Añadir tipo',
+              onClick: () => handleOpenModal()
+            }} 
+          />
+        ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {types.map((type, index) => (
             <Box 

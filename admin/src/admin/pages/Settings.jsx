@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { 
-  Typography, Box, Paper, TextField, Button, Dialog, Alert, 
-  CircularProgress, Select, MenuItem, FormControl,
+  Typography, Box, Paper, TextField, Button, Dialog, 
+  Select, MenuItem, FormControl,
   DialogContent, DialogActions 
 } from '@mui/material';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { apiClient, API_BASE_URL, clearCache } from '../services/apiClient';
+import { apiClient, API_BASE_URL, clearCache } from '../../shared/api';
 import RestaurantLogo from '../../shared/RestaurantLogo';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
+import { useToast } from '../components/Toast/ToastContext';
+import { CardSkeleton, PageHeaderSkeleton } from '../components/Skeletons';
 
 const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
 const TIME_OPTIONS = (() => {
@@ -30,7 +32,6 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
   const [savingCap, setSavingCap] = useState(false);
-  const [savedMsg, setSavedMsg] = useState('');
 
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const globalHours = useSettingsStore(state => state.globalHours);
@@ -44,8 +45,7 @@ export default function Settings() {
   const [savingContact, setSavingContact] = useState(false);
   const [conflictModalOpen, setConflictModalOpen] = useState(false);
   const [conflicts, setConflicts] = useState([]);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastOpen, setToastOpen] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     fetchGlobalHours();
@@ -155,12 +155,10 @@ export default function Settings() {
       });
       await fetchGlobalHours();
       
-      setToastMessage("Horario global guardado");
-      setToastOpen(true);
-      setTimeout(() => setToastOpen(false), 2000);
+      toast.success("Horario global guardado");
       setConflictModalOpen(false);
     } catch (e) {
-      console.error(e);
+      toast.error('Error al guardar horario global');
     } finally {
       setSavingGlobal(false);
     }
@@ -203,11 +201,9 @@ export default function Settings() {
       setLocalLinks(prev => ({ ...prev, menuPdfFile: null }));
       await fetchConfig();
       await fetchGlobalHours();
-      setToastMessage("Información de contacto guardada");
-      setToastOpen(true);
-      setTimeout(() => setToastOpen(false), 2000);
+      toast.success("Información de contacto guardada");
     } catch (e) {
-      console.error(e);
+      toast.error('Error al guardar información');
     } finally {
       setSavingContact(false);
     }
@@ -223,30 +219,19 @@ export default function Settings() {
         body: JSON.stringify(config)
       });
       await fetchGlobalHours();
-      setSavedMsg(isCap ? "Capacidades guardadas exitosamente." : "Detalles guardados exitosamente.");
-      setTimeout(() => setSavedMsg(''), 3000);
+      toast.success(isCap ? "Capacidades guardadas exitosamente." : "Detalles guardados exitosamente.");
     } catch (e) {
-      console.error("Failed to save", e);
+      toast.error('Error al guardar ajustes');
     } finally {
       setSavingCap(false);
       setSavingSettings(false);
     }
   };
 
-  if (loading || !config) return <Box p={4}><CircularProgress /></Box>;
+  if (loading || !config) return <Box p={4} display="flex" flexDirection="column" gap={3}><PageHeaderSkeleton /><CardSkeleton /><CardSkeleton /></Box>;
 
   return (
     <Box sx={{ maxWidth: 960, display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
-      
-      {toastOpen && (
-        <Box sx={{ 
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', 
-          bgcolor: '#323232', color: '#fff', px: '16px', py: '12px', borderRadius: '4px',
-          fontFamily: 'Roboto', fontSize: '14px', zIndex: 9999, boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-        }}>
-          {toastMessage}
-        </Box>
-      )}
 
       <Dialog open={conflictModalOpen} onClose={() => setConflictModalOpen(false)} PaperProps={{ sx: { p: '24px', borderRadius: '4px', bgcolor: '#fff', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' } }}>
         <Box sx={{ mb: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -275,8 +260,6 @@ export default function Settings() {
           </Button>
         </DialogActions>
       </Dialog>
-      
-      {savedMsg && <Alert severity="success" sx={{ mb: 2 }}>{savedMsg}</Alert>}
 
       {/* Restaurant Identity Card */}
       <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', mb: '16px', display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'center' }}>
@@ -296,9 +279,7 @@ export default function Settings() {
               const file = e.target.files?.[0];
               if (file) {
                 if (file.size > 2 * 1024 * 1024) {
-                  setToastMessage("El archivo no debe superar 2MB");
-                  setToastOpen(true);
-                  setTimeout(() => setToastOpen(false), 3000);
+                  toast.error("El archivo no debe superar 2MB");
                   e.target.value = '';
                   return;
                 }
@@ -367,7 +348,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingSettings ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR DETALLES'}
+            {savingSettings ? 'Guardando...' : 'GUARDAR DETALLES'}
           </Button>
         </Box>
       </Paper>
@@ -431,7 +412,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingContact ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR INFORMACIÓN'}
+            {savingContact ? 'Guardando...' : 'GUARDAR INFORMACIÓN'}
           </Button>
         </Box>
       </Paper>
@@ -489,9 +470,7 @@ export default function Settings() {
                 const file = e.target.files?.[0];
                 if (file) {
                   if (file.size > 50 * 1024 * 1024) {
-                    setToastMessage("El archivo no debe superar 50MB");
-                    setToastOpen(true);
-                    setTimeout(() => setToastOpen(false), 3000);
+                    toast.error("El archivo no debe superar 50MB");
                     e.target.value = '';
                     return;
                   }
@@ -537,7 +516,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingContact ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR ENLACES'}
+            {savingContact ? 'Guardando...' : 'GUARDAR ENLACES'}
           </Button>
         </Box>
       </Paper>
@@ -620,7 +599,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingGlobal ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR HORARIO'}
+            {savingGlobal ? 'Guardando...' : 'GUARDAR HORARIO'}
           </Button>
         </Box>
       </Paper>
@@ -654,7 +633,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingSettings ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR REGLAS'}
+            {savingSettings ? 'Guardando...' : 'GUARDAR REGLAS'}
           </Button>
         </Box>
       </Paper>
@@ -682,7 +661,7 @@ export default function Settings() {
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
             }}
           >
-            {savingCap ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR CAPACIDAD'}
+            {savingCap ? 'Guardando...' : 'GUARDAR CAPACIDAD'}
           </Button>
         </Box>
       </Paper>

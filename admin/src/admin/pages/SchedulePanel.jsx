@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { 
   Typography, Box, Paper, Button, IconButton, 
-  CircularProgress, Snackbar, Tabs, Tab, Accordion, 
-  AccordionSummary, AccordionDetails, Select, MenuItem, FormControl
+  Tabs, Tab, Accordion, 
+  AccordionSummary, AccordionDetails, Select, MenuItem, FormControl,
+  TextField, CircularProgress
 } from '@mui/material';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { useToast } from '../components/Toast/ToastContext';
+import { PageHeaderSkeleton, CardSkeleton } from '../components/Skeletons';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -42,9 +45,8 @@ export default function SchedulePanel() {
   
   const [currentTab, setCurrentTab] = useState(0);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState("Cambios guardados");
   const [regenMsg, setRegenMsg] = useState(null);
+  const toast = useToast();
   
   const [blockMonthStart, setBlockMonthStart] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [blockedPage, setBlockedPage] = useState(1);
@@ -131,8 +133,7 @@ export default function SchedulePanel() {
         body: JSON.stringify(newConfig)
       });
       if (showToast) {
-        setToastMessage("Cambios guardados");
-        setToastOpen(true);
+        toast.success("Cambios guardados");
       }
       // Re-fetch blocked dates from backend to keep list in sync
       fetchBlockedDates(blockedPage);
@@ -149,8 +150,7 @@ export default function SchedulePanel() {
         let cMins = toMinutes(shift.closingTime);
         if (cMins <= oMins) cMins += 1440;
         if (cMins - oMins < 30) {
-          setToastMessage(`El turno en ${DAY_LABELS[day]} debe durar al menos 30 minutos.`);
-          setToastOpen(true);
+          toast.error(`El turno en ${DAY_LABELS[day]} debe durar al menos 30 minutos.`);
           return;
         }
       }
@@ -165,8 +165,7 @@ export default function SchedulePanel() {
         if (s2Open < s1Open) { s2Open += 1440; s2Close += 1440; }
 
         if (s2Open < s1Close) {
-          setToastMessage(`Hay turnos solapados en ${DAY_LABELS[day]}. Corrígelos antes de guardar.`);
-          setToastOpen(true);
+          toast.error(`Hay turnos solapados en ${DAY_LABELS[day]}. Corrígelos antes de guardar.`);
           return;
         }
       }
@@ -178,8 +177,7 @@ export default function SchedulePanel() {
         method: 'POST',
         body: JSON.stringify(config)
       });
-      setToastMessage(msg);
-      setToastOpen(true);
+      toast.success(msg);
     } catch (e) {
       console.error("Failed to save", e);
     } finally {
@@ -187,7 +185,13 @@ export default function SchedulePanel() {
     }
   };
 
-  if (loading || !config) return <Box p={4}><CircularProgress /></Box>;
+  if (loading || !config) return (
+    <Box p={4} display="flex" flexDirection="column" gap={3}>
+      <PageHeaderSkeleton />
+      <CardSkeleton />
+      <CardSkeleton />
+    </Box>
+  );
 
   const handleDateChange = (daysToAdd) => {
     const nextDate = new Date(selectedDate);
@@ -299,8 +303,7 @@ export default function SchedulePanel() {
     });
     
     setConfig({ ...config, schedule: newSchedule });
-    setToastMessage("Turnos de Lunes copiados a todos los días");
-    setToastOpen(true);
+    toast.success("Turnos de Lunes copiados a todos los días");
   };
 
   const toggleDayStatusWeekly = (day) => {
@@ -362,8 +365,7 @@ export default function SchedulePanel() {
         body: JSON.stringify({ date: dateStr, status: 'ABIERTO' })
       });
       fetchBlockedDates(blockedPage);
-      setToastMessage("Día desbloqueado");
-      setToastOpen(true);
+      toast.success("Día desbloqueado");
     } catch (e) {
       console.error(e);
     }
@@ -383,8 +385,7 @@ export default function SchedulePanel() {
       });
       fetchBlockedDates(blockedPage);
       setBlockingDate(null);
-      setToastMessage("Día bloqueado correctamente");
-      setToastOpen(true);
+      toast.success("Día bloqueado correctamente");
     } catch (e) {
       console.error(e);
     }
@@ -982,11 +983,6 @@ export default function SchedulePanel() {
           </Box>
         )}
       </Paper>
-
-      <Snackbar
-        open={toastOpen} autoHideDuration={2000} onClose={() => setToastOpen(false)} message="Cambios guardados" anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        ContentProps={{ sx: { bgcolor: '#323232', color: '#FFFFFF', borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px' } }}
-      />
     </Box>
   );
 }

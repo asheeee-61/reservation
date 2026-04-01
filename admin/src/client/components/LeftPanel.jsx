@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { 
   Box, Typography, MenuItem, Select, FormControl,
-  InputAdornment, Button, Grid, CircularProgress, Divider, Skeleton,
+  InputAdornment, Button, Grid, Divider, Skeleton,
   Popover, IconButton
 } from '@mui/material';
+import { PageHeaderSkeleton, CardSkeleton } from '../../admin/components/Skeletons';
 
 const DAYS_OF_WEEK = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -132,7 +133,7 @@ export default function LeftPanel({ onAutoAdvance }) {
           const fDate = `${y}-${m}-${dayStr}`;
           
           const isPast = dateObj < todayTarget;
-          const isBlocked = config?.blockedDays?.includes(fDate);
+          const isBlocked = config?.blockedDays?.includes(fDate) || config?.dayStatuses?.[fDate];
           
           const dayNameLocal = DAYS_OF_WEEK[dateObj.getDay()];
           const dayConfigLocal = config?.schedule?.[dayNameLocal];
@@ -190,7 +191,12 @@ export default function LeftPanel({ onAutoAdvance }) {
     }
   }, [date]);
 
-  if (!config) return <Box p={4}><CircularProgress /></Box>;
+  if (!config) return (
+    <Box p={4} display="flex" flexDirection="column" gap={3}>
+      <PageHeaderSkeleton />
+      <CardSkeleton />
+    </Box>
+  );
   
   const guestsOptions = [];
   for (let i = config.minGuests; i <= config.maxGuests; i++) guestsOptions.push(i);
@@ -322,8 +328,10 @@ export default function LeftPanel({ onAutoAdvance }) {
         {(() => {
           if (loading) {
             return (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                <CircularProgress size={32} sx={{ color: '#1A73E8' }} />
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', py: 3 }}>
+                {[1, 2, 3].map(i => (
+                  <Box key={i} sx={{ width: 100 }}><CardSkeleton /></Box>
+                ))}
               </Box>
             );
           }
@@ -332,8 +340,8 @@ export default function LeftPanel({ onAutoAdvance }) {
             return <Typography color="text.secondary" sx={{ py: 3 }} variant="body2">Por favor, seleccione una fecha para ver los horarios disponibles.</Typography>;
           }
 
-          const isBlocked = config.blockedDays && config.blockedDays.includes(date);
-          
+          const dbStatus = config?.dayStatuses?.[date];
+          const isBlocked = (config.blockedDays && config.blockedDays.includes(date)) || dbStatus;
           const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
           const dayName = days[new Date(date).getDay()];
           const dayConfig = config.schedule?.[dayName] || { open: true, slots: {} };
@@ -352,6 +360,7 @@ export default function LeftPanel({ onAutoAdvance }) {
           const hasNoSlots = visibleSlots.length === 0;
 
           if (isBlocked || !dayConfig.open || hasNoSlots) {
+             const reason = dbStatus?.reason;
              return (
                <Box sx={{ 
                  p: 4, 
@@ -367,11 +376,26 @@ export default function LeftPanel({ onAutoAdvance }) {
                      fontWeight: 500, 
                      fontSize: '14px', 
                      color: '#C5221F',
-                     mb: 0.5
+                     mb: reason ? 1 : 0.5
                    }}
                  >
                    No disponible este día
                  </Typography>
+                 {reason && (
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Roboto', 
+                        fontWeight: 400, 
+                        fontSize: '14px', 
+                        color: '#606060',
+                        mb: 1.5,
+                        fontStyle: 'italic',
+                        lineHeight: 1.4
+                      }}
+                    >
+                      {reason}
+                    </Typography>
+                 )}
                  <Typography 
                    sx={{ 
                      fontFamily: 'Roboto', 

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  Box, Typography, Button, CircularProgress, 
+  Box, Typography, Button, 
   Paper, Radio, List, ListItemButton, 
   ListItemText, ListItemIcon, Skeleton,
   IconButton
 } from '@mui/material';
+import { PageHeaderSkeleton, CardSkeleton } from '../../admin/components/Skeletons';
+import { ErrorState } from '../../admin/components/ErrorState';
 import { useReservationStore } from '../store/useReservationStore';
 import { getSpecialEvents } from '../services/reservationService';
 
@@ -47,20 +49,16 @@ export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
 
   if (loading && !cachedEvents) {
     return (
-      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', height: '100%', alignItems: 'center' }}>
-        <CircularProgress />
+      <Box p={3} display="flex" flexDirection="column" gap={3}>
+        <PageHeaderSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
       </Box>
     );
   }
 
   if (error) {
-     return (
-       <Box sx={{ p: 4, textAlign: 'center' }}>
-         <span className="material-icons" style={{ fontSize: 48, color: '#D93025', marginBottom: 16 }}>error</span>
-         <Typography variant="body1" gutterBottom>Error al cargar eventos</Typography>
-         <Button onClick={() => window.location.reload()} variant="outlined" sx={{ mt: 2 }}>REINTENTAR</Button>
-       </Box>
-     );
+     return <ErrorState message="Error al cargar eventos" onRetry={() => window.location.reload()} />;
   }
 
   const formatDateShort = (dateStr) => {

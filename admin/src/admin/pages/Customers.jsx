@@ -2,18 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Typography, Box, Paper, Table, TableBody, TableCell, 
-  TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar, Chip, LinearProgress
+  TableHead, TableRow, Tooltip, TextField, InputAdornment, Avatar, Chip
 } from '@mui/material';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '../../shared/api';
 import CustomerAvatar from '../components/CustomerAvatar';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import TablePagination from '../components/TablePagination';
+import { TableSkeleton, PageHeaderSkeleton } from '../components/Skeletons';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
 
 export default function Customers() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
@@ -27,9 +31,7 @@ export default function Customers() {
       setCustomers(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (e) {
-      if (e.name !== 'AbortError') {
-        console.error(e);
-      }
+      if (e.name !== 'AbortError') setError(true);
     } finally {
       setLoading(false);
     }
@@ -68,16 +70,33 @@ export default function Customers() {
     </Tooltip>
   );
 
+
+  if (error) {
+    return (
+      <ErrorState 
+        message="Error al cargar el directorio de clientes."
+        onRetry={() => {
+          const controller = new AbortController();
+          fetchCustomers(page, perPage, searchTerm, controller.signal);
+        }}
+      />
+    );
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Typography sx={{ 
-        fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
+      {loading ? (
+        <PageHeaderSkeleton />
+      ) : (
+        <Typography sx={{ 
+          fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
         [DESKTOP]: { fontSize: '20px' },
         [TABLET]: { fontSize: '18px' },
         [MOBILE]: { fontSize: '16px' }
       }}>
         DIRECTORIO DE CLIENTES
       </Typography>
+      )}
 
       <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', [MOBILE]: { p: '16px' } }}>
         <TextField
@@ -102,7 +121,14 @@ export default function Customers() {
         overflow: 'hidden', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none',
         position: 'relative'
       }}>
-        {loading && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
+        {loading ? (
+          <Box p={3}>
+            <TableSkeleton rows={8} cols={5} />
+          </Box>
+        ) : customers.length === 0 ? (
+          <EmptyState icon="group" title="Sin resultados" message="No se encontraron clientes." />
+        ) : (
+        <>
         <Table sx={{ minWidth: 600 }}>
           <TableHead sx={{ bgcolor: '#F1F3F4', borderBottom: '1px solid #E0E0E0' }}>
             <TableRow>
@@ -117,13 +143,6 @@ export default function Customers() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {customers.length === 0 && !loading && (
-              <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                  <Typography color="text.secondary" sx={{ fontFamily: 'Roboto' }}>No se encontraron clientes.</Typography>
-                </TableCell>
-              </TableRow>
-            )}
             {customers.map(c => (
               <TableRow key={c.id} hover onClick={() => navigate(`/admin/customers/${c.id}`)} sx={{ cursor: 'pointer' }}>
                 <TableCell>
@@ -201,6 +220,8 @@ export default function Customers() {
           onPageChange={handlePageChange}
           onPerPageChange={handlePerPageChange}
         />
+        </>
+        )}
       </Paper>
 
       {/* MOBILE CARD VIEW */}
@@ -209,10 +230,14 @@ export default function Customers() {
         [MOBILE]: { display: 'flex' },
         position: 'relative'
       }}>
-        {loading && <LinearProgress sx={{ position: 'absolute', top: -12, left: 0, right: 0, height: '2px', zIndex: 1 }} />}
-        {!loading && customers.length === 0 && (
-          <Box display="flex" justifyContent="center" py={3}><Typography color="text.secondary">No se encontraron clientes.</Typography></Box>
-        )}
+        {loading ? (
+          <Box p={2} display="flex" flexDirection="column" gap={2}>
+            <TableSkeleton rows={4} cols={1} />
+          </Box>
+        ) : customers.length === 0 ? (
+          <EmptyState icon="group" title="Sin resultados" message="No se encontraron clientes." />
+        ) : (
+        <>
         {customers.map(c => (
           <Paper 
             key={c.id}
@@ -291,6 +316,8 @@ export default function Customers() {
           onPageChange={handlePageChange}
           onPerPageChange={handlePerPageChange}
         />
+        </>
+        )}
       </Box>
 
     </Box>
