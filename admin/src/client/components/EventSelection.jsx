@@ -8,13 +8,13 @@ import {
 import { PageHeaderSkeleton, CardSkeleton } from '../../admin/components/Skeletons';
 import { ErrorState } from '../../admin/components/ErrorState';
 import { useReservationStore } from '../store/useReservationStore';
-import { getSpecialEvents } from '../services/reservationService';
+import { getEvents } from '../services/reservationService';
 
-export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
+export default function EventSelection({ onBack, onAutoAdvance }) {
   const { 
-    selectedSpecialEvent, setSelectedSpecialEvent, 
-    date, guests, selectedSlot, selectedTableType, config,
-    specialEvents: cachedEvents, setSpecialEvents: setCachedEvents
+    selectedEvent, setSelectedEvent, 
+    date, guests, selectedSlot, selectedZone, config,
+    events: cachedEvents, setEvents: setCachedEvents
   } = useReservationStore();
   
   const [loading, setLoading] = useState(!cachedEvents);
@@ -26,14 +26,14 @@ export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
 
     let active = true;
     setLoading(true);
-    getSpecialEvents()
+    getEvents()
       .then(res => {
         if (active) {
           const activeEvents = res.filter(e => e.is_active);
           setCachedEvents(activeEvents);
           // Auto-select first if none selected
-          if (activeEvents.length > 0 && !selectedSpecialEvent) {
-             setSelectedSpecialEvent(activeEvents[0]);
+          if (activeEvents.length > 0 && !selectedEvent) {
+             setSelectedEvent(activeEvents[0]);
           }
           setLoading(false);
         }
@@ -45,7 +45,7 @@ export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
         }
       });
     return () => { active = false; };
-  }, [cachedEvents, setCachedEvents, setSelectedSpecialEvent, selectedSpecialEvent]);
+  }, [cachedEvents, setCachedEvents, setSelectedEvent, selectedEvent]);
 
   if (loading && !cachedEvents) {
     return (
@@ -67,7 +67,7 @@ export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
     return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
   };
 
-  const summaryText = `${guests} personas  ·  ${formatDateShort(date)}  ·  ${selectedSlot?.time}  ·  ${selectedTableType?.name}`;
+  const summaryText = `${guests} personas  ·  ${formatDateShort(date)}  ·  ${selectedSlot?.time}  ·  ${selectedZone?.name}`;
 
   return (
     <Box sx={{ 
@@ -88,7 +88,7 @@ export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
           <span className="material-icons">arrow_back</span>
         </IconButton>
         <Typography sx={{ flexGrow: 1, mr: 5, textAlign: 'center', fontWeight: 500, fontSize: '16px', color: '#202124', fontFamily: 'Roboto' }}>
-          Ocasión especial
+          Evento
         </Typography>
       </Box>
 
@@ -101,7 +101,7 @@ export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
 
       <Box sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1 }}>
         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, fontSize: '20px', color: '#202124' }}>
-          ¿Alguna ocasión especial?
+          ¿Alguna ocasión especial o evento?
         </Typography>
 
         {(!cachedEvents || cachedEvents.length === 0) ? (
@@ -112,13 +112,13 @@ export default function SpecialEventSelection({ onBack, onAutoAdvance }) {
         ) : (
           <List sx={{ p: 0 }}>
             {cachedEvents.map((event) => {
-              const isSelected = selectedSpecialEvent?.id === event.id;
+              const isSelected = selectedEvent?.id === event.id;
               return (
                 <Paper
                   key={event.id}
                   elevation={0}
                   onClick={() => {
-                    setSelectedSpecialEvent(event);
+                    setSelectedEvent(event);
                     onAutoAdvance();
                   }}
                   sx={{

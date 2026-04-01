@@ -10,7 +10,7 @@ import { useToast } from '../components/Toast/ToastContext';
 import { TableSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
 
-export default function SpecialEvents() {
+export default function Events() {
   const [events, setEvents] = useState([]);
   const toast = useToast();
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export default function SpecialEvents() {
     try {
       setLoading(true);
       const params = new URLSearchParams({ page: p, per_page: pp });
-      const data = await apiClient(`/admin/special-events?${params.toString()}`, { signal });
+      const data = await apiClient(`/admin/events?${params.toString()}`, { signal });
       setEvents(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (err) {
@@ -60,12 +60,12 @@ export default function SpecialEvents() {
     setSubmitting(true);
     try {
       if (editingEvent) {
-        await apiClient(`/admin/special-events/${editingEvent.id}`, {
+        await apiClient(`/admin/events/${editingEvent.id}`, {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
       } else {
-        await apiClient('/admin/special-events', {
+        await apiClient('/admin/events', {
           method: 'POST',
           body: JSON.stringify({ ...formData, sort_order: events.length })
         });
@@ -84,7 +84,7 @@ export default function SpecialEvents() {
     if (!editingEvent) return;
     setSubmitting(true);
     try {
-      await apiClient(`/admin/special-events/${editingEvent.id}`, { method: 'DELETE' });
+      await apiClient(`/admin/events/${editingEvent.id}`, { method: 'DELETE' });
       setDeleteModalOpen(false);
       fetchEvents(1, perPage);
       setPage(1);
@@ -99,7 +99,7 @@ export default function SpecialEvents() {
   const handleToggleActive = async (event) => {
     try {
       const updatedEvent = { ...event, is_active: !event.is_active };
-      await apiClient(`/admin/special-events/${event.id}`, {
+      await apiClient(`/admin/events/${event.id}`, {
         method: 'PUT',
         body: JSON.stringify({
            name: updatedEvent.name,
@@ -129,11 +129,11 @@ export default function SpecialEvents() {
 
     try {
       await Promise.all([
-        apiClient(`/admin/special-events/${updatedEvents[index].id}`, {
+        apiClient(`/admin/events/${updatedEvents[index].id}`, {
           method: 'PUT',
           body: JSON.stringify(updatedEvents[index])
         }),
-        apiClient(`/admin/special-events/${updatedEvents[targetIndex].id}`, {
+        apiClient(`/admin/events/${updatedEvents[targetIndex].id}`, {
           method: 'PUT',
           body: JSON.stringify(updatedEvents[targetIndex])
         })
@@ -174,7 +174,7 @@ export default function SpecialEvents() {
           <EmptyState 
             icon="celebration" 
             title="Sin eventos" 
-            message="No hay eventos especiales. Añade el primero." 
+            message="No hay eventos configurados. Añade el primero." 
             action={{
               label: 'Añadir evento',
               onClick: () => handleOpenModal()
@@ -330,7 +330,7 @@ export default function SpecialEvents() {
       >
         <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#202124', mb: '12px' }}>Eliminar evento</Typography>
         <Typography sx={{ fontSize: '14px', color: '#70757A', mb: '24px' }}>
-          ¿Eliminar '{editingEvent?.name}'? Las reservas existentes no se verán afectadas.
+          ¿Eliminar '{editingEvent?.name}'? 
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           <Button 

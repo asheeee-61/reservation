@@ -14,7 +14,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
   const toast = useToast();
 
   const { 
-    date, guests, selectedSlot, selectedTableType, selectedSpecialEvent, 
+    date, guests, selectedSlot, selectedZone, selectedEvent, 
     userData, setUserData, config 
   } = store;
 
@@ -34,8 +34,8 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
         guests, 
         slot: selectedSlot, 
         user: userData,
-        table_type_id: selectedTableType?.id,
-        special_event_id: selectedSpecialEvent?.id
+        zone_id: selectedZone?.id,
+        event_id: selectedEvent?.id
       };
       const res = await createReservation(payload);
       if (res.success) {
@@ -92,16 +92,16 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 24 }}>table_restaurant</span>
+                  <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 24 }}>map</span>
                   <Typography variant="h6" sx={{ fontSize: '18px', color: '#202124' }}>
-                    {selectedTableType?.name || 'Mesa estándar'}
+                    {selectedZone?.name || 'Cualquier zona'}
                   </Typography>
                 </Box>
-                {selectedSpecialEvent && (
+                {selectedEvent && (
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <span className="material-icons" style={{ marginRight: 16, color: '#70757A', fontSize: 24 }}>auto_awesome</span>
                     <Typography variant="h6" sx={{ fontSize: '18px', color: '#202124' }}>
-                      {selectedSpecialEvent.name}
+                      {selectedEvent.name}
                     </Typography>
                   </Box>
                 )}

@@ -15,12 +15,12 @@ Route::post('/reservations', [ReservationController::class, 'store']);
 Route::get('/slots', [ReservationController::class, 'availableSlots']);
 // Endpoint for config
 Route::get('/config', [SettingsController::class, 'index']);
-// Endpoint for table types
-use App\Http\Controllers\TableTypeController;
-Route::get('/table-types', [TableTypeController::class, 'publicIndex']);
-// Endpoint for special events
-use App\Http\Controllers\SpecialEventController;
-Route::get('/special-events', [SpecialEventController::class, 'publicIndex']);
+// Endpoint for zones
+use App\Http\Controllers\ZoneController;
+Route::get('/zones', [ZoneController::class, 'publicIndex']);
+// Endpoint for events
+use App\Http\Controllers\EventController;
+Route::get('/events', [EventController::class, 'publicIndex']);
 Route::get('/day-status', [DayStatusController::class, 'show']);
 Route::get('/availability', [ReservationController::class, 'availability']);
 
@@ -43,15 +43,15 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::put('/customers/{customer}', [CustomerController::class, 'update']);
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy']);
 
-    Route::get('/table-types', [TableTypeController::class, 'index']);
-    Route::post('/table-types', [TableTypeController::class, 'store']);
-    Route::put('/table-types/{tableType}', [TableTypeController::class, 'update']);
-    Route::delete('/table-types/{tableType}', [TableTypeController::class, 'destroy']);
+    Route::get('/zones', [ZoneController::class, 'index']);
+    Route::post('/zones', [ZoneController::class, 'store']);
+    Route::put('/zones/{zone}', [ZoneController::class, 'update']);
+    Route::delete('/zones/{zone}', [ZoneController::class, 'destroy']);
 
-    Route::get('/special-events', [SpecialEventController::class, 'index']);
-    Route::post('/special-events', [SpecialEventController::class, 'store']);
-    Route::put('/special-events/{specialEvent}', [SpecialEventController::class, 'update']);
-    Route::delete('/special-events/{specialEvent}', [SpecialEventController::class, 'destroy']);
+    Route::get('/events', [EventController::class, 'index']);
+    Route::post('/events', [EventController::class, 'store']);
+    Route::put('/events/{event}', [EventController::class, 'update']);
+    Route::delete('/events/{event}', [EventController::class, 'destroy']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);

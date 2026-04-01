@@ -21,7 +21,7 @@ class NotificationService
      */
     public function notify(string $type, Reservation $reservation): void
     {
-        $reservation->load(['customer', 'tableType', 'specialEvent']);
+        $reservation->load(['customer', 'zone', 'event']);
 
         if (!$reservation->customer) {
             Log::warning("Notification failed: No customer for reservation {$reservation->reservation_id}");
@@ -111,8 +111,8 @@ class NotificationService
                     'time'   => $reservation->time,
                     'guests' => $reservation->guests,
                 ],
-                'tableType'    => $reservation->tableType ? ['name' => $reservation->tableType->name] : null,
-                'specialEvent' => $reservation->specialEvent ? ['name' => $reservation->specialEvent->name] : null,
+                'zone'    => $reservation->zone ? ['name' => $reservation->zone->name] : null,
+                'event'   => $reservation->event ? ['name' => $reservation->event->name] : null,
                 'adminPhone'   => $adminPhone,
             ]),
             'confirmed' => array_merge($base, [

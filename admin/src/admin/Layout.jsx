@@ -25,8 +25,8 @@ export default function Layout() {
     { text: 'Reservas',     icon: 'event',             path: '/admin/reservations' },
     { text: 'Panel principal',icon: 'dashboard',       path: '/admin' },
     { text: 'Clientes',     icon: 'people',            path: '/admin/customers' },
-    { text: 'Tipos de mesa',icon: 'table_restaurant',  path: '/admin/table-types' },
-    { text: 'Eventos especiales',icon: 'celebration',  path: '/admin/special-events' },
+    { text: 'Zonas',         icon: 'map',               path: '/admin/zones' },
+    { text: 'Eventos',       icon: 'celebration',  path: '/admin/events' },
     { text: 'Horarios',     icon: 'schedule',          path: '/admin/schedule' },
     { text: 'Ajustes',      icon: 'settings',          path: '/admin/settings' },
     { text: 'Mi perfil',    icon: 'account_circle',    path: '/admin/profile' }
@@ -41,8 +41,8 @@ export default function Layout() {
     if (path === '/admin' || path === '/admin/') return 'Panel principal';
     if (path.startsWith('/admin/reservations')) return 'Reservas';
     if (path.startsWith('/admin/customers')) return 'Clientes';
-    if (path.startsWith('/admin/table-types')) return 'Tipos de mesa';
-    if (path.startsWith('/admin/special-events')) return 'Eventos especiales';
+    if (path.startsWith('/admin/zones')) return 'Zonas';
+    if (path.startsWith('/admin/events')) return 'Eventos';
     if (path.startsWith('/admin/calendar')) return 'Calendario';
     if (path.startsWith('/admin/schedule')) return 'Control de horarios';
     if (path.startsWith('/admin/settings')) return 'Ajustes';

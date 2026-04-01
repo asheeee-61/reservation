@@ -63,16 +63,16 @@ export default function ReservationForm({ initialData, compact = false, onSucces
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef(null);
 
-  const [tableTypes, setTableTypes] = useState([]);
-  const [tableTypesLoading, setTableTypesLoading] = useState(false);
-  const [tableTypesError, setTableTypesError] = useState(false);
+  const [zones, setZones] = useState([]);
+  const [zonesLoading, setZonesLoading] = useState(false);
+  const [zonesError, setZonesError] = useState(false);
   
-  const [specialEvents, setSpecialEvents] = useState([]);
-  const [specialEventsLoading, setSpecialEventsLoading] = useState(false);
-  const [specialEventsError, setSpecialEventsError] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState(false);
 
-  const [tableTypeId, setTableTypeId] = useState(initialData?.table_type_id || '');
-  const [specialEventId, setSpecialEventId] = useState(initialData?.special_event_id || '');
+  const [zoneId, setZoneId] = useState(initialData?.zone_id || initialData?.zone_id || '');
+  const [eventId, setEventId] = useState(initialData?.event_id || '');
 
   const [showNotes, setShowNotes] = useState(!!formState.notes);
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -86,42 +86,42 @@ export default function ReservationForm({ initialData, compact = false, onSucces
 
   useEffect(() => {
     const fetchFormMetadata = async () => {
-      setTableTypesLoading(true);
-      setSpecialEventsLoading(true);
-      setTableTypesError(false);
-      setSpecialEventsError(false);
+      setZonesLoading(true);
+      setEventsLoading(true);
+      setZonesError(false);
+      setEventsError(false);
 
       try {
         const [typesRes, eventsRes] = await Promise.all([
-          apiClient('/admin/table-types'),
-          apiClient('/admin/special-events')
+          apiClient('/admin/zones'),
+          apiClient('/admin/events')
         ]);
 
         // Process Table Types
         const types = Array.isArray(typesRes) ? typesRes : (typesRes.data ?? []);
-        const activeTypes = types.filter(t => t.is_active || t.id === initialData?.table_type_id);
-        setTableTypes(activeTypes);
-        if (!tableTypeId && activeTypes.length > 0) {
-          setTableTypeId(activeTypes[0].id);
+        const activeTypes = types.filter(t => t.is_active || t.id === (initialData?.zone_id || initialData?.zone_id));
+        setZones(activeTypes);
+        if (!zoneId && activeTypes.length > 0) {
+          setZoneId(activeTypes[0].id);
         }
 
         // Process Special Events
         const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes.data ?? []);
-        const activeEvents = events.filter(e => e.is_active || e.id === initialData?.special_event_id);
-        setSpecialEvents(activeEvents);
+        const activeEvents = events.filter(e => e.is_active || e.id === initialData?.event_id);
+        setEvents(activeEvents);
 
       } catch (err) {
-        setTableTypesError(true);
-        setSpecialEventsError(true);
+        setZonesError(true);
+        setEventsError(true);
         console.error('Error fetching form metadata:', err);
       } finally {
-        setTableTypesLoading(false);
-        setSpecialEventsLoading(false);
+        setZonesLoading(false);
+        setEventsLoading(false);
       }
     };
 
     fetchFormMetadata();
-  }, [initialData?.table_type_id, initialData?.special_event_id]);
+  }, [initialData?.zone_id, initialData?.event_id]);
 
   useEffect(() => {
     if (customerSearch.length < 2) {
@@ -210,7 +210,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
   const isNewCustomer = selectedCustomer === null;
   const phoneRequired = isNewCustomer;
   const isPhoneInvalid = phoneRequired && !formState.phone.trim();
-  const isFormValid = !isDateInvalid && !isNameInvalid && !isPhoneInvalid && !!formState.time && !!tableTypeId;
+  const isFormValid = !isDateInvalid && !isNameInvalid && !isPhoneInvalid && !!formState.time && !!zoneId;
 
   const showContactFields = customerSearch.length > 0 || selectedCustomer !== null || isEditing;
 
@@ -233,7 +233,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
           body: JSON.stringify({
             name: formState.name, phone: formState.phone, email: formState.email,
             date: formState.date, time: formState.time, guests: formState.guests,
-            status: formState.status, table_type_id: tableTypeId, special_event_id: specialEventId || null,
+            status: formState.status, zone_id: zoneId, event_id: eventId || null,
             special_requests: formState.notes
           })
         });
@@ -241,7 +241,7 @@ export default function ReservationForm({ initialData, compact = false, onSucces
         const payload = {
           ...(selectedCustomer ? { customer_id: selectedCustomer.id } : { user: { name: formState.name, phone: formState.phone, email: formState.email || null } }),
           date: formState.date, slot: { time: formState.time }, guests: formState.guests,
-          table_type_id: tableTypeId, special_event_id: specialEventId || null, special_requests: formState.notes
+          zone_id: zoneId, event_id: eventId || null, special_requests: formState.notes
         };
         await apiClient('/admin/reservations', { method: 'POST', body: JSON.stringify(payload) });
       }
@@ -479,30 +479,30 @@ export default function ReservationForm({ initialData, compact = false, onSucces
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>TIPO DE MESA</Typography>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>ZONA</Typography>
               <FormControl fullWidth>
                 <Select
-                  value={tableTypeId} onChange={(e) => setTableTypeId(e.target.value)} disabled={tableTypesLoading || tableTypesError}
+                  value={zoneId} onChange={(e) => setZoneId(e.target.value)} disabled={zonesLoading || zonesError}
                   sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', bgcolor: '#FFFFFF' }}
                 >
-                  {tableTypesLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
-                  {tableTypesError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
-                  {tableTypes.length > 0 ? tableTypes.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>) : <MenuItem value={tableTypeId} sx={{ display: 'none' }} />}
+                  {zonesLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
+                  {zonesError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
+                  {zones.length > 0 ? zones.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>) : <MenuItem value={zoneId} sx={{ display: 'none' }} />}
                 </Select>
               </FormControl>
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>EVENTO ESPECIAL</Typography>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>EVENTO</Typography>
               <FormControl fullWidth>
                 <Select
-                  value={specialEventId} onChange={(e) => setSpecialEventId(e.target.value)} disabled={specialEventsLoading || specialEventsError}
+                  value={eventId} onChange={(e) => setEventId(e.target.value)} disabled={eventsLoading || eventsError}
                   sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', bgcolor: '#FFFFFF' }}
                 >
                   <MenuItem value="">Ninguno</MenuItem>
-                  {specialEventsLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
-                  {specialEventsError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
-                  {specialEvents.length > 0 && specialEvents.map(e => <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>)}
+                  {eventsLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
+                  {eventsError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
+                  {events.length > 0 && events.map(e => <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>)}
                 </Select>
               </FormControl>
             </Box>

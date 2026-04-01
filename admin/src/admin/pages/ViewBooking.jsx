@@ -237,13 +237,13 @@ export default function ViewBooking() {
                 </Box>
                 
                 <Box sx={{ pb: 0, pt: '20px', pr: { md: '12px' } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>EVENTO ESPECIAL</Typography>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>{resData.special_event?.name || 'Sin evento asignado'}</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>EVENTO</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>{resData.event?.name || 'Sin evento asignado'}</Typography>
                 </Box>
                 <Box sx={{ pb: 0, pt: '20px', pl: { md: '12px' } }}>
-                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>TIPO DE MESA</Typography>
+                  <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '11px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px' }}>ZONA</Typography>
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '16px', color: '#202124', mt: '4px' }}>
-                    {resData.table_type?.name || 'Sin tipo asignado'}
+                    {resData.zone?.name || 'Sin zona asignada'}
                   </Typography>
                 </Box>
               </Box>

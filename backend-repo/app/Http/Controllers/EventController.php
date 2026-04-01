@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SpecialEvent;
+use App\Models\Event;
 use Illuminate\Http\Request;
 
-class SpecialEventController extends Controller
+class EventController extends Controller
 {
     /**
      * Public index for clients
@@ -13,7 +13,7 @@ class SpecialEventController extends Controller
     public function publicIndex()
     {
         return response()->json(
-            SpecialEvent::where('is_active', true)
+            Event::where('is_active', true)
                         ->orderBy('sort_order', 'asc')
                         ->get()
         );
@@ -27,7 +27,7 @@ class SpecialEventController extends Controller
         $perPage = (int) ($request->per_page ?? 10);
         $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
 
-        $query = SpecialEvent::orderBy('sort_order', 'asc');
+        $query = Event::orderBy('sort_order', 'asc');
 
         if ($request->filled('search')) {
             $term = '%' . $request->search . '%';
@@ -59,14 +59,14 @@ class SpecialEventController extends Controller
             'sort_order' => 'integer',
         ]);
 
-        $event = SpecialEvent::create($validated);
+        $event = Event::create($validated);
         return response()->json($event, 201);
     }
 
     /**
      * Admin update
      */
-    public function update(Request $request, SpecialEvent $specialEvent)
+    public function update(Request $request, Event $event)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -75,16 +75,16 @@ class SpecialEventController extends Controller
             'sort_order' => 'integer',
         ]);
 
-        $specialEvent->update($validated);
-        return response()->json($specialEvent);
+        $event->update($validated);
+        return response()->json($event);
     }
 
     /**
      * Admin destroy
      */
-    public function destroy(SpecialEvent $specialEvent)
+    public function destroy(Event $event)
     {
-        $specialEvent->delete();
+        $event->delete();
         return response()->json(null, 204);
     }
 }

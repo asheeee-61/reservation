@@ -7,33 +7,33 @@ import {
 } from '@mui/material';
 import { PageHeaderSkeleton, CardSkeleton } from '../../admin/components/Skeletons';
 import { useReservationStore } from '../store/useReservationStore';
-import { getTableTypes } from '../services/reservationService';
+import { getZones } from '../services/reservationService';
 
-export default function TableTypeSelection({ onBack, onAutoAdvance }) {
+export default function ZoneSelection({ onBack, onAutoAdvance }) {
   const { 
-    selectedTableType, setSelectedTableType, 
+    selectedZone, setSelectedZone, 
     date, guests, selectedSlot, config,
-    tableTypes: cachedTypes, setTableTypes: setCachedTypes
+    zones: cachedZones, setZones: setCachedZones
   } = useReservationStore();
-  const [loading, setLoading] = useState(!cachedTypes);
+  const [loading, setLoading] = useState(!cachedZones);
 
   useEffect(() => {
-    if (cachedTypes) return;
+    if (cachedZones) return;
     
     setLoading(true);
-    getTableTypes().then(types => {
-      const activeTypes = types.filter(t => t.is_active);
-      setCachedTypes(activeTypes);
+    getZones().then(zones => {
+      const activeZones = zones.filter(t => t.is_active);
+      setCachedZones(activeZones);
       setLoading(false);
       
       // Auto-select first if none selected
-      if (activeTypes.length > 0 && !selectedTableType) {
-        setSelectedTableType(activeTypes[0]);
+      if (activeZones.length > 0 && !selectedZone) {
+        setSelectedZone(activeZones[0]);
       }
     });
-  }, [cachedTypes, setCachedTypes, setSelectedTableType, selectedTableType]);
+  }, [cachedZones, setCachedZones, setSelectedZone, selectedZone]);
 
-  if (loading && !cachedTypes) {
+  if (loading && !cachedZones) {
     return (
       <Box p={3} display="flex" flexDirection="column" gap={3}>
         <PageHeaderSkeleton />
@@ -61,7 +61,7 @@ export default function TableTypeSelection({ onBack, onAutoAdvance }) {
           <span className="material-icons">arrow_back</span>
         </IconButton>
         <Typography sx={{ flexGrow: 1, mr: 5, textAlign: 'center', fontWeight: 500, fontSize: '16px', color: '#202124', fontFamily: 'Roboto' }}>
-          Selecciona tipo de mesa
+          Selecciona zona
         </Typography>
       </Box>
 
@@ -74,21 +74,21 @@ export default function TableTypeSelection({ onBack, onAutoAdvance }) {
 
       <Box sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1 }}>
         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, fontSize: '20px', color: '#202124' }}>
-          ¿Qué tipo de mesa prefiere?
+          ¿Qué zona prefiere?
         </Typography>
         <Typography variant="body2" sx={{ mb: 3, color: '#70757A', fontSize: '14px' }}>
           Seleccione una de las siguientes opciones:
         </Typography>
 
         <Box sx={{ width: '100%' }}>
-          {(cachedTypes || []).map((type) => {
-            const isSelected = selectedTableType?.id === type.id;
+          {(cachedZones || []).map((zone) => {
+            const isSelected = selectedZone?.id === zone.id;
             return (
               <Paper 
-                key={type.id} 
+                key={zone.id} 
                 elevation={0}
                 onClick={() => {
-                  setSelectedTableType(type);
+                  setSelectedZone(zone);
                   onAutoAdvance();
                 }}
                 sx={{ 
@@ -113,15 +113,15 @@ export default function TableTypeSelection({ onBack, onAutoAdvance }) {
                   bgcolor: isSelected ? '#FFFFFF' : '#F1F3F4',
                   color: isSelected ? '#1A73E8' : '#70757A'
                 }}>
-                  <span className="material-icons" style={{ fontSize: 24 }}>table_restaurant</span>
+                  <span className="material-icons" style={{ fontSize: 24 }}>map</span>
                 </Box>
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography variant="body1" fontWeight={isSelected ? 600 : 500} sx={{ color: '#202124', fontSize: '16px' }}>
-                    {type.name}
+                    {zone.name}
                   </Typography>
-                  {type.description && (
+                  {zone.description && (
                     <Typography variant="body2" sx={{ color: '#70757A', display: 'block', mt: 0.5, fontSize: '13px' }}>
-                      {type.description}
+                      {zone.description}
                     </Typography>
                   )}
                 </Box>

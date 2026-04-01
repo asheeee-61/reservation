@@ -2,8 +2,8 @@ export const API_BASE_URL = 'http://localhost:8000/api';
 
 const cache = new Map();
 const CACHEABLE_ENDPOINTS = [
-  '/admin/table-types',
-  '/admin/special-events',
+  '/admin/zones',
+  '/admin/events',
   '/config'
 ];
 
@@ -20,8 +20,8 @@ export const apiClient = async (endpoint, options = {}) => {
 
   // Clear relevant cache on mutations
   if (method !== 'GET') {
-    if (endpoint.includes('/admin/table-types')) cache.delete('/admin/table-types');
-    if (endpoint.includes('/admin/special-events')) cache.delete('/admin/special-events');
+    if (endpoint.includes('/admin/zones')) cache.delete('/admin/zones');
+    if (endpoint.includes('/admin/events')) cache.delete('/admin/events');
     if (endpoint.includes('/admin/config')) cache.delete('/admin/config');
     if (endpoint.includes('/config')) cache.delete('/config');
   }

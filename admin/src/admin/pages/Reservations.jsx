@@ -208,7 +208,7 @@ export default function Reservations() {
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>#</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Cliente</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Fecha y hora</TableCell>
-              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Tipo de mesa</TableCell>
+              <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Zona</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Evento</TableCell>
               <TableCell align="center" sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Personas</TableCell>
               <TableCell sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#5F6368', fontSize: '12px' }}>Estado</TableCell>
@@ -262,10 +262,10 @@ export default function Reservations() {
                   <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' }}>{res.time}</Typography>
                 </TableCell>
                 <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
-                  {res.table_type?.name || 'Sin tipo'}
+                  {res.zone?.name || <Box component="span" sx={{ color: '#BDBDBD' }}>Sin zona</Box>}
                 </TableCell>
                 <TableCell sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>
-                  {res.special_event?.name || <Box component="span" sx={{ color: '#BDBDBD' }}>—</Box>}
+                  {res.event?.name || <Box component="span" sx={{ color: '#BDBDBD' }}>—</Box>}
                 </TableCell>
                 <TableCell align="center" sx={{ fontFamily: 'Roboto', fontSize: '14px', color: '#202124' }}>{res.guests}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
@@ -450,7 +450,7 @@ export default function Reservations() {
                 {res.date} · {res.time}
               </Typography>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '13px', color: '#70757A' }}>
-                {res.guests} personas · {res.table_type?.name || 'Sin tipo'}
+                {res.guests} personas · {res.zone?.name || 'Sin zona'}
               </Typography>
               <Box sx={{ mt: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <CustomerAvatar 

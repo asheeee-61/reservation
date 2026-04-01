@@ -8,8 +8,8 @@ import NewBooking from './pages/NewBooking';
 import EditBooking from './pages/EditBooking';
 import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
-import TableTypes from './pages/TableTypes';
-import SpecialEvents from './pages/SpecialEvents';
+import Zones from './pages/Zones';
+import Events from './pages/Events';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import CalendarPanel from './pages/CalendarPanel';
@@ -132,8 +132,8 @@ function App() {
           <Route path="reservations/edit/:id" element={<ErrorBoundary><EditBooking /></ErrorBoundary>} />
           <Route path="customers" element={<ErrorBoundary><Customers /></ErrorBoundary>} />
           <Route path="customers/:id" element={<ErrorBoundary><CustomerDetail /></ErrorBoundary>} />
-          <Route path="table-types" element={<ErrorBoundary><TableTypes /></ErrorBoundary>} />
-          <Route path="special-events" element={<ErrorBoundary><SpecialEvents /></ErrorBoundary>} />
+          <Route path="zones" element={<ErrorBoundary><Zones /></ErrorBoundary>} />
+          <Route path="events" element={<ErrorBoundary><Events /></ErrorBoundary>} />
           <Route path="settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
           <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
           <Route path="calendar" element={<ErrorBoundary><CalendarPanel /></ErrorBoundary>} />

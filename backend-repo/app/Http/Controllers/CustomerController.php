@@ -105,7 +105,7 @@ class CustomerController extends Controller
         $perPage = (int) ($request->per_page ?? 10);
         $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
 
-        $query = $customer->reservations()->with(['tableType', 'specialEvent']);
+        $query = $customer->reservations()->with(['zone', 'event']);
 
         if ($request->filled('filter')) {
             $filter = $request->filter;

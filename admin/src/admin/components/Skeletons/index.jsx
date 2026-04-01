@@ -1,4 +1,15 @@
 // Reusable skeleton components
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes skeleton-pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 function SkeletonBase({ 
   width    = '100%', 

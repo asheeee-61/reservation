@@ -51,16 +51,16 @@ export default function NewBooking() {
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef(null);
 
-  const [tableTypes, setTableTypes] = useState([]);
-  const [tableTypesLoading, setTableTypesLoading] = useState(false);
-  const [tableTypesError, setTableTypesError] = useState(false);
+  const [zones, setZones] = useState([]);
+  const [zonesLoading, setZonesLoading] = useState(false);
+  const [zonesError, setZonesError] = useState(false);
   
-  const [specialEvents, setSpecialEvents] = useState([]);
-  const [specialEventsLoading, setSpecialEventsLoading] = useState(false);
-  const [specialEventsError, setSpecialEventsError] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState(false);
 
-  const [tableTypeId, setTableTypeId] = useState('');
-  const [specialEventId, setSpecialEventId] = useState('');
+  const [zoneId, setZoneId] = useState('');
+  const [eventId, setEventId] = useState('');
 
   // PROGRESSIVE DISCLOSURE STATES
   const [showNotes, setShowNotes] = useState(false);
@@ -76,46 +76,46 @@ export default function NewBooking() {
   }, [fetchGlobalHours]);
 
   useEffect(() => {
-    const fetchTableTypes = async () => {
-      setTableTypesLoading(true);
-      setTableTypesError(false);
+    const fetchZones = async () => {
+      setZonesLoading(true);
+      setZonesError(false);
       try {
-        const res = await apiClient('/admin/table-types');
+        const res = await apiClient('/admin/zones');
         const types = Array.isArray(res) ? res : (res.data ?? []);
         const activeTypes = types.filter(t => t.is_active);
-        setTableTypes(activeTypes);
+        setZones(activeTypes);
         if (activeTypes.length > 0) {
-          setTableTypeId(activeTypes[0].id);
+          setZoneId(activeTypes[0].id);
         }
       } catch (err) {
-        setTableTypesError(true);
+        setZonesError(true);
         console.error(err);
       } finally {
-        setTableTypesLoading(false);
+        setZonesLoading(false);
       }
     };
 
-    const fetchSpecialEvents = async () => {
-      setSpecialEventsLoading(true);
-      setSpecialEventsError(false);
+    const fetchEvents = async () => {
+      setEventsLoading(true);
+      setEventsError(false);
       try {
-        const evRes = await apiClient('/admin/special-events');
+        const evRes = await apiClient('/admin/events');
         const events = Array.isArray(evRes) ? evRes : (evRes.data ?? []);
         const activeEvents = events.filter(e => e.is_active);
-        setSpecialEvents(activeEvents);
+        setEvents(activeEvents);
         if (activeEvents.length > 0) {
-          setSpecialEventId(activeEvents[0].id);
+          setEventId(activeEvents[0].id);
         }
       } catch (err) {
-        setSpecialEventsError(true);
+        setEventsError(true);
         console.error(err);
       } finally {
-        setSpecialEventsLoading(false);
+        setEventsLoading(false);
       }
     };
 
-    fetchTableTypes();
-    fetchSpecialEvents();
+    fetchZones();
+    fetchEvents();
   }, []);
 
   // FIX 2: Debounced customer search
@@ -289,8 +289,8 @@ export default function NewBooking() {
         date: newBooking.date,
         slot: { time: newBooking.time },
         guests: newBooking.guests,
-        table_type_id: tableTypeId,
-        special_event_id: specialEventId || null,
+        zone_id: zoneId,
+        event_id: eventId || null,
         special_requests: newBooking.notes
       };
 
@@ -692,53 +692,53 @@ export default function NewBooking() {
               </Box>
             </Box>
 
-            {/* Row 3: Table Type (Full Width) */}
+            {/* Row 3: Zone (Full Width) */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                TIPO DE MESA
+                ZONA
               </Typography>
               <FormControl fullWidth>
                 <Select
-                  value={tableTypeId}
-                  onChange={(e) => setTableTypeId(e.target.value)}
-                  disabled={tableTypesLoading || tableTypesError}
+                  value={zoneId}
+                  onChange={(e) => setZoneId(e.target.value)}
+                  disabled={zonesLoading || zonesError}
                   sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', bgcolor: '#FFFFFF' }}
                 >
-                  {tableTypesLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
-                  {tableTypesError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
-                  {tableTypes.length > 0 ? tableTypes.map(t => (
+                  {zonesLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
+                  {zonesError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
+                  {zones.length > 0 ? zones.map(t => (
                     <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-                  )) : <MenuItem value={tableTypeId} sx={{ display: 'none' }} />}
+                  )) : <MenuItem value={zoneId} sx={{ display: 'none' }} />}
                 </Select>
-                {tableTypeId && (
+                {zoneId && (
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {tableTypes.find(t => t.id === tableTypeId)?.description}
+                    {zones.find(t => t.id === zoneId)?.description}
                   </Typography>
                 )}
               </FormControl>
             </Box>
 
-            {/* Row 4: Special Event (Full Width) */}
+            {/* Row 4: Event (Full Width) */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1.5px', mb: '4px' }}>
-                EVENTO ESPECIAL
+                EVENTO
               </Typography>
               <FormControl fullWidth>
                 <Select
-                  value={specialEventId}
-                  onChange={(e) => setSpecialEventId(e.target.value)}
-                  disabled={specialEventsLoading || specialEventsError}
+                  value={eventId}
+                  onChange={(e) => setEventId(e.target.value)}
+                  disabled={eventsLoading || eventsError}
                   sx={{ height: 56, borderRadius: '4px', fontFamily: 'Roboto', fontSize: '14px', bgcolor: '#FFFFFF' }}
                 >
-                  {specialEventsLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
-                  {specialEventsError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
-                  {specialEvents.length > 0 ? specialEvents.map(e => (
+                  {eventsLoading && <MenuItem value="" disabled>Cargando...</MenuItem>}
+                  {eventsError && <MenuItem value="" disabled>Error al cargar</MenuItem>}
+                  {events.length > 0 ? events.map(e => (
                     <MenuItem key={e.id} value={e.id}>{e.name}</MenuItem>
-                  )) : <MenuItem value={specialEventId} sx={{ display: 'none' }} />}
+                  )) : <MenuItem value={eventId} sx={{ display: 'none' }} />}
                 </Select>
-                {specialEventId && (
+                {eventId && (
                   <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {specialEvents.find(e => e.id === specialEventId)?.description}
+                    {events.find(e => e.id === eventId)?.description}
                   </Typography>
                 )}
               </FormControl>

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress, Fade } from '@mui/material';
-import { LeftPanel, RightPanelMap, TableTypeSelection, SpecialEventSelection, ReservationCheckout, SuccessPage, TermsOfService } from './components';
+import { LeftPanel, RightPanelMap, ZoneSelection, EventSelection, ReservationCheckout, SuccessPage, TermsOfService } from './components';
 import { useReservationStore } from './store/useReservationStore';
-import { getConfig, getTableTypes, getSpecialEvents } from './services/reservationService';
+import { getConfig, getZones, getEvents } from './services/reservationService';
 
 const ProgressIndicator = ({ step }) => {
-  const steps = ['selection', 'table_selection', 'special_event', 'confirmation'];
+  const steps = ['selection', 'zone_selection', 'event_selection', 'confirmation'];
   const currentIndex = steps.indexOf(step);
   if (currentIndex === -1) return null;
 
@@ -102,21 +102,21 @@ const theme = createTheme({
 function App() {
   const { 
     config, setConfig, showTerms, step, setStep,
-    setTableTypes, setSpecialEvents
+    setZones, setEvents
   } = useReservationStore();
   const [initLoading, setInitLoading] = useState(true);
   
   useEffect(() => {
     const initApp = async () => {
       try {
-        const [cfg, types, events] = await Promise.all([
+        const [cfg, zones, events] = await Promise.all([
           getConfig(),
-          getTableTypes(),
-          getSpecialEvents()
+          getZones(),
+          getEvents()
         ]);
         setConfig(cfg);
-        setTableTypes(types.filter(t => t.is_active));
-        setSpecialEvents(events.filter(e => e.is_active));
+        setZones(zones.filter(t => t.is_active));
+        setEvents(events.filter(e => e.is_active));
       } catch (e) {
         console.error('Initialization failed', e);
       } finally {
@@ -124,7 +124,7 @@ function App() {
       }
     };
     initApp();
-  }, [setConfig, setTableTypes, setSpecialEvents]);
+  }, [setConfig, setZones, setEvents]);
 
   if (initLoading) {
     return (
@@ -187,10 +187,10 @@ function App() {
           position: 'relative',
           bgcolor: isMapVisible ? '#FFFFFF' : 'grey.50'
         }}>
-          {renderStep('selection', LeftPanel, { onAutoAdvance: () => autoAdvance('table_selection') })}
-          {renderStep('table_selection', TableTypeSelection, { onBack: () => setStep('selection'), onAutoAdvance: () => autoAdvance('special_event') })}
-          {renderStep('special_event', SpecialEventSelection, { onBack: () => setStep('table_selection'), onAutoAdvance: () => autoAdvance('confirmation') })}
-          {renderStep('confirmation', ReservationCheckout, { onBack: () => setStep('special_event'), onSuccess: () => setStep('success') })}
+          {renderStep('selection', LeftPanel, { onAutoAdvance: () => autoAdvance('zone_selection') })}
+          {renderStep('zone_selection', ZoneSelection, { onBack: () => setStep('selection'), onAutoAdvance: () => autoAdvance('event_selection') })}
+          {renderStep('event_selection', EventSelection, { onBack: () => setStep('zone_selection'), onAutoAdvance: () => autoAdvance('confirmation') })}
+          {renderStep('confirmation', ReservationCheckout, { onBack: () => setStep('event_selection'), onSuccess: () => setStep('success') })}
           {renderStep('success', SuccessPage)}
         </Box>
 

@@ -10,7 +10,7 @@ import { useToast } from '../components/Toast/ToastContext';
 import { TableSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
 
-export default function TableTypes() {
+export default function Zones() {
   const [types, setTypes] = useState([]);
   const toast = useToast();
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export default function TableTypes() {
     try {
       setLoading(true);
       const params = new URLSearchParams({ page: p, per_page: pp });
-      const data = await apiClient(`/admin/table-types?${params.toString()}`, { signal });
+      const data = await apiClient(`/admin/zones?${params.toString()}`, { signal });
       setTypes(data.data ?? []);
       setMeta(data.meta ?? null);
     } catch (err) {
@@ -60,19 +60,19 @@ export default function TableTypes() {
     setSubmitting(true);
     try {
       if (editingType) {
-        await apiClient(`/admin/table-types/${editingType.id}`, {
+        await apiClient(`/admin/zones/${editingType.id}`, {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
       } else {
-        await apiClient('/admin/table-types', {
+        await apiClient('/admin/zones', {
           method: 'POST',
           body: JSON.stringify({ ...formData, sort_order: types.length })
         });
       }
       setModalOpen(false);
       fetchTypes(page, perPage);
-      toast.success('Tipo de mesa guardado');
+      toast.success('Zona guardada');
     } catch (err) {
       toast.error(err.message || 'Error al guardar');
     } finally {
@@ -84,11 +84,11 @@ export default function TableTypes() {
     if (!editingType) return;
     setSubmitting(true);
     try {
-      await apiClient(`/admin/table-types/${editingType.id}`, { method: 'DELETE' });
+      await apiClient(`/admin/zones/${editingType.id}`, { method: 'DELETE' });
       setDeleteModalOpen(false);
       fetchTypes(1, perPage);
       setPage(1);
-      toast.success('Tipo de mesa eliminado');
+      toast.success('Zona eliminada');
     } catch (err) {
       toast.error(err.message || 'Error al eliminar');
     } finally {
@@ -99,7 +99,7 @@ export default function TableTypes() {
   const handleToggleActive = async (type) => {
     try {
       const updatedType = { ...type, is_active: !type.is_active };
-      await apiClient(`/admin/table-types/${type.id}`, {
+      await apiClient(`/admin/zones/${type.id}`, {
         method: 'PUT',
         body: JSON.stringify({
            name: updatedType.name,
@@ -132,11 +132,11 @@ export default function TableTypes() {
     // Persist changes
     try {
       await Promise.all([
-        apiClient(`/admin/table-types/${updatedTypes[index].id}`, {
+        apiClient(`/admin/zones/${updatedTypes[index].id}`, {
           method: 'PUT',
           body: JSON.stringify(updatedTypes[index])
         }),
-        apiClient(`/admin/table-types/${updatedTypes[targetIndex].id}`, {
+        apiClient(`/admin/zones/${updatedTypes[targetIndex].id}`, {
           method: 'PUT',
           body: JSON.stringify(updatedTypes[targetIndex])
         })
@@ -154,7 +154,7 @@ export default function TableTypes() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' 
       }}>
         <Typography variant="h5" sx={{ fontWeight: 500, fontSize: '20px', color: '#202124', letterSpacing: '1.5px' }}>
-          TIPOS DE MESA
+          ZONAS
         </Typography>
         <Button 
           variant="contained"
@@ -165,7 +165,7 @@ export default function TableTypes() {
             fontWeight: 500, fontSize: '13px', textTransform: 'uppercase'
           }}
         >
-          Añadir tipo
+          Añadir zona
         </Button>
       </Box>
 
@@ -175,11 +175,11 @@ export default function TableTypes() {
           <Box p={3}><TableSkeleton rows={5} cols={3} /></Box>
         ) : types.length === 0 ? (
           <EmptyState 
-            icon="table_restaurant" 
-            title="Sin tipos de mesa" 
-            message="No hay tipos de mesa. Añade el primero." 
+            icon="map" 
+            title="Sin zonas" 
+            message="No hay zonas configuradas. Añade la primera." 
             action={{
-              label: 'Añadir tipo',
+              label: 'Añadir zona',
               onClick: () => handleOpenModal()
             }} 
           />
@@ -271,7 +271,7 @@ export default function TableTypes() {
         PaperProps={{ sx: { borderRadius: '4px', width: '100%', maxWidth: 480, p: '24px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' } }}
       >
         <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#202124', mb: '20px' }}>
-          {editingType ? 'Editar tipo de mesa' : 'Añadir tipo de mesa'}
+          {editingType ? 'Editar zona' : 'Añadir zona'}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <TextField 
@@ -331,7 +331,7 @@ export default function TableTypes() {
         onClose={() => setDeleteModalOpen(false)}
         PaperProps={{ sx: { borderRadius: '4px', width: '100%', maxWidth: 400, p: '24px' } }}
       >
-        <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#202124', mb: '12px' }}>Eliminar tipo de mesa</Typography>
+        <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#202124', mb: '12px' }}>Eliminar zona</Typography>
         <Typography sx={{ fontSize: '14px', color: '#70757A', mb: '24px' }}>
           ¿Eliminar '{editingType?.name}'? Las reservas existentes no se verán afectadas.
         </Typography>

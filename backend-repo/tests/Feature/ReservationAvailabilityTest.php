@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\Reservation;
-use App\Models\TableType;
+use App\Models\Zone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,8 +16,8 @@ class ReservationAvailabilityTest extends TestCase
     {
         parent::setUp();
         
-        // Mock table types
-        TableType::create([
+        // Mock zones
+        Zone::create([
             'name' => 'Standard',
             'capacity' => 4,
             'is_active' => true
@@ -51,7 +51,7 @@ class ReservationAvailabilityTest extends TestCase
                 'name' => 'John Doe',
                 'phone' => '123456789'
             ],
-            'table_type_id' => TableType::first()->id
+            'zone_id' => Zone::first()->id
         ];
 
         $response = $this->postJson('/api/reservations', $payload);
@@ -81,7 +81,7 @@ class ReservationAvailabilityTest extends TestCase
             'guests' => 10,
             'status' => Reservation::STATUS_CONFIRMADA,
             'source' => Reservation::SOURCE_ADMIN,
-            'table_type_id' => TableType::first()->id
+            'zone_id' => Zone::first()->id
         ]);
 
         $payload = [
@@ -92,7 +92,7 @@ class ReservationAvailabilityTest extends TestCase
                 'name' => 'Jane Doe',
                 'phone' => '987654321'
             ],
-            'table_type_id' => TableType::first()->id
+            'zone_id' => Zone::first()->id
         ];
 
         $response = $this->postJson('/api/reservations', $payload);
@@ -115,7 +115,7 @@ class ReservationAvailabilityTest extends TestCase
                 'name' => 'Alice Smith',
                 'phone' => '1122334455'
             ],
-            'table_type_id' => TableType::first()->id
+            'zone_id' => Zone::first()->id
         ];
 
         $response = $this->postJson('/api/reservations', $payload);

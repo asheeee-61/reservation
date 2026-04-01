@@ -60,10 +60,10 @@ export const createReservation = async (reservationData) => {
     return { success: false, message: e.message || 'API error' };
   }
 };
-export const getTableTypes = async () => {
+export const getZones = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/table-types`);
-    if (!res.ok) throw new Error('Failed to fetch table types');
+    const res = await fetch(`${API_BASE_URL}/zones`);
+    if (!res.ok) throw new Error('Failed to fetch zones');
     return res.json();
   } catch (e) {
     console.error(e);
@@ -71,9 +71,9 @@ export const getTableTypes = async () => {
   }
 };
 
-export const getSpecialEvents = async () => {
+export const getEvents = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/special-events`);
+    const res = await fetch(`${API_BASE_URL}/events`);
     if (!res.ok) throw new Error('Failed to fetch special events');
     return res.json();
   } catch (e) {

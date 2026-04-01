@@ -28,8 +28,8 @@ class Reservation extends Model
         'special_requests',
         'status',
         'source',
-        'table_type_id',
-        'special_event_id',
+        'zone_id',
+        'event_id',
         'reminder_2h_sent_at',
         'review_sent_at',
         'cancellation_reason',
@@ -40,9 +40,9 @@ class Reservation extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function tableType()
+    public function zone()
     {
-        return $this->belongsTo(TableType::class);
+        return $this->belongsTo(Zone::class);
     }
 
     public function activities()
@@ -50,8 +50,8 @@ class Reservation extends Model
         return $this->hasMany(ReservationActivity::class)->orderBy('created_at', 'desc');
     }
 
-    public function specialEvent()
+    public function event()
     {
-        return $this->belongsTo(SpecialEvent::class);
+        return $this->belongsTo(Event::class);
     }
 }

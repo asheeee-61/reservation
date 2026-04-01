@@ -514,7 +514,7 @@ export default function CustomerDetail() {
                           {r.guests}
                         </TableCell>
                         <TableCell sx={{ fontSize: '14px', fontFamily: 'Roboto', color: '#202124' }}>
-                          {r.table_type?.name || '—'}
+                          {r.zone?.name || '—'}
                         </TableCell>
                         <TableCell>
                           <Box sx={{ 

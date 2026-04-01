@@ -107,10 +107,10 @@ export default function CalendarPanel() {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showResults, setShowResults] = useState(false);
-  const [tableTypes, setTableTypes] = useState([]);
-  const [tableTypesLoading, setTableTypesLoading] = useState(false);
-  const [specialEvents, setSpecialEvents] = useState([]);
-  const [specialEventsLoading, setSpecialEventsLoading] = useState(false);
+  const [zones, setZones] = useState([]);
+  const [zonesLoading, setZonesLoading] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [saveStatus, setSaveStatus] = useState('idle');
   const searchRef = useRef(null);
@@ -772,7 +772,7 @@ function renderDayReservations(dayRes, globalHours, onResClick, isDayView = fals
             {res.time.slice(0, 5)} · {res.customer?.name}
           </Typography>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>
-            {res.guests} pers · {res.table_type?.name}
+            {res.guests} pers · {res.zone?.name}
           </Typography>
         </Box>
       );
@@ -941,8 +941,8 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
             <InfoRow icon="calendar_today" label="FECHA" value={reservation.date} />
             <InfoRow icon="schedule" label="HORA" value={reservation.time.slice(0, 5)} />
             <InfoRow icon="people" label="PERSONAS" value={`${reservation.guests} personas`} />
-            <InfoRow icon="table_restaurant" label="MESA" value={reservation.table_type?.name || 'Cualquiera'} />
-            <InfoRow icon="event" label="EVENTO" value={reservation.special_event?.name || 'Venta Estándar'} />
+            <InfoRow icon="table_restaurant" label="ZONA" value={reservation.zone?.name || 'Cualquiera'} />
+            <InfoRow icon="event" label="EVENTO" value={reservation.event?.name || 'Venta Estándar'} />
             
             {reservation.special_requests && (
               <Box sx={{ mt: '8px' }}>

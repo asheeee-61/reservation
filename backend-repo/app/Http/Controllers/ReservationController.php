@@ -33,7 +33,7 @@ class ReservationController extends Controller
                     $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
                 }
             ]);
-        }, 'tableType', 'specialEvent'])->latest();
+        }, 'zone', 'event'])->latest();
 
         if ($request->filled('search')) {
             $term = '%' . $request->search . '%';
@@ -81,7 +81,7 @@ class ReservationController extends Controller
                     $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
                 }
             ]);
-        }, 'tableType', 'specialEvent', 'activities'])->findOrFail($id);
+        }, 'zone', 'event', 'activities'])->findOrFail($id);
         return response()->json($reservation);
     }
 
@@ -99,7 +99,7 @@ class ReservationController extends Controller
                     $q->where('status', \App\Models\Reservation::STATUS_NO_ASISTIO);
                 }
             ]);
-        }, 'tableType', 'specialEvent'])
+        }, 'zone', 'event'])
             ->where('date', $date)
             ->latest()
             ->get();
@@ -232,8 +232,8 @@ class ReservationController extends Controller
             'user.email' => 'nullable|email|max:255',
             'user.phone' => 'required_without:customer_id|string|max:20',
             'special_requests' => 'nullable|string',
-            'table_type_id' => 'required|exists:table_types,id',
-            'special_event_id' => 'nullable|exists:special_events,id'
+            'zone_id' => 'required|exists:zones,id',
+            'event_id' => 'nullable|exists:events,id'
         ]);
 
         // Re-validate availability for non-admin sources
@@ -274,8 +274,8 @@ class ReservationController extends Controller
             'special_requests' => $validated['special_requests'] ?? null,
             'status'           => $status,   // enforced by origin, never from request
             'source'           => $source,   // immutable, set here only
-            'table_type_id'    => $validated['table_type_id'],
-            'special_event_id' => $validated['special_event_id'] ?? null,
+            'zone_id'    => $validated['zone_id'],
+            'event_id' => $validated['event_id'] ?? null,
         ]);
 
         $notificationService = app(NotificationService::class);
@@ -335,8 +335,8 @@ class ReservationController extends Controller
             'phone' => 'nullable|string|max:20',
             'special_requests' => 'nullable|string',
             'status' => 'required|string',
-            'table_type_id' => 'required|exists:table_types,id',
-            'special_event_id' => 'nullable|exists:special_events,id'
+            'zone_id' => 'required|exists:zones,id',
+            'event_id' => 'nullable|exists:events,id'
         ]);
 
         $reservation = Reservation::findOrFail($id);
@@ -379,8 +379,8 @@ class ReservationController extends Controller
             'guests' => $validated['guests'],
             'special_requests' => $validated['special_requests'] ?? '',
             'status' => $validated['status'],
-            'table_type_id' => $validated['table_type_id'],
-            'special_event_id' => $validated['special_event_id'] ?? null,
+            'zone_id' => $validated['zone_id'],
+            'event_id' => $validated['event_id'] ?? null,
         ]);
 
         if ($oldStatus !== $reservation->status) {
@@ -426,7 +426,7 @@ class ReservationController extends Controller
 
         $this->handleStatusNotification($reservation, $oldStatus);
 
-        return response()->json(['success' => true, 'data' => $reservation->load(['customer', 'tableType', 'specialEvent', 'activities'])]);
+        return response()->json(['success' => true, 'data' => $reservation->load(['customer', 'zone', 'event', 'activities'])]);
     }
 
     public function availability(Request $request)
