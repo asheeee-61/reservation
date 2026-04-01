@@ -16,9 +16,15 @@ export default function Layout() {
   const location = useLocation();
   const logout = useAuthStore(state => state.logout);
   const globalHours = useSettingsStore(state => state.globalHours);
+  const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const [logoutModal, setLogoutModal] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchGlobalHours();
+  }, [fetchGlobalHours]);
 
   const menuItems = [
     { text: 'Calendario',   icon: 'calendar_month',    path: '/admin/calendar' },
