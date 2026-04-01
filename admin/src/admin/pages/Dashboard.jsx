@@ -100,13 +100,15 @@ export default function Dashboard() {
 
 
   // Derived stats
-  const guestsToday = todayRes.reduce((s, r) => s + (r.guests || 0), 0);
+  const activeRes = todayRes.filter(r => r.status?.toUpperCase() !== 'CANCELADA');
+  const guestsToday = activeRes.reduce((s, r) => s + (r.guests || 0), 0);
   const noShows = todayRes.filter(r => r.status?.toUpperCase() === 'NO_ASISTIÓ').length;
+  const cancelledRes = todayRes.filter(r => r.status?.toUpperCase() === 'CANCELADA').length;
   const currentTime = now();
-  const nextRes = todayRes.find(r => (r.time || '') >= currentTime && r.status?.toUpperCase() !== 'NO_ASISTIÓ');
+  const nextRes = activeRes.find(r => (r.time || '') >= currentTime && r.status?.toUpperCase() !== 'NO_ASISTIÓ');
 
   const alerts = [];
-  const noPhone = todayRes.filter(r => !r.customer?.phone);
+  const noPhone = activeRes.filter(r => !r.customer?.phone);
   if (noPhone.length > 0) alerts.push({ icon: 'phone_disabled', text: `${noPhone.length} clientes sin teléfono`, path: '/admin/customers' });
   if (guestsToday > 30) alerts.push({ icon: 'warning', text: `Alta ocupación hoy`, path: '/admin/reservations' });
 
@@ -123,11 +125,12 @@ export default function Dashboard() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
       {/* ROW 1 — STATS */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: '16px' }}>
-        <StatCard icon="event" label="Reservas de hoy" value={todayRes.length} color="#1A73E8" />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(5, 1fr)' }, gap: '16px' }}>
+        <StatCard icon="event" label="Reservas de hoy" value={activeRes.length} color="#1A73E8" />
         <StatCard icon="group" label="Personas hoy" value={guestsToday} color="#137333" />
         <StatCard icon="schedule" label="Próxima reserva" value={nextRes ? nextRes.time : '—'} sub={nextRes?.customer?.name} color="#7D4A00" />
         <StatCard icon="person_off" label="No presentados" value={noShows} color="#C5221F" />
+        <StatCard icon="cancel" label="Canceladas" value={cancelledRes} color="#5F6368" />
       </Box>
 
       {/* ROW 2 — MAIN CONTENT */}
