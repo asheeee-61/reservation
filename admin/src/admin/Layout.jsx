@@ -5,6 +5,7 @@ import { useAuthStore } from './store/useAuthStore';
 import { MOBILE, TABLET, DESKTOP } from './utils/breakpoints';
 import GlobalSearch from './components/GlobalSearch';
 import QuickActions from './components/QuickActions';
+import CopyLinksDropdown from './components/CopyLinksDropdown';
 import WhatsAppStatus from './components/WhatsAppStatus';
 import { ConfirmModal } from './components/ConfirmModal';
 
@@ -167,6 +168,11 @@ export default function Layout() {
             {/* Quick action buttons — desktop only */}
             <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
               <QuickActions />
+            </Box>
+
+            {/* Copy links dropdown — desktop only */}
+            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
+              <CopyLinksDropdown />
             </Box>
 
             {/* WhatsApp Connection Status */}

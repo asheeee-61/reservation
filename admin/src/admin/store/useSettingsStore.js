@@ -26,7 +26,12 @@ export const useSettingsStore = create((set) => ({
           closingTime: data.global_closing_time || '00:00',
           defaultInterval: data.default_interval || 30,
           whatsapp_phone: data.whatsapp_phone || '',
-          instagram_username: data.instagram_username || ''
+          instagram_username: data.instagram_username || '',
+          restaurant_phone: data.restaurant_phone || '',
+          review_link: data.review_link || '',
+          google_maps_link: data.google_maps_link || '',
+          menu_pdf_url: data.menu_pdf_url || '',
+          reservation_link: data.reservation_link || '',
         },
         globalSettings: {
           minGuests: data.minGuests || 1,

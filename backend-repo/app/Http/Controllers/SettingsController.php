@@ -47,6 +47,10 @@ class SettingsController extends Controller
             ]
         );
 
+        $menuPdfUrl = $setting->menu_pdf
+            ? asset('storage/' . $setting->menu_pdf)
+            : null;
+
         return response()->json(array_merge($defaultConfig, $savedConfig, [
             'global_opening_time' => substr($setting->global_opening_time, 0, 5),
             'global_closing_time' => substr($setting->global_closing_time, 0, 5),
@@ -54,7 +58,10 @@ class SettingsController extends Controller
             'whatsapp_phone' => $setting->whatsapp_phone,
             'instagram_username' => $setting->instagram_username,
             'restaurant_phone' => $setting->restaurant_phone,
-            'review_link' => $setting->review_link
+            'review_link' => $setting->review_link,
+            'google_maps_link' => $setting->google_maps_link,
+            'menu_pdf_url' => $menuPdfUrl,
+            'reservation_link' => $setting->reservation_link,
         ]));
     }
 
@@ -69,6 +76,9 @@ class SettingsController extends Controller
                 'instagram_username'  => 'nullable|string|max:100',
                 'restaurant_phone'    => 'nullable|string|max:20',
                 'review_link'         => 'nullable|string|max:500',
+                'google_maps_link'    => 'nullable|url|max:500',
+                'reservation_link'    => 'nullable|string|max:500',
+                'menu_pdf'            => 'nullable|file|mimes:pdf|max:51200',
             ]);
 
             $setting = Setting::firstOrCreate([], [
@@ -84,10 +94,21 @@ class SettingsController extends Controller
             $setting->instagram_username = $request->instagram_username;
             $setting->restaurant_phone = $request->restaurant_phone;
             $setting->review_link = $request->review_link;
+            $setting->google_maps_link = $request->google_maps_link;
+            $setting->reservation_link = $request->reservation_link;
+
+            if ($request->hasFile('menu_pdf')) {
+                if ($setting->menu_pdf && Storage::disk('public')->exists($setting->menu_pdf)) {
+                    Storage::disk('public')->delete($setting->menu_pdf);
+                }
+                $path = $request->file('menu_pdf')->store('menus', 'public');
+                $setting->menu_pdf = $path;
+            }
+
             $setting->save();
         }
 
-        $configData = $request->except(['global_opening_time', 'global_closing_time', 'default_interval']);
+        $configData = $request->except(['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf']);
         Storage::put('config.json', json_encode($configData, JSON_PRETTY_PRINT));
         \Illuminate\Support\Facades\Cache::forget('config.json');
 

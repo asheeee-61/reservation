@@ -5,7 +5,7 @@ import {
   DialogContent, DialogActions 
 } from '@mui/material';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { apiClient } from '../services/apiClient';
+import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
 const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
@@ -45,6 +45,7 @@ export default function Settings() {
   
   const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
   const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', restaurantPhone: '', reviewLink: '' });
+  const [localLinks, setLocalLinks] = useState({ googleMapsLink: '', menuPdfUrl: '', menuPdfFile: null, reservationLink: '' });
   const [savingGlobal, setSavingGlobal] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
   const [conflictModalOpen, setConflictModalOpen] = useState(false);
@@ -68,6 +69,12 @@ export default function Settings() {
         instagramUsername: globalHours.instagram_username || '',
         restaurantPhone: globalHours.restaurant_phone || '',
         reviewLink: globalHours.review_link || ''
+      });
+      setLocalLinks({
+        googleMapsLink: globalHours.google_maps_link || '',
+        menuPdfUrl: globalHours.menu_pdf_url || '',
+        menuPdfFile: null,
+        reservationLink: globalHours.reservation_link || ''
       });
     }
   }, [globalHours]);
@@ -173,26 +180,44 @@ export default function Settings() {
   const handleSaveContact = async () => {
     setSavingContact(true);
     try {
-      await apiClient('/admin/config', {
+      const formData = new FormData();
+      formData.append('global_opening_time', localGlobal.openingTime);
+      formData.append('global_closing_time', localGlobal.closingTime);
+      formData.append('default_interval', localGlobal.defaultInterval);
+      formData.append('whatsapp_phone', localContact.whatsappPhone);
+      formData.append('instagram_username', localContact.instagramUsername);
+      formData.append('restaurant_phone', localContact.restaurantPhone);
+      formData.append('review_link', localContact.reviewLink);
+      formData.append('google_maps_link', localLinks.googleMapsLink);
+      formData.append('reservation_link', localLinks.reservationLink);
+      if (localLinks.menuPdfFile) {
+        formData.append('menu_pdf', localLinks.menuPdfFile);
+      }
+
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch(`${API_BASE_URL}/admin/config`, {
         method: 'POST',
-        body: JSON.stringify({
-          ...config,
-          global_opening_time: localGlobal.openingTime,
-          global_closing_time: localGlobal.closingTime,
-          default_interval: localGlobal.defaultInterval,
-          whatsapp_phone: localContact.whatsappPhone,
-          instagram_username: localContact.instagramUsername,
-          restaurant_phone: localContact.restaurantPhone,
-          review_link: localContact.reviewLink
-        })
+        headers: {
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: formData,
       });
+
+      if (!response.ok) throw new Error('Failed to save');
 
       useSettingsStore.getState().setGlobalHours({
         ...localGlobal,
         whatsapp_phone: localContact.whatsappPhone,
-        instagram_username: localContact.instagramUsername
+        instagram_username: localContact.instagramUsername,
+        restaurant_phone: localContact.restaurantPhone,
+        review_link: localContact.reviewLink,
+        google_maps_link: localLinks.googleMapsLink,
+        menu_pdf_url: localLinks.menuPdfUrl,
+        reservation_link: localLinks.reservationLink,
       });
 
+      setLocalLinks(prev => ({ ...prev, menuPdfFile: null }));
       setToastMessage("Información de contacto guardada");
       setToastOpen(true);
       setTimeout(() => setToastOpen(false), 2000);
@@ -395,6 +420,112 @@ export default function Settings() {
             }}
           >
             {savingContact ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR INFORMACIÓN'}
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Enlaces Rápidos Card */}
+      <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>ENLACES RÁPIDOS</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Enlaces para copiar y compartir con clientes.</Typography>
+        
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mb: '24px' }}>
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '6px', textTransform: 'uppercase' }}>GOOGLE MAPS</Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="https://maps.google.com/..."
+              value={localLinks.googleMapsLink}
+              onChange={(e) => setLocalLinks({ ...localLinks, googleMapsLink: e.target.value })}
+              helperText="Enlace directo a Google Maps del restaurante"
+              InputProps={{ 
+                sx: { 
+                  height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px',
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: '2px' }
+                } 
+              }}
+              FormHelperTextProps={{ sx: { fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' } }}
+            />
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '6px', textTransform: 'uppercase' }}>ENLACE DE RESERVA</Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="/reservacion"
+              value={localLinks.reservationLink}
+              onChange={(e) => setLocalLinks({ ...localLinks, reservationLink: e.target.value })}
+              helperText="Si se deja vacío, se usa la ruta por defecto"
+              InputProps={{ 
+                sx: { 
+                  height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px',
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: '2px' }
+                } 
+              }}
+              FormHelperTextProps={{ sx: { fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' } }}
+            />
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '6px', textTransform: 'uppercase' }}>MENÚ PDF</Typography>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 50 * 1024 * 1024) {
+                    setToastMessage("El archivo no debe superar 50MB");
+                    setToastOpen(true);
+                    setTimeout(() => setToastOpen(false), 3000);
+                    e.target.value = '';
+                    return;
+                  }
+                  setLocalLinks({ ...localLinks, menuPdfFile: file, menuPdfUrl: URL.createObjectURL(file) });
+                }
+              }}
+              style={{ display: 'none' }}
+              id="menu-pdf-upload"
+            />
+            <label htmlFor="menu-pdf-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<span className="material-icons" style={{ fontSize: 18 }}>upload_file</span>}
+                sx={{
+                  border: '1px solid #DADCE0', color: '#202124', height: 56, px: '24px', borderRadius: '4px',
+                  fontFamily: 'Roboto', fontSize: '14px', textTransform: 'none', boxShadow: 'none',
+                  '&:hover': { bgcolor: '#F1F3F4', border: '1px solid #DADCE0' },
+                }}
+              >
+                Subir menú PDF (máx. 50MB)
+              </Button>
+            </label>
+            {localLinks.menuPdfFile && (
+              <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#1E8E3E', mt: '8px' }}>
+                Archivo seleccionado: {localLinks.menuPdfFile.name}
+              </Typography>
+            )}
+            {localLinks.menuPdfUrl && !localLinks.menuPdfFile && (
+              <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#1A73E8', mt: '8px' }}>
+                Archivo actual: <a href={localLinks.menuPdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#1A73E8' }}>Ver PDF</a>
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button 
+            variant="contained" onClick={handleSaveContact} disabled={savingContact}
+            sx={{ 
+              width: { xs: '100%', sm: 'auto' }, height: 36, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
+              fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
+          >
+            {savingContact ? <CircularProgress size={20} color="inherit" /> : 'GUARDAR ENLACES'}
           </Button>
         </Box>
       </Paper>

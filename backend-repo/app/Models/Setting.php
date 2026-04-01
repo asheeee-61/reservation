@@ -13,6 +13,9 @@ class Setting extends Model
         'whatsapp_phone',
         'instagram_username',
         'restaurant_phone',
-        'review_link'
+        'review_link',
+        'google_maps_link',
+        'menu_pdf',
+        'reservation_link'
     ];
 }
