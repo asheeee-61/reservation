@@ -10,6 +10,7 @@ const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 
 
 import { useReservationStore } from '../store/useReservationStore';
 import { getAvailableSlots } from '../services/reservationService';
+import RestaurantLogo from '../../shared/RestaurantLogo';
 
 const formatDateLabel = (dateString) => {
   if (!dateString) return '';
@@ -204,11 +205,16 @@ export default function LeftPanel({ onAutoAdvance }) {
       overflowY: 'auto'
     }}>
       <Box sx={{ 
-        display: 'flex', alignItems: 'center', 
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
         height: 56, px: { xs: 2, sm: 4 }, 
-        borderBottom: '1px solid #E0E0E0'
+        borderBottom: '1px solid #E0E0E0', gap: 2
       }}>
-        <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
+        <RestaurantLogo
+          logoUrl={config.logo_url}
+          restaurantName={config.restaurant?.name}
+          size={36}
+        />
+        <Typography variant="h6">
           {config.restaurant.name}
         </Typography>
       </Box>

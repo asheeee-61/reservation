@@ -51,6 +51,10 @@ class SettingsController extends Controller
             ? asset('storage/' . $setting->menu_pdf)
             : null;
 
+        $logoUrl = $setting->logo
+            ? asset('storage/' . $setting->logo)
+            : null;
+
         return response()->json(array_merge($defaultConfig, $savedConfig, [
             'global_opening_time' => substr($setting->global_opening_time, 0, 5),
             'global_closing_time' => substr($setting->global_closing_time, 0, 5),
@@ -62,6 +66,7 @@ class SettingsController extends Controller
             'google_maps_link' => $setting->google_maps_link,
             'menu_pdf_url' => $menuPdfUrl,
             'reservation_link' => $setting->reservation_link,
+            'logo_url' => $logoUrl,
         ]));
     }
 
@@ -79,6 +84,7 @@ class SettingsController extends Controller
                 'google_maps_link'    => 'nullable|url|max:500',
                 'reservation_link'    => 'nullable|string|max:500',
                 'menu_pdf'            => 'nullable|file|mimes:pdf|max:51200',
+                'logo'                => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
             ]);
 
             $setting = Setting::firstOrCreate([], [
@@ -105,10 +111,18 @@ class SettingsController extends Controller
                 $setting->menu_pdf = $path;
             }
 
+            if ($request->hasFile('logo')) {
+                if ($setting->logo && Storage::disk('public')->exists($setting->logo)) {
+                    Storage::disk('public')->delete($setting->logo);
+                }
+                $path = $request->file('logo')->store('logos', 'public');
+                $setting->logo = $path;
+            }
+
             $setting->save();
         }
 
-        $configData = $request->except(['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf']);
+        $configData = $request->except(['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf', 'logo']);
         Storage::put('config.json', json_encode($configData, JSON_PRETTY_PRINT));
         \Illuminate\Support\Facades\Cache::forget('config.json');
 

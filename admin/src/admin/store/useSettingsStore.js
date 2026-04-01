@@ -32,6 +32,7 @@ export const useSettingsStore = create((set) => ({
           google_maps_link: data.google_maps_link || '',
           menu_pdf_url: data.menu_pdf_url || '',
           reservation_link: data.reservation_link || '',
+          logo_url: data.logo_url || '',
         },
         globalSettings: {
           minGuests: data.minGuests || 1,

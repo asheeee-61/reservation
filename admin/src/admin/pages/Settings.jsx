@@ -5,7 +5,8 @@ import {
   DialogContent, DialogActions 
 } from '@mui/material';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { apiClient, API_BASE_URL } from '../services/apiClient';
+import { apiClient, API_BASE_URL, clearCache } from '../services/apiClient';
+import RestaurantLogo from '../../shared/RestaurantLogo';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 
 const INTERVAL_OPTIONS = [15, 30, 45, 60, 90, 120];
@@ -25,15 +26,6 @@ export default function Settings() {
     return h * 60 + m;
   };
 
-  const getInitials = (name) => {
-    if (!name) return '??';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) {
-      return name.substring(0, 2).toUpperCase();
-    }
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
-
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -46,6 +38,8 @@ export default function Settings() {
   const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
   const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', restaurantPhone: '', reviewLink: '' });
   const [localLinks, setLocalLinks] = useState({ googleMapsLink: '', menuPdfUrl: '', menuPdfFile: null, reservationLink: '' });
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
   const [savingGlobal, setSavingGlobal] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
   const [conflictModalOpen, setConflictModalOpen] = useState(false);
@@ -76,6 +70,7 @@ export default function Settings() {
         menuPdfFile: null,
         reservationLink: globalHours.reservation_link || ''
       });
+      setLogoPreview(globalHours.logo_url || '');
     }
   }, [globalHours]);
 
@@ -93,6 +88,7 @@ export default function Settings() {
         maxGuests: data.maxGuests || 10,
         totalCapacity: data.totalCapacity || 40
       });
+      setLogoPreview(data.logo_url || '');
       setLoading(false);
     } catch (e) {
       console.error(e);
@@ -193,6 +189,9 @@ export default function Settings() {
       if (localLinks.menuPdfFile) {
         formData.append('menu_pdf', localLinks.menuPdfFile);
       }
+      if (logoFile) {
+        formData.append('logo', logoFile);
+      }
 
       const token = localStorage.getItem('admin_token');
       const response = await fetch(`${API_BASE_URL}/admin/config`, {
@@ -206,18 +205,10 @@ export default function Settings() {
 
       if (!response.ok) throw new Error('Failed to save');
 
-      useSettingsStore.getState().setGlobalHours({
-        ...localGlobal,
-        whatsapp_phone: localContact.whatsappPhone,
-        instagram_username: localContact.instagramUsername,
-        restaurant_phone: localContact.restaurantPhone,
-        review_link: localContact.reviewLink,
-        google_maps_link: localLinks.googleMapsLink,
-        menu_pdf_url: localLinks.menuPdfUrl,
-        reservation_link: localLinks.reservationLink,
-      });
-
+      clearCache('/config');
+      setLogoFile(null);
       setLocalLinks(prev => ({ ...prev, menuPdfFile: null }));
+      await fetchConfig();
       setToastMessage("Información de contacto guardada");
       setToastOpen(true);
       setTimeout(() => setToastOpen(false), 2000);
@@ -295,17 +286,43 @@ export default function Settings() {
       {/* Restaurant Identity Card */}
       <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', mb: '16px', display: 'flex', flexDirection: 'row', gap: '24px', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Box sx={{ 
-            width: 96, height: 96, borderRadius: '50%',
-            bgcolor: '#1A73E8', color: 'white',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Roboto', fontWeight: 500, fontSize: '36px', mb: '8px'
-          }}>
-            {getInitials(config.restaurant?.name)}
-          </Box>
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', textAlign: 'center' }}>
+          <RestaurantLogo
+            logoUrl={logoPreview}
+            restaurantName={config.restaurant?.name}
+            size={96}
+          />
+          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', textAlign: 'center', mt: '8px' }}>
             Logo del restaurante
           </Typography>
+          <input
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                  setToastMessage("El archivo no debe superar 2MB");
+                  setToastOpen(true);
+                  setTimeout(() => setToastOpen(false), 3000);
+                  e.target.value = '';
+                  return;
+                }
+                setLogoFile(file);
+                setLogoPreview(URL.createObjectURL(file));
+              }
+            }}
+            style={{ display: 'none' }}
+            id="logo-upload"
+          />
+          <label htmlFor="logo-upload">
+            <Button
+              size="small"
+              component="span"
+              sx={{ mt: '4px', color: '#1A73E8', fontFamily: 'Roboto', fontSize: '12px', textTransform: 'none', p: '4px 8px' }}
+            >
+              {logoPreview ? 'Cambiar' : 'Subir'}
+            </Button>
+          </label>
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
@@ -315,7 +332,7 @@ export default function Settings() {
             {config.restaurant?.address || ''}
           </Typography>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '12px' }}>
-            Las iniciales se generan automáticamente desde el nombre del restaurante
+            {!logoPreview ? 'Las iniciales se generan automáticamente desde el nombre' : 'Logo personalizado'}
           </Typography>
         </Box>
       </Paper>

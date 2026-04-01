@@ -60,3 +60,11 @@ export const apiClient = async (endpoint, options = {}) => {
 
   return result;
 };
+
+export const clearCache = (endpoint) => {
+  if (endpoint) {
+    cache.delete(endpoint);
+  } else {
+    cache.clear();
+  }
+};

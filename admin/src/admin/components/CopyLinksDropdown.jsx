@@ -2,6 +2,16 @@ import { useState, useRef, useEffect } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { useSettingsStore } from '../store/useSettingsStore';
 
+const formatWhatsAppLink = (phone) => {
+  if (!phone) return '';
+  return `https://wa.me/${phone.replace(/[\s+]/g, '')}`;
+};
+
+const formatInstagramLink = (username) => {
+  if (!username) return '';
+  return `https://instagram.com/${username.replace('@', '')}`;
+};
+
 export default function CopyLinksDropdown() {
   const [open, setOpen] = useState(false);
   const [copiedType, setCopiedType] = useState(null);
@@ -10,6 +20,11 @@ export default function CopyLinksDropdown() {
   const googleMapsLink = globalHours?.google_maps_link || '';
   const reservationLink = globalHours?.reservation_link || '';
   const menuPdfUrl = globalHours?.menu_pdf_url || '';
+  const whatsappPhone = globalHours?.whatsapp_phone || '';
+  const instagramUsername = globalHours?.instagram_username || '';
+
+  const whatsappLink = formatWhatsAppLink(whatsappPhone);
+  const instagramLink = formatInstagramLink(instagramUsername);
 
   useEffect(() => {
     const handler = (e) => {
@@ -58,6 +73,18 @@ export default function CopyLinksDropdown() {
       icon: 'menu_book',
       url: menuPdfUrl,
       type: 'menu',
+    },
+    {
+      label: 'Copiar enlace WhatsApp',
+      icon: 'chat',
+      url: whatsappLink,
+      type: 'whatsapp',
+    },
+    {
+      label: 'Copiar enlace Instagram',
+      icon: 'photo_camera',
+      url: instagramLink,
+      type: 'instagram',
     },
   ];
 

@@ -16,6 +16,7 @@ class Setting extends Model
         'review_link',
         'google_maps_link',
         'menu_pdf',
-        'reservation_link'
+        'reservation_link',
+        'logo',
     ];
 }

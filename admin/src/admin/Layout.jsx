@@ -2,17 +2,20 @@ import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Tooltip, IconButton } from '@mui/material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
+import { useSettingsStore } from './store/useSettingsStore';
 import { MOBILE, TABLET, DESKTOP } from './utils/breakpoints';
 import GlobalSearch from './components/GlobalSearch';
 import QuickActions from './components/QuickActions';
 import CopyLinksDropdown from './components/CopyLinksDropdown';
 import WhatsAppStatus from './components/WhatsAppStatus';
+import RestaurantLogo from '../shared/RestaurantLogo';
 import { ConfirmModal } from './components/ConfirmModal';
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore(state => state.logout);
+  const globalHours = useSettingsStore(state => state.globalHours);
   const [logoutModal, setLogoutModal] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
@@ -75,18 +78,20 @@ export default function Layout() {
         <Box sx={{
           display: 'flex', alignItems: 'center', height: 56, minHeight: 56,
           borderBottom: '1px solid #E0E0E0', 
-          [DESKTOP]: { p: '0 16px', justifyContent: 'flex-start' },
+          [DESKTOP]: { p: '0 16px', justifyContent: 'flex-start', gap: 1.5 },
           [TABLET]: { justifyContent: 'center' },
           [MOBILE]: { justifyContent: 'center' }
         }}>
+          <RestaurantLogo
+            logoUrl={globalHours?.logo_url}
+            restaurantName="Hotaru Madrid"
+            size={32}
+          />
           <Typography component="div" sx={{ 
-            fontFamily: 'Roboto', fontWeight: 500, color: '#1A73E8',
-            [DESKTOP]: { fontSize: '14px', color: '#202124' },
-            [TABLET]: { fontSize: '16px' },
-            [MOBILE]: { fontSize: '16px' }
+            fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124',
+            display: 'none', [DESKTOP]: { display: 'block' }
           }}>
-            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>Panel de administración</Box>
-            <Box sx={{ display: 'block', [DESKTOP]: { display: 'none' } }}>R</Box>
+            Panel de administración
           </Typography>
         </Box>
 

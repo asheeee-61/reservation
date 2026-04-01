@@ -16,7 +16,8 @@ export const getConfig = async () => {
         name: "Hotaru Madrid",
         address: "Calle de Alcalá 99, 28009 Madrid",
         lat: 40.4214, lng: -3.6846
-      }
+      },
+      logo_url: null,
     };
   }
 };
