@@ -59,7 +59,7 @@
   <div class="details-row">
     <span class="details-label">Zona</span>
     <span class="details-value">
-      {{ $reservation->tableType->name ?? 'General' }}
+      {{ $reservation->zone->name ?? 'General' }}
     </span>
   </div>
   <div class="details-row">

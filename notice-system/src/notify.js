@@ -127,7 +127,7 @@ router.post('/confirmed', async (req, res) => {
 
 // 4. Status update (General confirmation)
 router.post('/new-reservation', async (req, res) => {
-    const { reservation, customer, tableType, specialEvent, adminPhone } = req.body;
+    const { reservation, customer, zone, event, adminPhone } = req.body;
 
     if (!reservation || !customer) {
         return res.status(400).json({ error: 'Missing reservation or customer data' });
@@ -140,8 +140,8 @@ router.post('/new-reservation', async (req, res) => {
         guests: reservation.guests,
         customerName: customer.name,
         customerPhone: customer.phone,
-        tableType: tableType ? tableType.name : null,
-        specialEvent: specialEvent ? specialEvent.name : null
+        tableType: zone ? zone.name : null,
+        specialEvent: event ? event.name : null
     };
 
     try {

@@ -16,6 +16,8 @@ import { useToast } from '../components/Toast/ToastContext';
 import { TableSkeleton, PageHeaderSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { CircularProgress } from '@mui/material';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -44,6 +46,10 @@ export default function Reservations() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [selectedResId, setSelectedResId] = useState(null);
 
   const fetchReservations = useCallback(async (p = page, pp = perPage, search = searchTerm, status = statusFilter, signal) => {
     setLoading(true);
@@ -69,8 +75,17 @@ export default function Reservations() {
     return () => controller.abort();
   }, [page, perPage, searchTerm, statusFilter, fetchReservations]);
 
-  const handleStatusChange = async (id, newStatus) => {
+  const handleStatusChange = async (id, newStatus, reason = null) => {
+    if (newStatus === 'CANCELADA' && !reason) {
+      setSelectedResId(id);
+      setCancelModalOpen(true);
+      return;
+    }
+
+    setStatusUpdatingId(id);
     const previous = [...reservations];
+    
+    // Optimistic update
     setReservations(prev => prev.map(res => 
       res.id === id ? { ...res, status: newStatus } : res
     ));
@@ -78,13 +93,25 @@ export default function Reservations() {
     try {
       await apiClient(`/admin/reservations/${id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ 
+          status: newStatus,
+          cancellation_reason: reason
+        })
       });
       toast.success('Estado actualizado correctamente');
     } catch (e) {
       toast.error('Error al actualizar el estado');
       setReservations(previous);
+    } finally {
+      setStatusUpdatingId(null);
     }
+  };
+
+  const handleCancelConfirm = () => {
+    handleStatusChange(selectedResId, 'CANCELADA', cancelReason || 'Cancelada por el administrador');
+    setCancelModalOpen(false);
+    setCancelReason('');
+    setSelectedResId(null);
   };
 
   const handleSearchChange = (e) => {
@@ -273,10 +300,11 @@ export default function Reservations() {
                     const sKey = res.status?.toUpperCase() || 'PENDIENTE';
                     const colors = STATUS_COLORS[sKey] || { bg: '#F1F3F4', text: '#5F6368' };
                     return (
-                      <FormControl size="small" variant="standard" sx={{ m: 0, p: 0 }}>
+                      <FormControl size="small" variant="standard" sx={{ m: 0, p: 0, position: 'relative' }}>
                         <Select
                           value={sKey}
                           onChange={(e) => handleStatusChange(res.id, e.target.value)}
+                          disabled={statusUpdatingId === res.id}
                           disableUnderline
                           sx={{ 
                             bgcolor: colors.bg, 
@@ -288,6 +316,7 @@ export default function Reservations() {
                             fontFamily: 'Roboto', 
                             fontWeight: 500, 
                             fontSize: '12px',
+                            opacity: statusUpdatingId === res.id ? 0.7 : 1,
                             '& .MuiSelect-select': { 
                               paddingTop: '4px !important',
                               paddingBottom: '4px !important',
@@ -318,6 +347,11 @@ export default function Reservations() {
                             </MenuItem>
                           ))}
                         </Select>
+                        {statusUpdatingId === res.id && (
+                          <Box sx={{ position: 'absolute', right: -25, top: 4 }}>
+                            <CircularProgress size={16} sx={{ color: colors.text }} />
+                          </Box>
+                        )}
                       </FormControl>
                     );
                   })() || <Box component="span" sx={{ color: '#BDBDBD' }}>—</Box>}
@@ -488,6 +522,25 @@ export default function Reservations() {
       >
         <span className="material-icons">add</span>
       </Fab>
+
+      <ConfirmModal 
+        open={cancelModalOpen}
+        title="Cancelar reserva"
+        body="¿Seguro que deseas cancelar esta reserva? Esta acción no se puede deshacer."
+        confirmLabel="Cancelar Reserva"
+        confirmColor="#D93025"
+        confirmDisabled={statusUpdatingId !== null}
+        showInput={true}
+        inputValue={cancelReason}
+        onInputChange={setCancelReason}
+        inputPlaceholder="Motivo (opcional — se enviará al cliente)"
+        onCancel={() => {
+          setCancelModalOpen(false);
+          setCancelReason('');
+          setSelectedResId(null);
+        }}
+        onConfirm={handleCancelConfirm}
+      />
     </Box>
   );
 }

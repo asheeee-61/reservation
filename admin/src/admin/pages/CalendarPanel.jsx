@@ -14,6 +14,7 @@ import { useSettingsStore } from '../store/useSettingsStore';
 import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import ReservationFormModal from '../components/ReservationFormModal';
 import { useToast } from '../components/Toast/ToastContext';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 // --- CONSTANTS ---
 const STATUS_COLORS = {
@@ -995,93 +996,23 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
           </Box>
         </Box>
       </SwipeableDrawer>
-
-
-
-      {/* Cancellation Confirmation Dialog */}
-      <Dialog 
-        open={confirmCancelOpen} 
-        onClose={() => setConfirmCancelOpen(false)}
-        PaperProps={{
-          sx: {
-            width: '100%',
-            maxWidth: '400px',
-            bgcolor: '#FFFFFF',
-            borderRadius: '4px',
-            p: '24px',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-            m: '16px'
-          }
+      <ConfirmModal 
+        open={confirmCancelOpen}
+        title="Cancelar reserva"
+        body={<>¿Seguro que deseas cancelar esta reserva?<br/>Esta acción no se puede deshacer.</>}
+        confirmLabel={loading ? 'Guardando...' : 'CANCELAR RESERVA'}
+        confirmColor="#D93025"
+        confirmDisabled={loading}
+        showInput={true}
+        inputValue={cancelReason}
+        onInputChange={setCancelReason}
+        inputPlaceholder="Ej: Cierre por evento privado..."
+        onCancel={() => {
+          setConfirmCancelOpen(false);
+          setCancelReason('');
         }}
-      >
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124' }}>
-          Cancelar reserva
-        </Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px' }}>
-          ¿Seguro que deseas cancelar esta reserva?<br/>
-          Esta acción no se puede deshacer.
-        </Typography>
-
-        <div style={{ marginTop: 16 }}>
-          <label style={{
-            fontFamily:    'Roboto, sans-serif',
-            fontSize:      12,
-            fontWeight:    500,
-            color:         '#70757A',
-            textTransform: 'uppercase',
-            letterSpacing: '1.5px',
-            display:       'block',
-            marginBottom:  6,
-          }}>
-            Motivo (opcional — se enviará al cliente)
-          </label>
-          <input
-            value={cancelReason}
-            onChange={e => setCancelReason(e.target.value)}
-            placeholder="Ej: Cierre por evento privado..."
-            maxLength={100}
-            style={{
-              width:        '100%',
-              height:       44,
-              border:       '1px solid #DADCE0',
-              borderRadius: 4,
-              padding:      '0 12px',
-              fontSize:     14,
-              fontFamily:   'Roboto, sans-serif',
-              color:        '#202124',
-              outline:      'none',
-              boxSizing:    'border-box',
-            }}
-          />
-        </div>
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
-          <Button 
-            onClick={() => setConfirmCancelOpen(false)}
-            variant="outlined"
-            disabled={loading}
-            sx={{ 
-              height: 36, px: '24px', borderRadius: '4px', border: '1px solid #DADCE0', 
-              color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase'
-            }}
-          >
-            VOLVER
-          </Button>
-          <Button 
-            onClick={() => handleStatusUpdate('CANCELADA', cancelReason || null)}
-            variant="contained"
-            disabled={loading}
-            sx={{ 
-              height: 36, px: '24px', borderRadius: '4px', bgcolor: '#D93025', 
-              color: '#FFFFFF', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase',
-              boxShadow: 'none',
-              '&:hover': { bgcolor: '#B3261E', boxShadow: 'none' }
-            }}
-          >
-            {loading ? 'Guardando...' : 'CANCELAR RESERVA'}
-          </Button>
-        </Box>
-      </Dialog>
+        onConfirm={() => handleStatusUpdate('CANCELADA', cancelReason || null)}
+      />
     </>
   );
 }

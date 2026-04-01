@@ -28,7 +28,7 @@ const formatClientConfirmation = (data) => {
 Fecha: ${date}
 Hora: ${time}
 Personas: ${guests}
-Mesa: ${tableType || 'Estándar'}
+Zona: ${tableType || 'Estándar'}
 Evento: ${specialEvent || 'Ninguno'}
 Referencia: #${id}
 Le confirmaremos en breve. Muchas gracias.`;
@@ -41,7 +41,7 @@ Cliente: ${customerName} (${customerPhone})
 Fecha: ${date}
 Hora: ${time}
 Pax: ${guests}
-Mesa: ${tableType || 'Estándar'}
+Zona: ${tableType || 'Estándar'}
 Evento: ${specialEvent || 'Ninguno'}
 Estado: Pendiente de confirmación`;
 };

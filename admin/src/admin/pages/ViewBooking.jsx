@@ -46,6 +46,7 @@ export default function ViewBooking() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
   const toast = useToast();
   const [activities, setActivities] = useState([]);
 
@@ -73,6 +74,12 @@ export default function ViewBooking() {
 
 
   const handleStatusUpdate = async (newStatus, reason = null) => {
+    if (newStatus === 'CANCELADA' && !reason) {
+      setCancelModalOpen(true);
+      return;
+    }
+
+    setStatusLoading(true);
     try {
       const response = await apiClient(`/admin/reservations/${resData.id}/status`, {
         method: 'PATCH',
@@ -83,6 +90,7 @@ export default function ViewBooking() {
       });
       
       setResData(response.data);
+      toast.success('Estado actualizado');
       if (response.data.activities) {
         setActivities(response.data.activities.map(a => ({
           id: a.id,
@@ -92,7 +100,8 @@ export default function ViewBooking() {
       }
     } catch (e) {
       toast.error('Error al actualizar el estado');
-      throw e;
+    } finally {
+      setStatusLoading(false);
     }
   };
 
@@ -168,10 +177,11 @@ export default function ViewBooking() {
                   Editar
                 </Button>
 
-                <FormControl size="small" variant="standard" sx={{ minWidth: 140 }}>
+                <FormControl size="small" variant="standard" sx={{ minWidth: 140, position: 'relative' }}>
                   <Select
                     value={currentStatus}
                     onChange={(e) => handleStatusUpdate(e.target.value)}
+                    disabled={statusLoading}
                     disableUnderline
                     sx={{ 
                       '& .MuiSelect-select': { 
@@ -183,7 +193,8 @@ export default function ViewBooking() {
                         fontSize: '13px',
                         fontWeight: 600,
                         fontFamily: 'Roboto',
-                        textTransform: 'uppercase'
+                        textTransform: 'uppercase',
+                        opacity: statusLoading ? 0.7 : 1
                       },
                       '& .MuiSvgIcon-root': { color: statusColors.text }
                     }}
@@ -210,6 +221,11 @@ export default function ViewBooking() {
                       </MenuItem>
                     ))}
                   </Select>
+                  {statusLoading && (
+                    <Box sx={{ position: 'absolute', right: -25, top: 4 }}>
+                      <CircularProgress size={16} sx={{ color: statusColors.text }} />
+                    </Box>
+                  )}
                 </FormControl>
               </Stack>
             </Box>
