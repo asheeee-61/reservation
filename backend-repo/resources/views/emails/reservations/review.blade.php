@@ -28,6 +28,8 @@
 
 @section('actions')
     @if(!empty($settings['review_url']))
-    <a href="{{ $settings['review_url'] }}" class="btn btn-primary" style="display: inline-block; padding: 10px 24px; border-radius: 24px; font-size: 14px; font-weight: 500; text-decoration: none; margin: 4px; border: 1px solid #1a73e8; color: #ffffff; background-color: #1a73e8;">Dejar una reseña</a>
+    <a href="{{ $settings['review_url'] }}" class="btn btn-primary" style="display: inline-block; padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 500; text-decoration: none; margin: 4px; border: 1px solid #1a73e8; color: #ffffff; background-color: #1a73e8;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor; vertical-align: text-bottom; margin-right: 6px;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/></svg>Dejar una reseña
+    </a>
     @endif
 @endsection

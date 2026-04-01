@@ -156,11 +156,16 @@
                     @endif
 
                     <!-- Actions Section -->
+                    @hasSection('actions')
                     <tr>
                         <td class="actions-section" style="padding: 0 24px 32px; text-align: center;">
+                            <div style="margin-bottom: 16px;">
+                                <span style="font-size: 13px; font-weight: 600; color: #5f6368; text-transform: uppercase; letter-spacing: 0.5px;">Acciones rápidas</span>
+                            </div>
                             @yield('actions')
                         </td>
                     </tr>
+                    @endif
                 </table>
                 
                 <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
