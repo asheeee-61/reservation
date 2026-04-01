@@ -77,58 +77,62 @@ class SettingsController extends Controller
 
     public function updateConfig(Request $request)
     {
-        if ($request->has('global_opening_time') && $request->has('global_closing_time') && $request->has('default_interval')) {
-            $request->validate([
-                'global_opening_time' => 'required|date_format:H:i',
-                'global_closing_time' => 'required|date_format:H:i',
-                'default_interval'    => 'required|integer|in:15,30,45,60,90,120',
-                'whatsapp_phone'      => 'nullable|string|max:20',
-                'instagram_username'  => 'nullable|string|max:100',
-                'restaurant_phone'    => 'nullable|string|max:20',
-                'review_link'         => 'nullable|string|max:500',
-                'google_maps_link'    => 'nullable|url|max:500',
-                'reservation_link'    => 'nullable|string|max:500',
-                'menu_pdf'            => 'nullable|file|mimes:pdf|max:51200',
-                'logo'                => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
-            ]);
+        $request->validate([
+            'global_opening_time' => 'nullable|date_format:H:i',
+            'global_closing_time' => 'nullable|date_format:H:i',
+            'default_interval'    => 'nullable|integer|in:15,30,45,60,90,120',
+            'whatsapp_phone'      => 'nullable|string|max:20',
+            'instagram_username'  => 'nullable|string|max:100',
+            'restaurant_phone'    => 'nullable|string|max:20',
+            'review_link'         => 'nullable|string|max:500',
+            'google_maps_link'    => 'nullable|string|max:500',
+            'reservation_link'    => 'nullable|string|max:500',
+            'menu_pdf'            => 'nullable|file|mimes:pdf|max:51200',
+            'logo'                => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
 
-            $setting = Setting::firstOrCreate([], [
-                'global_opening_time' => '09:00:00',
-                'global_closing_time' => '00:00:00',
-                'default_interval' => 30
-            ]);
-            
-            $setting->global_opening_time = $request->global_opening_time . ':00';
-            $setting->global_closing_time = $request->global_closing_time . ':00';
-            $setting->default_interval = $request->default_interval;
-            $setting->whatsapp_phone = $request->whatsapp_phone;
-            $setting->instagram_username = $request->instagram_username;
-            $setting->restaurant_phone = $request->restaurant_phone;
-            $setting->review_link = $request->review_link;
-            $setting->google_maps_link = $request->google_maps_link;
-            $setting->reservation_link = $request->reservation_link;
+        $setting = Setting::firstOrCreate([], [
+            'global_opening_time' => '09:00:00',
+            'global_closing_time' => '00:00:00',
+            'default_interval' => 30
+        ]);
 
-            if ($request->hasFile('menu_pdf')) {
-                if ($setting->menu_pdf && Storage::disk('public')->exists($setting->menu_pdf)) {
-                    Storage::disk('public')->delete($setting->menu_pdf);
-                }
-                $path = $request->file('menu_pdf')->store('menus', 'public');
-                $setting->menu_pdf = $path;
+        if ($request->has('global_opening_time')) $setting->global_opening_time = $request->global_opening_time . ':00';
+        if ($request->has('global_closing_time')) $setting->global_closing_time = $request->global_closing_time . ':00';
+        if ($request->has('default_interval')) $setting->default_interval = $request->default_interval;
+        if ($request->has('whatsapp_phone')) $setting->whatsapp_phone = $request->whatsapp_phone;
+        if ($request->has('instagram_username')) $setting->instagram_username = $request->instagram_username;
+        if ($request->has('restaurant_phone')) $setting->restaurant_phone = $request->restaurant_phone;
+        if ($request->has('review_link')) $setting->review_link = $request->review_link;
+        if ($request->has('google_maps_link')) $setting->google_maps_link = $request->google_maps_link;
+        if ($request->has('reservation_link')) $setting->reservation_link = $request->reservation_link;
+
+        if ($request->hasFile('menu_pdf')) {
+            if ($setting->menu_pdf && Storage::disk('public')->exists($setting->menu_pdf)) {
+                Storage::disk('public')->delete($setting->menu_pdf);
             }
-
-            if ($request->hasFile('logo')) {
-                if ($setting->logo && Storage::disk('public')->exists($setting->logo)) {
-                    Storage::disk('public')->delete($setting->logo);
-                }
-                $path = $request->file('logo')->store('logos', 'public');
-                $setting->logo = $path;
-            }
-
-            $setting->save();
+            $path = $request->file('menu_pdf')->store('menus', 'public');
+            $setting->menu_pdf = $path;
         }
 
-        $configData = $request->except(['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf', 'logo']);
-        Storage::put('config.json', json_encode($configData, JSON_PRETTY_PRINT));
+        if ($request->hasFile('logo')) {
+            if ($setting->logo && Storage::disk('public')->exists($setting->logo)) {
+                Storage::disk('public')->delete($setting->logo);
+            }
+            $path = $request->file('logo')->store('logos', 'public');
+            $setting->logo = $path;
+        }
+
+        $setting->save();
+
+        // Handle additional config fields stored in config.json
+        $configKeys = ['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf', 'logo', 'whatsapp_phone', 'instagram_username', 'restaurant_phone', 'review_link', 'google_maps_link', 'reservation_link'];
+        
+        $currentConfig = Storage::exists('config.json') ? json_decode(Storage::get('config.json'), true) : [];
+        $newData = $request->except($configKeys);
+        
+        $updatedConfig = array_merge($currentConfig, $newData);
+        Storage::put('config.json', json_encode($updatedConfig, JSON_PRETTY_PRINT));
         \Illuminate\Support\Facades\Cache::forget('config.json');
 
         return response()->json(['success' => true]);

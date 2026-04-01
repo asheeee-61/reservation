@@ -164,13 +164,36 @@ export default function Settings() {
     }
   };
 
+  const uploadLogo = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
+      
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch(`${API_BASE_URL}/admin/config`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Error al subir logo');
+
+      clearCache('/config');
+      await fetchConfig();
+      await fetchGlobalHours();
+      toast.success("Logo actualizado exitosamente");
+    } catch (e) {
+      toast.error('Error al subir el logo: ' + e.message);
+    }
+  };
+
   const handleSaveContact = async () => {
     setSavingContact(true);
     try {
       const formData = new FormData();
-      formData.append('global_opening_time', localGlobal.openingTime);
-      formData.append('global_closing_time', localGlobal.closingTime);
-      formData.append('default_interval', localGlobal.defaultInterval);
       formData.append('whatsapp_phone', localContact.whatsappPhone);
       formData.append('instagram_username', localContact.instagramUsername);
       formData.append('restaurant_phone', localContact.restaurantPhone);
@@ -179,9 +202,6 @@ export default function Settings() {
       formData.append('reservation_link', localLinks.reservationLink);
       if (localLinks.menuPdfFile) {
         formData.append('menu_pdf', localLinks.menuPdfFile);
-      }
-      if (logoFile) {
-        formData.append('logo', logoFile);
       }
 
       const token = localStorage.getItem('admin_token');
@@ -197,7 +217,6 @@ export default function Settings() {
       if (!response.ok) throw new Error('Failed to save');
 
       clearCache('/config');
-      setLogoFile(null);
       setLocalLinks(prev => ({ ...prev, menuPdfFile: null }));
       await fetchConfig();
       await fetchGlobalHours();
@@ -269,9 +288,7 @@ export default function Settings() {
             restaurantName={config.restaurant?.name}
             size={96}
           />
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', textAlign: 'center', mt: '8px' }}>
-            Logo del restaurante
-          </Typography>
+
           <input
             type="file"
             accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -285,6 +302,7 @@ export default function Settings() {
                 }
                 setLogoFile(file);
                 setLogoPreview(URL.createObjectURL(file));
+                uploadLogo(file);
               }
             }}
             style={{ display: 'none' }}
@@ -307,9 +325,7 @@ export default function Settings() {
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '4px' }}>
             {config.restaurant?.address || ''}
           </Typography>
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '12px', color: '#70757A', mt: '12px' }}>
-            {!logoPreview ? 'Las iniciales se generan automáticamente desde el nombre' : 'Logo personalizado'}
-          </Typography>
+
         </Box>
       </Paper>
 
