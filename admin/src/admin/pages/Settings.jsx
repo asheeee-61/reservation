@@ -37,7 +37,7 @@ export default function Settings() {
   const globalHours = useSettingsStore(state => state.globalHours);
   
   const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
-  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', restaurantPhone: '', reviewLink: '' });
+  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', businessPhone: '', reviewLink: '' });
   const [localLinks, setLocalLinks] = useState({ googleMapsLink: '', menuPdfUrl: '', menuPdfFile: null, reservationLink: '' });
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
@@ -61,7 +61,7 @@ export default function Settings() {
       setLocalContact({
         whatsappPhone: globalHours.whatsapp_phone || '',
         instagramUsername: globalHours.instagram_username || '',
-        restaurantPhone: globalHours.restaurant_phone || '',
+        businessPhone: globalHours.business_phone || '',
         reviewLink: globalHours.review_link || ''
       });
       setLocalLinks({
@@ -83,7 +83,7 @@ export default function Settings() {
       const data = await apiClient('/config');
       setConfig({
         ...data,
-        restaurant: data.restaurant || { name: 'Hotaru Madrid', address: 'Calle de Alcalá 99' },
+        business: data.business || { name: 'Business', address: 'Calle de Alcalá 99' },
         minGuests: data.minGuests || 1,
         maxGuests: data.maxGuests || 10,
         totalCapacity: data.totalCapacity || 40
@@ -149,7 +149,7 @@ export default function Settings() {
           default_interval: localGlobal.defaultInterval,
           whatsapp_phone: localContact.whatsappPhone,
           instagram_username: localContact.instagramUsername,
-          restaurant_phone: localContact.restaurantPhone,
+          business_phone: localContact.businessPhone,
           review_link: localContact.reviewLink
         })
       });
@@ -196,7 +196,7 @@ export default function Settings() {
       const formData = new FormData();
       formData.append('whatsapp_phone', localContact.whatsappPhone);
       formData.append('instagram_username', localContact.instagramUsername);
-      formData.append('restaurant_phone', localContact.restaurantPhone);
+      formData.append('business_phone', localContact.businessPhone);
       formData.append('review_link', localContact.reviewLink);
       formData.append('google_maps_link', localLinks.googleMapsLink);
       formData.append('reservation_link', localLinks.reservationLink);
@@ -285,7 +285,7 @@ export default function Settings() {
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <RestaurantLogo
             logoUrl={logoPreview}
-            restaurantName={config.restaurant?.name}
+            restaurantName={config.business?.name}
             size={96}
           />
 
@@ -320,10 +320,10 @@ export default function Settings() {
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
-            {config.restaurant?.name || 'Restaurante'}
+            {config.business?.name || 'Negocio'}
           </Typography>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '4px' }}>
-            {config.restaurant?.address || ''}
+            {config.business?.address || ''}
           </Typography>
 
         </Box>
@@ -336,10 +336,10 @@ export default function Settings() {
         
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>
           <TextField
-            label="Nombre del restaurante"
+            label="Nombre del negocio"
             variant="outlined"
-            value={config.restaurant?.name || ''}
-            onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, name: e.target.value } })}
+            value={config.business?.name || ''}
+            onChange={(e) => setConfig({ ...config, business: { ...config.business, name: e.target.value } })}
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
             InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
             sx={{ flex: 1, minWidth: 200 }}
@@ -347,8 +347,8 @@ export default function Settings() {
           <TextField
             label="Dirección"
             variant="outlined"
-            value={config.restaurant?.address || ''}
-            onChange={(e) => setConfig({ ...config, restaurant: { ...config.restaurant, address: e.target.value } })}
+            value={config.business?.address || ''}
+            onChange={(e) => setConfig({ ...config, business: { ...config.business, address: e.target.value } })}
             InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
             InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
             sx={{ flex: 1, minWidth: 200 }}
@@ -372,7 +372,7 @@ export default function Settings() {
       {/* Contacto para Cancelaciones Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>INFORMACIÓN DE CONTACTO</Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Enlaces para que los clientes puedan contactar con el restaurante.</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '20px' }}>Enlaces para que los clientes puedan contactar con el negocio.</Typography>
         
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', mb: '24px' }}>
           <Box>
@@ -447,7 +447,7 @@ export default function Settings() {
               placeholder="https://maps.google.com/..."
               value={localLinks.googleMapsLink}
               onChange={(e) => setLocalLinks({ ...localLinks, googleMapsLink: e.target.value })}
-              helperText="Enlace directo a Google Maps del restaurante"
+              helperText="Enlace directo a Google Maps del negocio"
               InputProps={{ 
                 sx: { 
                   height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px',
@@ -657,7 +657,7 @@ export default function Settings() {
       {/* Capacidad Total Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>CAPACIDAD TOTAL</Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>Número máximo de personas que el restaurante puede atender simultáneamente.</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>Número máximo de personas que el negocio puede atender simultáneamente.</Typography>
 
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>
           <TextField

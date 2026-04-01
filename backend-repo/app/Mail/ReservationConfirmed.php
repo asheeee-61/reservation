@@ -23,7 +23,7 @@ class ReservationConfirmed extends Mailable
 
     public function envelope(): Envelope
     {
-        $name = Setting::first()?->restaurant_name ?? config('app.restaurant_name', 'Hotaru Madrid');
+        $name = Setting::first()?->business_name ?? config('app.name', 'Business');
         return new Envelope(
             subject: 'Reserva CONFIRMADA - ' . $name,
         );

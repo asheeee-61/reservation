@@ -98,7 +98,7 @@ export default function Layout() {
         }}>
           <RestaurantLogo
             logoUrl={globalHours?.logo_url}
-            restaurantName="Hotaru Madrid"
+            restaurantName="Business"
             size={32}
           />
           <Typography component="div" sx={{ 

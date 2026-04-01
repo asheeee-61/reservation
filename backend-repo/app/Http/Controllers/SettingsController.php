@@ -13,8 +13,8 @@ class SettingsController extends Controller
         $defaultConfig = [
             'maxGuests' => 10,
             'minGuests' => 1,
-            'restaurant' => [
-                'name' => 'Hotaru Madrid',
+            'business' => [
+                'name' => 'Business',
                 'address' => 'Calle de Alcalá 99, 28009 Madrid',
                 'lat' => 40.4214,
                 'lng' => -3.6846
@@ -65,13 +65,13 @@ class SettingsController extends Controller
             'default_interval' => $setting->default_interval,
             'whatsapp_phone' => $setting->whatsapp_phone,
             'instagram_username' => $setting->instagram_username,
-            'restaurant_phone' => $setting->restaurant_phone,
+            'business_phone' => $setting->business_phone,
             'review_link' => $setting->review_link,
             'google_maps_link' => $setting->google_maps_link,
             'menu_pdf_url' => $menuPdfUrl,
             'reservation_link' => $setting->reservation_link,
             'logo_url' => $logoUrl,
-            'restaurant_name' => $setting->restaurant_name,
+            'business_name' => $setting->business_name,
             'dayStatuses' => $dayStatuses
         ]));
     }
@@ -84,7 +84,7 @@ class SettingsController extends Controller
             'default_interval'    => 'nullable|integer|in:15,30,45,60,90,120',
             'whatsapp_phone'      => 'nullable|string|max:20',
             'instagram_username'  => 'nullable|string|max:100',
-            'restaurant_phone'    => 'nullable|string|max:20',
+            'business_phone'      => 'nullable|string|max:20',
             'review_link'         => 'nullable|string|max:500',
             'google_maps_link'    => 'nullable|string|max:500',
             'reservation_link'    => 'nullable|string|max:500',
@@ -101,10 +101,10 @@ class SettingsController extends Controller
         if ($request->has('global_opening_time')) $setting->global_opening_time = $request->global_opening_time . ':00';
         if ($request->has('global_closing_time')) $setting->global_closing_time = $request->global_closing_time . ':00';
         if ($request->has('default_interval')) $setting->default_interval = $request->default_interval;
-        if ($request->has('restaurant_name')) $setting->restaurant_name = $request->restaurant_name;
+        if ($request->has('business_name')) $setting->business_name = $request->business_name;
         if ($request->has('whatsapp_phone')) $setting->whatsapp_phone = $request->whatsapp_phone;
         if ($request->has('instagram_username')) $setting->instagram_username = $request->instagram_username;
-        if ($request->has('restaurant_phone')) $setting->restaurant_phone = $request->restaurant_phone;
+        if ($request->has('business_phone')) $setting->business_phone = $request->business_phone;
         if ($request->has('review_link')) $setting->review_link = $request->review_link;
         if ($request->has('google_maps_link')) $setting->google_maps_link = $request->google_maps_link;
         if ($request->has('reservation_link')) $setting->reservation_link = $request->reservation_link;
@@ -129,7 +129,7 @@ class SettingsController extends Controller
 
         // Handle additional config fields stored in config.json
         $configKeys = ['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf', 'logo',
-            'restaurant_name', 'whatsapp_phone', 'instagram_username', 'restaurant_phone',
+            'business_name', 'whatsapp_phone', 'instagram_username', 'business_phone',
             'review_link', 'google_maps_link', 'reservation_link'];
         
         $currentConfig = Storage::exists('config.json') ? json_decode(Storage::get('config.json'), true) : [];

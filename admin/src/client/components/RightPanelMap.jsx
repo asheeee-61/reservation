@@ -4,9 +4,9 @@ import { useReservationStore } from '../store/useReservationStore';
 export default function RightPanelMap() {
   const { config } = useReservationStore();
 
-  if (!config?.restaurant) return null;
+  if (!config?.business) return null;
 
-  const { lat, lng } = config.restaurant;
+  const { lat, lng } = config.business;
   
   // Create Google Maps embed URL
   const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;

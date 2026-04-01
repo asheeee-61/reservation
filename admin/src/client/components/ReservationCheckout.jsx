@@ -65,7 +65,7 @@ export default function ReservationCheckout({ onBack, onSuccess }) {
               <span className="material-icons">arrow_back</span>
             </IconButton>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography variant="subtitle2" color="primary" sx={{ mb: 1.5, fontSize: '14px', letterSpacing: '2px' }}>{config?.restaurant?.name || 'Restaurante'}</Typography>
+              <Typography variant="subtitle2" color="primary" sx={{ mb: 1.5, fontSize: '14px', letterSpacing: '2px' }}>{config?.business?.name || 'Negocio'}</Typography>
               <Typography variant="h5" fontWeight="bold" sx={{ fontSize: '24px', color: '#202124' }}>
                 Complete su reserva
               </Typography>

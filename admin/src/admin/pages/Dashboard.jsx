@@ -71,31 +71,6 @@ export default function Dashboard() {
     }
   };
 
-  const updateDayStatus = async (status, reason = null) => {
-    setTogglingStatus(true);
-    try {
-      await apiClient('/admin/day-status', {
-        method: 'PATCH',
-        body: JSON.stringify({ date: TODAY, status, reason }),
-      });
-      setDayStatus(status);
-      toast.success(`Día ${status.toLowerCase()}`);
-      fetchDashboardData();
-    } catch (e) {
-      toast.error('Error al actualizar el estado del día');
-    } finally {
-      setTogglingStatus(false);
-      setConfirmModal({ open: false, type: '', reason: '' });
-    }
-  };
-
-  const handleToggleClick = () => {
-    if (dayStatus === 'ABIERTO') {
-      setConfirmModal({ open: true, type: 'BLOQUEADO', reason: '' });
-    } else {
-      updateDayStatus('ABIERTO');
-    }
-  };
 
   // Derived stats
   const guestsToday = todayRes.reduce((s, r) => s + (r.guests || 0), 0);
@@ -210,26 +185,6 @@ export default function Dashboard() {
         {/* RIGHT — CONTROL PANEL */}
         <Box sx={{ width: { xs: '100%', lg: 280 }, display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* Origen de Reservas */}
-          <Paper sx={{ p: '20px', border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px' }}>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1px', mb: 2 }}>
-              Canales (hoy)
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {['web', 'manual', 'whatsapp'].map(src => {
-                const count = bySource[src]?.count || 0;
-                const pct = todayRes.length ? Math.round((count / todayRes.length) * 100) : 0;
-                return (
-                  <Box key={src} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <SourceBadge source={src} />
-                    <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', fontWeight: 500, color: '#202124' }}>
-                      {count} <span style={{ color: '#70757A', fontSize: '11px', fontWeight: 400 }}>({pct}%)</span>
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-          </Paper>
 
           {/* Alertas */}
           {alerts.length > 0 && (
@@ -251,18 +206,7 @@ export default function Dashboard() {
         </Box>
       </Box>
 
-      {/* Confirmation Modal */}
-      <ConfirmModal
-        open={confirmModal.open}
-        title="Cerrar día"
-        body="¿Motivo del cierre? No se permitirán nuevas reservas web."
-        showInput={confirmModal.type === 'BLOQUEADO'}
-        inputValue={confirmModal.reason}
-        onInputChange={(val) => setConfirmModal({ ...confirmModal, reason: val })}
-        confirmLabel="CERRAR DÍA"
-        onConfirm={() => updateDayStatus('BLOQUEADO', confirmModal.reason)}
-        onCancel={() => setConfirmModal({ open: false, type: '', reason: '' })}
-      />
+
     </Box>
   );
 }

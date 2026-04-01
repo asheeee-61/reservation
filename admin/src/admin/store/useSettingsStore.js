@@ -27,7 +27,7 @@ export const useSettingsStore = create((set) => ({
           defaultInterval: data.default_interval || 30,
           whatsapp_phone: data.whatsapp_phone || '',
           instagram_username: data.instagram_username || '',
-          restaurant_phone: data.restaurant_phone || '',
+          business_phone: data.business_phone || '',
           review_link: data.review_link || '',
           google_maps_link: data.google_maps_link || '',
           menu_pdf_url: data.menu_pdf_url || '',

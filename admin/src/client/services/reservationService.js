@@ -12,8 +12,8 @@ export const getConfig = async () => {
     // Fallback if backend is down
     return {
       maxGuests: 10, minGuests: 1,
-      restaurant: {
-        name: "Hotaru Madrid",
+      business: {
+        name: "Business",
         address: "Calle de Alcalá 99, 28009 Madrid",
         lat: 40.4214, lng: -3.6846
       },

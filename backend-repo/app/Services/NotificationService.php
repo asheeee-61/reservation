@@ -102,7 +102,7 @@ class NotificationService
         $settings = Setting::first();
         $adminPhone = $settings->restaurant_phone ?? config('notice.admin_phone');
         $reviewLink = $settings->review_link ?? config('notice.review_link', 'https://g.page/r/YOUR_RESTAURANT_ID/review');
-        $restaurantName = $settings->restaurant_name ?? config('app.restaurant_name', 'Hotaru Madrid');
+        $businessName = $settings->business_name ?? config('app.name', 'Business');
 
         return match($type) {
             'received' => array_merge($base, [
@@ -115,7 +115,7 @@ class NotificationService
                 'zone'           => $reservation->zone ? ['name' => $reservation->zone->name] : null,
                 'event'          => $reservation->event ? ['name' => $reservation->event->name] : null,
                 'adminPhone'     => $adminPhone,
-                'restaurantName' => $restaurantName,
+                'businessName' => $businessName,
             ]),
             'confirmed' => array_merge($base, [
                 'reservation' => [
@@ -124,22 +124,22 @@ class NotificationService
                     'time'   => $reservation->time,
                     'guests' => $reservation->guests,
                 ],
-                'restaurantName' => $restaurantName,
+                'businessName' => $businessName,
             ]),
             'cancelled' => array_merge($base, [
                 'reason'         => $reservation->cancellation_reason,
-                'restaurantName' => $restaurantName,
+                'businessName' => $businessName,
             ]),
             'reminder_2h' => array_merge($base, [
                 'reservation' => [
                     'date' => $reservation->date,
                     'time' => $reservation->time,
                 ],
-                'restaurantName' => $restaurantName,
+                'businessName' => $businessName,
             ]),
             'review' => array_merge($base, [
                 'reviewLink'     => $reviewLink,
-                'restaurantName' => $restaurantName,
+                'businessName' => $businessName,
             ]),
             default => $base
         };

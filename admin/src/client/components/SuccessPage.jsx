@@ -18,7 +18,7 @@ export default function SuccessPage() {
         textAlign: 'center', py: 4, width: '100%'
       }}>
         <Typography variant="subtitle2" color="primary" sx={{ mb: 3 }}>
-          {config?.restaurant?.name || 'Hotaru Madrid'}
+          {config?.business?.name || 'Business'}
         </Typography>
         <span className="material-icons" style={{ fontSize: 48, marginBottom: 16, color: '#1A73E8' }}>check_circle</span>
         

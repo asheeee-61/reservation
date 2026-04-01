@@ -6,7 +6,7 @@
       style="background: linear-gradient(135deg,
              #1A73E8 0%, #1557B0 100%);">
     <p class="header-restaurant">
-      {{ $restaurantName }}
+      {{ $businessName }}
     </p>
     <h1 class="header-title">
       Gracias por su visita
@@ -24,7 +24,7 @@
 </p>
 <p class="body-text">
   Esperamos que su visita a 
-  {{ $restaurantName }} 
+  {{ $businessName }} 
   haya sido de su agrado y que la experiencia 
   haya superado sus expectativas.
 </p>

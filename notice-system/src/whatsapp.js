@@ -70,8 +70,8 @@ client.on('ready', () => {
 });
 
 const formatClientMessage = (data) => {
-    const { id, date, time, guests, customerName, tableType, specialEvent } = data;
-    return `¡Hola ${customerName}! Hemos recibido tu reserva en Hotaru Madrid.
+    const { id, date, time, guests, customerName, tableType, specialEvent, businessName = 'Business' } = data;
+    return `¡Hola ${customerName}! Hemos recibido tu reserva en ${businessName}.
 📅 ${date} · 🕐 ${time} · 👥 ${guests} personas
 🪑 ${tableType || 'Estándar'} · 🎉 ${specialEvent || 'Ninguno'}
 Referencia: #${id}

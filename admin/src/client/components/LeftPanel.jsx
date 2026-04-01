@@ -217,18 +217,18 @@ export default function LeftPanel({ onAutoAdvance }) {
       }}>
         <RestaurantLogo
           logoUrl={config.logo_url}
-          restaurantName={config.restaurant?.name}
+          restaurantName={config.business?.name}
           size={36}
         />
         <Typography variant="h6">
-          {config.restaurant.name}
+          {config.business.name}
         </Typography>
       </Box>
 
       <Box sx={{ p: { xs: 3, sm: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4 } }}>
         <Box>
           <Typography variant="body2" sx={{ mb: 2, color: '#70757A', fontSize: '14px' }}>
-            {config.restaurant.address}
+            {config.business.address}
           </Typography>
           <Typography variant="body2" sx={{ mb: 1, color: '#202124', fontSize: '15px', fontWeight: 500 }}>
             Elija el número de personas, la fecha y la hora.

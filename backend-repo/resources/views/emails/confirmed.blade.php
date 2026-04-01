@@ -6,7 +6,7 @@
       style="background: linear-gradient(135deg,
              #1A73E8 0%, #1557B0 100%);">
     <p class="header-restaurant">
-      {{ $restaurantName }}
+      {{ $businessName }}
     </p>
     <h1 class="header-title">Reserva confirmada</h1>
     <p class="header-subtitle">
@@ -23,7 +23,7 @@
 </p>
 <p class="body-text">
   Nos complace confirmarle su reserva en 
-  {{ $restaurantName }}.
+  {{ $businessName }}.
   Todo esta listo para recibirle y esperamos 
   que disfrute de una experiencia excepcional.
 </p>

@@ -10,9 +10,9 @@ class RestaurantNameComposer
     public function compose(View $view): void
     {
         $setting = Setting::first();
-        $restaurantName = $setting?->restaurant_name
-            ?? config('app.restaurant_name', 'Hotaru Madrid');
+        $businessName = $setting?->business_name
+            ?? config('app.name', 'Business');
 
-        $view->with('restaurantName', $restaurantName);
+        $view->with('businessName', $businessName);
     }
 }
