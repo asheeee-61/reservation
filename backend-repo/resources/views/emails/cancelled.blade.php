@@ -6,7 +6,7 @@
       style="background: linear-gradient(135deg,
              #1A73E8 0%, #1557B0 100%);">
     <p class="header-restaurant">
-      {{ config('app.restaurant_name', 'Hotaru Madrid') }}
+      {{ $restaurantName }}
     </p>
     <h1 class="header-title">Reserva cancelada</h1>
     <p class="header-subtitle">
@@ -23,7 +23,7 @@
 </p>
 <p class="body-text">
   Lamentamos informarle que su reserva en 
-  {{ config('app.restaurant_name', 'Hotaru Madrid') }}
+  {{ $restaurantName }}
   ha sido cancelada por nuestra parte. 
   Le pedimos disculpas por los inconvenientes causados.
 </p>

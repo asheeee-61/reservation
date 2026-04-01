@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
-  <title>{{ config('app.restaurant_name', 'Hotaru Madrid') }}</title>
+  <title>{{ $restaurantName }}</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -304,7 +304,7 @@
           <p class="sign-off">
             Un saludo,<br>
             <span class="sign-off-name">
-              {{ config('app.restaurant_name', 'Hotaru Madrid') }}
+              {{ $restaurantName }}
             </span>
           </p>
         </td>
@@ -316,7 +316,7 @@
           <p class="footer-text">
             Este mensaje ha sido enviado por 
             <strong>
-              {{ config('app.restaurant_name', 'Hotaru Madrid') }}
+              {{ $restaurantName }}
             </strong>
             en relacion a su reserva.<br>
             Si no ha realizado ninguna reserva, 

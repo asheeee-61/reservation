@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Box, Typography, Tooltip, IconButton } from '@mui/material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
@@ -8,8 +8,10 @@ import GlobalSearch from './components/GlobalSearch';
 import QuickActions from './components/QuickActions';
 import CopyLinksDropdown from './components/CopyLinksDropdown';
 import WhatsAppStatus from './components/WhatsAppStatus';
+import DayStatusButton from './components/DayStatusButton';
 import RestaurantLogo from '../shared/RestaurantLogo';
 import { ConfirmModal } from './components/ConfirmModal';
+import { apiClient } from '../shared/api';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -19,11 +21,17 @@ export default function Layout() {
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const [logoutModal, setLogoutModal] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [dayStatus, setDayStatus] = useState('ABIERTO');
   const userMenuRef = useRef(null);
 
   // Initial data fetch
   useEffect(() => {
     fetchGlobalHours();
+    // Fetch today's day status for the header indicator
+    const TODAY = new Date().toISOString().split('T')[0];
+    apiClient(`/admin/dashboard?date=${TODAY}`)
+      .then(data => setDayStatus(data.dayStatus || 'ABIERTO'))
+      .catch(() => {});
   }, [fetchGlobalHours]);
 
   const menuItems = [
@@ -185,6 +193,9 @@ export default function Layout() {
             <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
               <CopyLinksDropdown />
             </Box>
+
+            {/* Day Status */}
+            <DayStatusButton dayStatus={dayStatus} onStatusChange={setDayStatus} />
 
             {/* WhatsApp Connection Status */}
             <WhatsAppStatus />

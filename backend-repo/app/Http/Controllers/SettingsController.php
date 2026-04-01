@@ -71,6 +71,7 @@ class SettingsController extends Controller
             'menu_pdf_url' => $menuPdfUrl,
             'reservation_link' => $setting->reservation_link,
             'logo_url' => $logoUrl,
+            'restaurant_name' => $setting->restaurant_name,
             'dayStatuses' => $dayStatuses
         ]));
     }
@@ -100,6 +101,7 @@ class SettingsController extends Controller
         if ($request->has('global_opening_time')) $setting->global_opening_time = $request->global_opening_time . ':00';
         if ($request->has('global_closing_time')) $setting->global_closing_time = $request->global_closing_time . ':00';
         if ($request->has('default_interval')) $setting->default_interval = $request->default_interval;
+        if ($request->has('restaurant_name')) $setting->restaurant_name = $request->restaurant_name;
         if ($request->has('whatsapp_phone')) $setting->whatsapp_phone = $request->whatsapp_phone;
         if ($request->has('instagram_username')) $setting->instagram_username = $request->instagram_username;
         if ($request->has('restaurant_phone')) $setting->restaurant_phone = $request->restaurant_phone;
@@ -126,7 +128,9 @@ class SettingsController extends Controller
         $setting->save();
 
         // Handle additional config fields stored in config.json
-        $configKeys = ['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf', 'logo', 'whatsapp_phone', 'instagram_username', 'restaurant_phone', 'review_link', 'google_maps_link', 'reservation_link'];
+        $configKeys = ['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf', 'logo',
+            'restaurant_name', 'whatsapp_phone', 'instagram_username', 'restaurant_phone',
+            'review_link', 'google_maps_link', 'reservation_link'];
         
         $currentConfig = Storage::exists('config.json') ? json_decode(Storage::get('config.json'), true) : [];
         $newData = $request->except($configKeys);

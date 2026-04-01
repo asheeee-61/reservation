@@ -187,16 +187,16 @@ export default function WhatsAppStatus() {
             </div>
           )}
 
-          {/* Action button if there is a warning/error */}
-          {status !== 'connected' && (
-            <div style={{
-              marginTop:    12,
-              paddingTop:   12,
-              borderTop:    '1px solid rgba(255,255,255,0.15)',
-              display:      'flex',
-              flexDirection: 'column',
-              gap:          8,
-            }}>
+          {/* Inspect button — always visible */}
+          <div style={{
+            marginTop:    12,
+            paddingTop:   12,
+            borderTop:    '1px solid rgba(255,255,255,0.15)',
+            display:      'flex',
+            flexDirection: 'column',
+            gap:          8,
+          }}>
+            {status !== 'connected' && (
               <div style={{
                 fontFamily:  'Roboto, sans-serif',
                 fontSize:    11,
@@ -210,25 +210,25 @@ export default function WhatsAppStatus() {
                   : 'WhatsApp se ha desconectado.'
                 }
               </div>
-              <button
-                onClick={handleInspect}
-                style={{
-                  background:   '#1A73E8',
-                  color:        'white',
-                  border:       'none',
-                  borderRadius: 4,
-                  padding:      '6px 12px',
-                  fontSize:     12,
-                  fontWeight:   500,
-                  cursor:       'pointer',
-                  width:        '100%',
-                  fontFamily:   'Roboto, sans-serif',
-                }}
-              >
-                Inspeccionar
-              </button>
-            </div>
-          )}
+            )}
+            <button
+              onClick={handleInspect}
+              style={{
+                background:   '#1A73E8',
+                color:        'white',
+                border:       'none',
+                borderRadius: 4,
+                padding:      '6px 12px',
+                fontSize:     12,
+                fontWeight:   500,
+                cursor:       'pointer',
+                width:        '100%',
+                fontFamily:   'Roboto, sans-serif',
+              }}
+            >
+              Inspeccionar
+            </button>
+          </div>
 
           {/* Click to refresh hint */}
           {status === 'connected' && (
@@ -236,7 +236,7 @@ export default function WhatsAppStatus() {
               fontFamily:  'Roboto, sans-serif',
               fontSize:    10,
               color:       'rgba(255,255,255,0.4)',
-              marginTop:   8,
+              marginTop:   4,
               textAlign:   'center'
             }}>
               Clic para verificar ahora

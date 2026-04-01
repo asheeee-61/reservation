@@ -21,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Share restaurant name dynamically with all email views
+        \Illuminate\Support\Facades\View::composer('emails.*', \App\View\Composers\RestaurantNameComposer::class);
+
         if (config('app.debug')) {
             \Illuminate\Support\Facades\DB::listen(function($query) {
                 if ($query->time > 100) { // log queries over 100ms

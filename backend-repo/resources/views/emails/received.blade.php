@@ -6,7 +6,7 @@
       style="background: linear-gradient(135deg, 
              #1A73E8 0%, #1557B0 100%);">
     <p class="header-restaurant">
-      {{ config('app.restaurant_name', 'Hotaru Madrid') }}
+      {{ $restaurantName }}
     </p>
     <h1 class="header-title">
       Solicitud de reserva recibida
@@ -25,7 +25,7 @@
 </p>
 <p class="body-text">
   Hemos recibido su solicitud de reserva en 
-  {{ config('app.restaurant_name', 'Hotaru Madrid') }}.
+  {{ $restaurantName }}.
   Nuestro equipo la revisara en breve y le enviara 
   una confirmacion lo antes posible.
 </p>

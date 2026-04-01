@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Typography, Box, Paper, Button, MenuItem, Select, FormControl } from '@mui/material';
+import { Typography, Box, Paper, MenuItem, Select, FormControl } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../shared/api';
-import { ConfirmModal } from '../components/ConfirmModal';
 import SourceBadge from '../components/SourceBadge';
 import { useToast } from '../components/Toast/ToastContext';
 import { TableSkeleton } from '../components/Skeletons';
@@ -35,16 +34,8 @@ export default function Dashboard() {
   // Today's reservations
   const [todayRes, setTodayRes] = useState([]);
   const [loadingToday, setLoadingToday] = useState(true);
-
-  // Day Status
-  const [dayStatus, setDayStatus] = useState('ABIERTO');
-  const [dayReason, setDayReason] = useState(null);
   const [bySource, setBySource] = useState({});
-  const [togglingStatus, setTogglingStatus] = useState(false);
 
-  // Modals
-  const [confirmModal, setConfirmModal] = useState({ open: false, type: '', reason: '' });
-  
   // Feedback
   const toast = useToast();
   const [error, setError] = useState(false);
@@ -55,8 +46,6 @@ export default function Dashboard() {
       const data = await apiClient(`/admin/dashboard?date=${TODAY}`);
       const list = (data.reservations || []).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       setTodayRes(list);
-      setDayStatus(data.dayStatus || 'ABIERTO');
-      setDayReason(data.dayReason || null);
       setBySource(data.bySource || {});
     } catch (e) {
       if (e.name !== 'AbortError') setError(true);
@@ -130,22 +119,6 @@ export default function Dashboard() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-      {dayStatus === 'CERRADO' && (
-        <Paper sx={{ p: '12px 20px', bgcolor: '#FEF7E0', border: '1px solid #FAD242', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span className="material-icons" style={{ color: '#7D4A00' }}>pause_circle</span>
-          <Box>
-            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: '#7D4A00' }}>
-              Día cerrado: No se permiten nuevas reservas desde la web.
-            </Typography>
-            {dayReason && (
-              <Typography sx={{ fontFamily: 'Roboto', fontSize: '13px', color: '#7D4A00', fontStyle: 'italic', mt: '2px' }}>
-                Motivo: {dayReason}
-              </Typography>
-            )}
-          </Box>
-        </Paper>
-      )}
 
       {/* ROW 1 — STATS */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: '16px' }}>
@@ -237,45 +210,6 @@ export default function Dashboard() {
         {/* RIGHT — CONTROL PANEL */}
         <Box sx={{ width: { xs: '100%', lg: 280 }, display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* Day Status Card */}
-          <Paper sx={{ p: '20px', border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px' }}>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1px', mb: 2 }}>
-              Estado del día
-            </Typography>
-            
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Box sx={{ 
-                display: 'flex', alignItems: 'center', gap: '8px', p: '8px 12px', borderRadius: '4px',
-                bgcolor: DAY_STATUS_UI[dayStatus].bg, color: DAY_STATUS_UI[dayStatus].text
-              }}>
-                <span className="material-icons" style={{ fontSize: 20 }}>{DAY_STATUS_UI[dayStatus].icon}</span>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 600, fontSize: '14px' }}>
-                  {DAY_STATUS_UI[dayStatus].label}
-                </Typography>
-              </Box>
-
-              {dayStatus === 'CERRADO' && dayReason && (
-                <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#7D4A00', fontStyle: 'italic', bgcolor: '#FEF7E0', p: '8px', borderRadius: '4px', border: '1px dashed #FAD242' }}>
-                  {dayReason}
-                </Typography>
-              )}
-
-              <Button
-                fullWidth
-                variant="outlined"
-                disabled={togglingStatus}
-                onClick={handleToggleClick}
-                sx={{
-                  height: 36, textTransform: 'uppercase', fontFamily: 'Roboto', fontWeight: 500,
-                  borderColor: '#DADCE0', color: '#202124',
-                  '&:hover': { bgcolor: '#F1F3F4', borderColor: '#DADCE0' }
-                }}
-              >
-                {DAY_STATUS_UI[dayStatus].btn}
-              </Button>
-            </Box>
-          </Paper>
-
           {/* Origen de Reservas */}
           <Paper sx={{ p: '20px', border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px' }}>
             <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', textTransform: 'uppercase', letterSpacing: '1px', mb: 2 }}>

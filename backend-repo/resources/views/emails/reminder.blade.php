@@ -6,7 +6,7 @@
       style="background: linear-gradient(135deg,
              #1A73E8 0%, #1557B0 100%);">
     <p class="header-restaurant">
-      {{ config('app.restaurant_name', 'Hotaru Madrid') }}
+      {{ $restaurantName }}
     </p>
     <h1 class="header-title">
       Recordatorio de reserva
@@ -25,7 +25,7 @@
 </p>
 <p class="body-text">
   Le recordamos que tiene una reserva en 
-  {{ config('app.restaurant_name', 'Hotaru Madrid') }} 
+  {{ $restaurantName }} 
   en aproximadamente 2 horas. Le esperamos.
 </p>
 

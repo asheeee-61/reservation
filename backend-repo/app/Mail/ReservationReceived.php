@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Reservation;
+use App\Models\Setting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -22,8 +23,9 @@ class ReservationReceived extends Mailable
 
     public function envelope(): Envelope
     {
+        $name = Setting::first()?->restaurant_name ?? config('app.restaurant_name', 'Hotaru Madrid');
         return new Envelope(
-            subject: 'Solicitud de Reserva Recibida - ' . config('app.restaurant_name'),
+            subject: 'Solicitud de Reserva Recibida - ' . $name,
         );
     }
 

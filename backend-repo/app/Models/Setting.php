@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Setting extends Model
 {
     protected $fillable = [
+        'restaurant_name',
         'global_opening_time',
         'global_closing_time',
         'default_interval',

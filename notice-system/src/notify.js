@@ -21,7 +21,7 @@ router.use(authMiddleware);
 
 // 1. Two hour reminder
 router.post('/reminder-2h', async (req, res) => {
-    const { customer, reservation } = req.body;
+    const { customer, reservation, restaurantName } = req.body;
     if (!customer?.phone || !reservation) {
         return res.status(400).json({ error: 'Missing customer phone or reservation data' });
     }
@@ -30,7 +30,8 @@ router.post('/reminder-2h', async (req, res) => {
         const msg = formatReminder2h({
             customerName: customer.name,
             date: reservation.date,
-            time: reservation.time
+            time: reservation.time,
+            restaurantName
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -46,7 +47,7 @@ router.post('/reminder-2h', async (req, res) => {
 
 // 2. Post visit review
 router.post('/review', async (req, res) => {
-    const { customer, reviewLink } = req.body;
+    const { customer, reviewLink, restaurantName } = req.body;
     const link = reviewLink || process.env.REVIEW_LINK;
 
     if (!customer?.phone || !link) {
@@ -56,7 +57,8 @@ router.post('/review', async (req, res) => {
     try {
         const msg = formatPostVisitReview({
             customerName: customer.name,
-            reviewLink: link
+            reviewLink: link,
+            restaurantName
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -72,7 +74,7 @@ router.post('/review', async (req, res) => {
 
 // 3. Cancellation
 router.post('/cancellation', async (req, res) => {
-    const { customer, reason } = req.body;
+    const { customer, reason, restaurantName } = req.body;
 
     if (!customer?.phone) {
         return res.status(400).json({ error: 'Missing customer phone' });
@@ -81,7 +83,8 @@ router.post('/cancellation', async (req, res) => {
     try {
         const msg = formatCancellation({
             customerName: customer.name,
-            reason
+            reason,
+            restaurantName
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -97,7 +100,7 @@ router.post('/cancellation', async (req, res) => {
 
 // 3.5. Confirmation (status update to confirmed)
 router.post('/confirmed', async (req, res) => {
-    const { reservation, customer } = req.body;
+    const { reservation, customer, restaurantName } = req.body;
 
     if (!reservation || !customer) {
         return res.status(400).json({ error: 'Missing reservation or customer data' });
@@ -108,7 +111,8 @@ router.post('/confirmed', async (req, res) => {
         date: reservation.date,
         time: reservation.time,
         guests: reservation.guests,
-        customerName: customer.name
+        customerName: customer.name,
+        restaurantName
     };
 
     try {
@@ -125,9 +129,9 @@ router.post('/confirmed', async (req, res) => {
     }
 });
 
-// 4. Status update (General confirmation)
+// 4. New reservation notification (client + admin)
 router.post('/new-reservation', async (req, res) => {
-    const { reservation, customer, zone, event, adminPhone } = req.body;
+    const { reservation, customer, zone, event, adminPhone, restaurantName } = req.body;
 
     if (!reservation || !customer) {
         return res.status(400).json({ error: 'Missing reservation or customer data' });
@@ -141,7 +145,8 @@ router.post('/new-reservation', async (req, res) => {
         customerName: customer.name,
         customerPhone: customer.phone,
         tableType: zone ? zone.name : null,
-        specialEvent: event ? event.name : null
+        specialEvent: event ? event.name : null,
+        restaurantName
     };
 
     try {
