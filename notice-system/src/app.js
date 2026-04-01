@@ -35,38 +35,84 @@ app.get('/health', (req, res) => {
     });
 });
 
-const authMiddleware = (req, res, next) => {
-    const secret = req.headers['x-api-secret'];
-    if (!secret || secret !== process.env.API_SECRET) {
-        return res.status(401).json({ error: 'Unauthorized: Invalid API Secret' });
+// Authentication middleware for UI routes
+const tokenAuth = (req, res, next) => {
+    const token = req.query.token;
+    if (!token || token !== process.env.ADMIN_ACCESS_TOKEN) {
+        return res.status(403).send(`
+            <html>
+                <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #fce8e6; color: #ea4335;">
+                    <div style="text-align: center; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h1>Acceso denegado</h1>
+                        <p>No tiene permisos para ver esta página.</p>
+                    </div>
+                </body>
+            </html>
+        `);
     }
     next();
 };
 
-app.get('/', (req, res) => {
-    res.redirect('/qr');
+const { renderMonitoring } = require('./monitoring');
+const { resendMessage } = require('./whatsapp');
+
+app.get('/', tokenAuth, (req, res) => {
+    res.redirect(`/monitoring?token=${req.query.token}`);
 });
 
-app.get('/qr', async (req, res) => {
+app.get('/monitoring', tokenAuth, (req, res) => {
+    res.send(renderMonitoring());
+});
+
+app.get('/qr', tokenAuth, async (req, res) => {
     if (isReady()) {
-        return res.send('<h1>✅ WhatsApp client is already ready!</h1>');
+        return res.send(`
+            <html>
+                <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #e6f4ea; color: #34a853;">
+                    <div style="text-align: center; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h1>✅ WhatsApp conectado</h1>
+                        <p>El cliente ya está vinculado y listo.</p>
+                        <a href="/monitoring?token=${req.query.token}" style="color: #1a73e8; text-decoration: none; font-weight: 500;">Volver al panel</a>
+                    </div>
+                </body>
+            </html>
+        `);
     }
 
     const qr = getLastQR();
     if (!qr) {
-        return res.send('<h1>⏳ Waiting for QR code... Please refresh in a moment.</h1>');
+        return res.send(`
+            <html>
+                <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #f1f3f4;">
+                    <div style="text-align: center;">
+                        <h1>⏳ Esperando código QR...</h1>
+                        <p>Por favor, recarga la página en unos segundos.</p>
+                    </div>
+                    <script>setTimeout(() => window.location.reload(), 5000);</script>
+                </body>
+            </html>
+        `);
     }
 
     try {
         const qrImage = await QRCode.toDataURL(qr);
         res.send(`
             <html>
-                <body style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; background: #f0f2f5;">
-                    <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;">
-                        <h1 style="color: #25d366;">WhatsApp Auth</h1>
-                        <p>Scan this QR code with your dedicated WhatsApp number.</p>
-                        <img src="${qrImage}" style="width: 300px; height: 300px; border: 1px solid #ddd; padding: 10px; border-radius: 8px;" />
-                        <p style="margin-top: 1rem; color: #666;">Status: Waiting for scan...</p>
+                <head>
+                    <title>Vincular WhatsApp - Notice System</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+                </head>
+                <body style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: 'Roboto', sans-serif; background: #f0f2f5; margin: 0;">
+                    <div style="background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; max-width: 400px;">
+                        <h1 style="color: #25d366; margin-top: 0;">Vincular WhatsApp</h1>
+                        <p style="color: #5f6368; margin-bottom: 2rem;">Escanea este código QR con el WhatsApp del restaurante.</p>
+                        <div style="background: white; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; display: inline-block;">
+                            <img src="${qrImage}" style="width: 280px; height: 280px; display: block;" />
+                        </div>
+                        <p style="margin-top: 1.5rem; color: #1a73e8; font-weight: 500;">Estado: Esperando escaneo...</p>
+                        <div style="margin-top: 2rem; border-top: 1px solid #eee; pt: 1.5rem;">
+                             <a href="/monitoring?token=${req.query.token}" style="color: #5f6368; font-size: 13px; text-decoration: none;">← Volver al panel</a>
+                        </div>
                     </div>
                     <script>
                         setTimeout(() => window.location.reload(), 5000);
@@ -75,7 +121,17 @@ app.get('/qr', async (req, res) => {
             </html>
         `);
     } catch (err) {
-        res.status(500).send('<h1>Error generating QR code</h1>');
+        res.status(500).send('<h1>Error generando QR code</h1>');
+    }
+});
+
+app.post('/resend', tokenAuth, async (req, res) => {
+    const { index } = req.body;
+    try {
+        await resendMessage(index);
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -4,6 +4,29 @@ require('dotenv').config();
 
 let clientReady = false;
 let lastQR = null;
+let lastCheck = new Date();
+
+// Activity tracking
+let stats = {
+    sent: 0,
+    failed: 0,
+    pending: 0
+};
+let messageHistory = [];
+
+const logMessage = (to, text, status, type = 'Notificación') => {
+    messageHistory.unshift({
+        recipient: to,
+        text,
+        status, // 'sent', 'failed'
+        type,
+        timestamp: new Date().toLocaleString('es-ES')
+    });
+    if (messageHistory.length > 10) messageHistory.pop();
+    
+    if (status === 'sent') stats.sent++;
+    if (status === 'failed') stats.failed++;
+};
 
 const client = new Client({
     authStrategy: new LocalAuth({
@@ -36,7 +59,14 @@ client.on('auth_failure', (msg) => {
 client.on('disconnected', (reason) => {
     console.log('🔌 Client was logged out', reason);
     clientReady = false;
+    lastCheck = new Date();
     client.initialize();
+});
+
+client.on('ready', () => {
+    console.log('✅ WhatsApp client is ready!');
+    clientReady = true;
+    lastCheck = new Date();
 });
 
 const formatClientMessage = (data) => {
@@ -57,13 +87,28 @@ const formatAdminMessage = (data) => {
 Estado: Pendiente ⏳`;
 };
 
-const sendMessage = async (to, text) => {
-    if (!clientReady) {
-        throw new Error('WhatsApp client is not ready');
-    }
+const sendMessage = async (to, text, type = 'Notificación') => {
     // Format to WhatsApp ID (suffix @c.us for individuals)
     const chatId = to.includes('@c.us') ? to : `${to.replace(/\D/g, '')}@c.us`;
-    return await client.sendMessage(chatId, text);
+
+    if (!clientReady) {
+        logMessage(chatId, text, 'failed', type);
+        throw new Error('WhatsApp client is not ready');
+    }
+    try {
+        const result = await client.sendMessage(chatId, text);
+        logMessage(chatId, text, 'sent', type);
+        return result;
+    } catch (err) {
+        logMessage(chatId, text, 'failed', type);
+        throw err;
+    }
+};
+
+const resendMessage = async (index) => {
+    const msg = messageHistory[index];
+    if (!msg) throw new Error('Message not found');
+    return await sendMessage(msg.recipient, msg.text, msg.type);
 };
 
 module.exports = {
@@ -72,5 +117,8 @@ module.exports = {
     formatClientMessage,
     formatAdminMessage,
     isReady: () => clientReady,
-    getLastQR: () => lastQR
+    getLastQR: () => lastQR,
+    getStats: () => ({ ...stats, lastCheck: lastCheck.toLocaleString('es-ES') }),
+    getMessageHistory: () => messageHistory,
+    resendMessage
 };

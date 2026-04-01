@@ -331,7 +331,7 @@ export default function Settings() {
 
       {/* Restaurant Details Card */}
       <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>DETALLES DEL RESTAURANTE</Typography>
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px', letterSpacing: '1px' }}>DETALLE</Typography>
         <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '16px' }}>Estos detalles son visibles para los clientes.</Typography>
         
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '16px', mb: '24px' }}>

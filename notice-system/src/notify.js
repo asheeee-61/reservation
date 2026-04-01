@@ -34,7 +34,7 @@ router.post('/reminder-2h', async (req, res) => {
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
-        await sendMessage(target, msg);
+        await sendMessage(target, msg, 'Recordatorio 2h');
         
         console.log(`✅ Reminder 2h sent to ${target}`);
         res.json({ status: 'sent', type: 'reminder-2h' });
@@ -60,7 +60,7 @@ router.post('/review', async (req, res) => {
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
-        await sendMessage(target, msg);
+        await sendMessage(target, msg, 'Solicitud Reseña');
 
         console.log(`✅ Review request sent to ${target}`);
         res.json({ status: 'sent', type: 'review' });
@@ -85,7 +85,7 @@ router.post('/cancellation', async (req, res) => {
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
-        await sendMessage(target, msg);
+        await sendMessage(target, msg, 'Cancelación');
 
         console.log(`✅ Cancellation notice sent to ${target}`);
         res.json({ status: 'sent', type: 'cancellation' });
@@ -115,7 +115,7 @@ router.post('/confirmed', async (req, res) => {
         const msg = formatClientConfirmation(data);
         const target = process.env.TEST_PHONE || customer.phone;
         
-        await sendMessage(target, msg);
+        await sendMessage(target, msg, 'Confirmación');
         
         console.log(`✅ Confirmation sent to ${target} for reservation #${reservation.id}`);
         res.json({ status: 'sent', type: 'confirmed' });
@@ -152,8 +152,8 @@ router.post('/new-reservation', async (req, res) => {
         const targetClient = process.env.TEST_PHONE || customer.phone;
 
         const results = await Promise.allSettled([
-            sendMessage(targetClient, clientMsg),
-            sendMessage(targetAdmin, adminMsg)
+            sendMessage(targetClient, clientMsg, 'Nueva Reserva (Cliente)'),
+            sendMessage(targetAdmin, adminMsg, 'Nueva Reserva (Admin)')
         ]);
 
         console.log(`✅ New reservation notifications sent for #${reservation.id}`);
