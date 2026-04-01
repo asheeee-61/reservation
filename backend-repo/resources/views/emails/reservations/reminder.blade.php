@@ -1,0 +1,27 @@
+@extends('emails.reservations.layout')
+
+@php
+    $isToday = \Carbon\Carbon::parse($reservation->reserved_at)->isToday();
+@endphp
+
+@section('title', $isToday ? 'Tu mesa es hoy' : 'Tu mesa es mañana')
+@section('icon-bg', '#e8f0fe')
+@section('icon-color', '#1a73e8')
+@section('badge-bg', '#e8f0fe')
+@section('badge-color', '#1a73e8')
+
+@section('status-icon')
+<!-- bell icon -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:32px; height:32px; fill:currentColor; vertical-align: middle;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+@endsection
+
+@section('badge-label', 'Recordatorio')
+@section('status-title', $isToday ? 'Tu mesa es hoy' : 'Tu mesa es mañana')
+
+@section('actions')
+    <!-- Cancel link / action -->
+    <a href="{{ rtrim($settings['website'] ?? config('app.url'), '/') }}" class="btn btn-outline" style="display: inline-block; padding: 10px 24px; border-radius: 24px; font-size: 14px; font-weight: 500; text-decoration: none; margin: 4px; border: 1px solid #dadce0; color: #5f6368;">Cancelar</a>
+    @if(!empty($settings['address']))
+    <a href="https://maps.google.com/?q={{ urlencode(($settings['business_name'] ?? '') . ' ' . $settings['address']) }}" class="btn btn-primary" style="display: inline-block; padding: 10px 24px; border-radius: 24px; font-size: 14px; font-weight: 500; text-decoration: none; margin: 4px; border: 1px solid #1a73e8; color: #ffffff; background-color: #1a73e8;">Cómo llegar</a>
+    @endif
+@endsection

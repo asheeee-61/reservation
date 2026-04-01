@@ -71,12 +71,15 @@ class NotificationService
     protected function sendEmail(string $type, Reservation $reservation): void
     {
         try {
+            $settingsModel = Setting::first();
+            $settings = $settingsModel ? $settingsModel->toArray() : [];
+
             $mailable = match($type) {
-                'received'  => new ReservationReceived($reservation),
-                'confirmed' => new ReservationConfirmed($reservation),
-                'cancelled' => new ReservationCancelled($reservation),
-                'reminder_2h' => new ReservationReminder($reservation),
-                'review'    => new PostVisitReview($reservation),
+                'received'  => new ReservationReceived($reservation, $settings),
+                'confirmed' => new ReservationConfirmed($reservation, $settings),
+                'cancelled' => new ReservationCancelled($reservation, $settings),
+                'reminder_2h' => new ReservationReminder($reservation, $settings),
+                'review'    => new PostVisitReview($reservation, $settings),
                 default     => null
             };
 

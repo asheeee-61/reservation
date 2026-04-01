@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use App\Models\Reservation;
-use App\Models\Setting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -15,24 +14,26 @@ class ReservationConfirmed extends Mailable
     use Queueable, SerializesModels;
 
     public $reservation;
+    public array $settings;
 
-    public function __construct(Reservation $reservation)
+    public function __construct(Reservation $reservation, array $settings = [])
     {
         $this->reservation = $reservation;
+        $this->settings = $settings;
     }
 
     public function envelope(): Envelope
     {
-        $name = Setting::first()?->business_name ?? config('app.name', 'Business');
+        $bName = $this->settings['business_name'] ?? config('app.name', 'Business');
         return new Envelope(
-            subject: 'Reserva CONFIRMADA - ' . $name,
+            subject: 'Reservación confirmada - ' . $bName,
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.confirmed',
+            view: 'emails.reservations.confirmed',
         );
     }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Typography, Box, Paper, MenuItem, Select, FormControl } from '@mui/material';
+import { Typography, Box, Paper, MenuItem, Select, FormControl, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../shared/api';
 import SourceBadge from '../components/SourceBadge';
@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast/ToastContext';
 import { TableSkeleton, ServiceRowSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -20,6 +21,7 @@ const STATUS_CHIP = {
   'CONFIRMADA': { bg: '#E8F0FE', text: '#1A73E8', label: 'Confirmada' },
   'ASISTIÓ':    { bg: '#E6F4EA', text: '#137333', label: 'Asistió' },
   'NO_ASISTIÓ': { bg: '#FDECEA', text: '#C5221F', label: 'No asistió' },
+  'CANCELADA':  { bg: '#F1F3F4', text: '#5F6368', label: 'Cancelada' },
 };
 
 const DAY_STATUS_UI = {
@@ -35,6 +37,12 @@ export default function Dashboard() {
   const [todayRes, setTodayRes] = useState([]);
   const [loadingToday, setLoadingToday] = useState(true);
   const [bySource, setBySource] = useState({});
+  const [updatingStatuses, setUpdatingStatuses] = useState({});
+
+  // Cancellation Modal State
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [selectedResId, setSelectedResId] = useState(null);
 
   // Feedback
   const toast = useToast();
@@ -58,17 +66,36 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const handleStatusUpdate = async (id, newStatus) => {
+  const handleStatusUpdate = async (id, newStatus, reason = null) => {
+    if (newStatus === 'CANCELADA' && !reason) {
+      setSelectedResId(id);
+      setCancelModalOpen(true);
+      return;
+    }
+
+    setUpdatingStatuses(prev => ({ ...prev, [id]: true }));
     try {
       await apiClient(`/admin/reservations/${id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          status: newStatus,
+          cancellation_reason: reason 
+        }),
       });
       setTodayRes(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
       toast.success('Estado actualizado');
     } catch (e) {
       toast.error('Error al actualizar');
+    } finally {
+      setUpdatingStatuses(prev => ({ ...prev, [id]: false }));
     }
+  };
+
+  const handleCancelConfirm = () => {
+    handleStatusUpdate(selectedResId, 'CANCELADA', cancelReason || 'Cancelada por el administrador');
+    setCancelModalOpen(false);
+    setCancelReason('');
+    setSelectedResId(null);
   };
 
 
@@ -168,25 +195,31 @@ export default function Dashboard() {
                     </Box>
                     
                     {/* Interactive Status Selector */}
-                    <FormControl size="small" variant="standard" sx={{ m: 0 }} onClick={(e) => e.stopPropagation()}>
-                      <Select
-                        value={sKey}
-                        onChange={(e) => handleStatusUpdate(r.id, e.target.value)}
-                        disableUnderline
-                        sx={{
-                          bgcolor: chip.bg, color: chip.text, borderRadius: '4px', px: '8px',
-                          fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px',
-                          '& .MuiSelect-select': { py: '4px', pr: '24px !important', textTransform: 'uppercase' },
-                          '& .MuiSvgIcon-root': { color: chip.text, right: 0 }
-                        }}
-                      >
-                        {Object.keys(STATUS_CHIP).map(k => (
-                          <MenuItem key={k} value={k} sx={{ fontFamily: 'Roboto', fontSize: '13px', textTransform: 'uppercase' }}>
-                            {STATUS_CHIP[k].label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    {updatingStatuses[r.id] ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 100 }}>
+                        <CircularProgress size={20} sx={{ color: chip.text }} />
+                      </Box>
+                    ) : (
+                      <FormControl size="small" variant="standard" sx={{ m: 0 }} onClick={(e) => e.stopPropagation()}>
+                        <Select
+                          value={sKey}
+                          onChange={(e) => handleStatusUpdate(r.id, e.target.value)}
+                          disableUnderline
+                          sx={{
+                            bgcolor: chip.bg, color: chip.text, borderRadius: '4px', px: '8px',
+                            fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px',
+                            '& .MuiSelect-select': { py: '4px', pr: '24px !important', textTransform: 'uppercase' },
+                            '& .MuiSvgIcon-root': { color: chip.text, right: 0 }
+                          }}
+                        >
+                          {Object.keys(STATUS_CHIP).map(k => (
+                            <MenuItem key={k} value={k} sx={{ fontFamily: 'Roboto', fontSize: '13px', textTransform: 'uppercase' }}>
+                              {STATUS_CHIP[k].label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   </Box>
                 );
               })}
@@ -218,6 +251,25 @@ export default function Dashboard() {
         </Box>
       </Box>
 
+
+      <ConfirmModal 
+        open={cancelModalOpen}
+        title="Cancelar reserva"
+        body="¿Seguro que deseas cancelar esta reserva? Esta acción no se puede deshacer."
+        confirmLabel="Cancelar Reserva"
+        confirmColor="#D93025"
+        confirmDisabled={selectedResId ? updatingStatuses[selectedResId] : false}
+        showInput={true}
+        inputValue={cancelReason}
+        onInputChange={setCancelReason}
+        inputPlaceholder="Motivo (opcional — se enviará al cliente)"
+        onCancel={() => {
+          setCancelModalOpen(false);
+          setCancelReason('');
+          setSelectedResId(null);
+        }}
+        onConfirm={handleCancelConfirm}
+      />
 
     </Box>
   );
