@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../shared/api';
 import SourceBadge from '../components/SourceBadge';
 import { useToast } from '../components/Toast/ToastContext';
-import { TableSkeleton } from '../components/Skeletons';
+import { TableSkeleton, ServiceRowSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 
@@ -108,15 +108,23 @@ export default function Dashboard() {
         
         {/* LEFT — SERVICIO EN CURSO */}
         <Paper sx={{ flex: 1, minWidth: 0, border: '1px solid #E0E0E0', boxShadow: 'none', borderRadius: '4px', overflow: 'hidden' }}>
-          <Box sx={{ px: '20px', py: '16px', borderBottom: '1px solid #E0E0E0' }}>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
-              Servicio en curso
-            </Typography>
+          <Box sx={{ px: '20px', py: '16px', borderBottom: '1px solid #E0E0E0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', color: '#202124' }}>
+                Servicio en curso
+              </Typography>
+              {!loadingToday && todayRes.length > 0 && (
+                <Box sx={{ 
+                  width: 8, height: 8, borderRadius: '50%', bgcolor: '#1A73E8', 
+                  boxShadow: '0 0 0 3px rgba(26,115,232,0.15)' 
+                }} />
+              )}
+            </Box>
           </Box>
 
           {loadingToday ? (
-            <Box p={3}>
-              <TableSkeleton rows={4} cols={1} />
+            <Box>
+              {[1, 2, 3, 4].map(i => <ServiceRowSkeleton key={i} />)}
             </Box>
           ) : todayRes.length === 0 ? (
             <EmptyState icon="event_busy" title="Sin reservas" message="No hay reservas para hoy" />
@@ -137,9 +145,13 @@ export default function Dashboard() {
                       bgcolor: isCurrent ? '#FEF7E0' : 'transparent',
                       opacity: isPast ? 0.6 : 1,
                       cursor: 'pointer',
+                      position: 'relative',
                       '&:hover': { bgcolor: isCurrent ? '#FFF9C4' : '#F8F9FA' }
                     }}
                   >
+                    {isCurrent && (
+                      <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, bgcolor: '#F29900' }} />
+                    )}
                     <Typography sx={{ width: 50, fontFamily: 'Roboto', fontWeight: 600, fontSize: '14px', color: '#202124' }}>
                       {r.time}
                     </Typography>

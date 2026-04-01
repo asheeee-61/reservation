@@ -65,7 +65,7 @@ const renderMonitoring = () => {
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin-bottom: 32px;
         }
@@ -113,6 +113,7 @@ const renderMonitoring = () => {
         }
         .badge-sent { background: #e6f4ea; color: var(--success); }
         .badge-failed { background: #fce8e6; color: var(--error); }
+        .badge-invalid { background: #fef7e0; color: var(--warning); }
 
         .qr-section {
             text-align: center;
@@ -147,6 +148,10 @@ const renderMonitoring = () => {
                     <span class="stat-label">Fallidos</span>
                 </div>
                 <div class="stat-item">
+                    <span class="stat-value">${stats.invalid || 0}</span>
+                    <span class="stat-label">No Registrados</span>
+                </div>
+                <div class="stat-item">
                     <span class="stat-value">0</span>
                     <span class="stat-label">Pendientes</span>
                 </div>
@@ -178,8 +183,8 @@ const renderMonitoring = () => {
                             <td>${msg.recipient.split('@')[0]}</td>
                             <td>${msg.type}</td>
                             <td>
-                                <span class="badge-table ${msg.status === 'sent' ? 'badge-sent' : 'badge-failed'}">
-                                    ${msg.status === 'sent' ? 'Enviado' : 'Fallido'}
+                                <span class="badge-table ${msg.status === 'sent' ? 'badge-sent' : msg.status === 'invalid' ? 'badge-invalid' : 'badge-failed'}">
+                                    ${msg.status === 'sent' ? 'Enviado' : msg.status === 'invalid' ? 'No Registrado' : 'Fallido'}
                                 </span>
                             </td>
                             <td>${msg.timestamp}</td>

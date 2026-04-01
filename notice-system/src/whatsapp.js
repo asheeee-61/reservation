@@ -10,6 +10,7 @@ let lastCheck = new Date();
 let stats = {
     sent: 0,
     failed: 0,
+    invalid: 0,
     pending: 0
 };
 let messageHistory = [];
@@ -18,7 +19,7 @@ const logMessage = (to, text, status, type = 'Notificación') => {
     messageHistory.unshift({
         recipient: to,
         text,
-        status, // 'sent', 'failed'
+        status, // 'sent', 'failed', 'invalid'
         type,
         timestamp: new Date().toLocaleString('es-ES')
     });
@@ -26,6 +27,7 @@ const logMessage = (to, text, status, type = 'Notificación') => {
     
     if (status === 'sent') stats.sent++;
     if (status === 'failed') stats.failed++;
+    if (status === 'invalid') stats.invalid++;
 };
 
 const client = new Client({
@@ -96,11 +98,18 @@ const sendMessage = async (to, text, type = 'Notificación') => {
         throw new Error('WhatsApp client is not ready');
     }
     try {
+        const isRegistered = await client.isRegisteredUser(chatId);
+        if (!isRegistered) {
+            logMessage(chatId, text, 'invalid', type);
+            throw new Error('Number is not registered on WhatsApp');
+        }
         const result = await client.sendMessage(chatId, text);
         logMessage(chatId, text, 'sent', type);
         return result;
     } catch (err) {
-        logMessage(chatId, text, 'failed', type);
+        if (err.message !== 'Number is not registered on WhatsApp') {
+            logMessage(chatId, text, 'failed', type);
+        }
         throw err;
     }
 };

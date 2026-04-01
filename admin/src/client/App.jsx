@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress, Fade } from '@mui/material';
-import { LeftPanel, RightPanelMap, ZoneSelection, EventSelection, ReservationCheckout, SuccessPage, TermsOfService } from './components';
+import { LeftPanel, RightPanelMap, ZoneSelection, EventSelection, ReservationConfirm, SuccessPage, TermsOfService } from './components';
 import { useReservationStore } from './store/useReservationStore';
 import { getConfig, getZones, getEvents } from './services/reservationService';
 
@@ -190,7 +190,7 @@ function App() {
           {renderStep('selection', LeftPanel, { onAutoAdvance: () => autoAdvance('zone_selection') })}
           {renderStep('zone_selection', ZoneSelection, { onBack: () => setStep('selection'), onAutoAdvance: () => autoAdvance('event_selection') })}
           {renderStep('event_selection', EventSelection, { onBack: () => setStep('zone_selection'), onAutoAdvance: () => autoAdvance('confirmation') })}
-          {renderStep('confirmation', ReservationCheckout, { onBack: () => setStep('event_selection'), onSuccess: () => setStep('success') })}
+          {renderStep('confirmation', ReservationConfirm, { onBack: () => setStep('event_selection'), onSuccess: () => setStep('success') })}
           {renderStep('success', SuccessPage)}
         </Box>
 

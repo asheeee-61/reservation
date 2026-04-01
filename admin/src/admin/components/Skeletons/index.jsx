@@ -46,6 +46,20 @@ export function TableRowSkeleton({ cols = 5 }) {
   )
 }
 
+// Service row skeleton
+export function ServiceRowSkeleton() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #F1F3F4' }}>
+      <SkeletonBase width={40} height={16} style={{ marginRight: 16 }} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <SkeletonBase width="40%" height={14} />
+        <SkeletonBase width="25%" height={12} />
+      </div>
+      <SkeletonBase width={100} height={28} radius={4} />
+    </div>
+  )
+}
+
 // Table skeleton (full)
 export function TableSkeleton({ rows = 5, cols = 5 }) {
   return (
