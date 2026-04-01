@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { apiClient } from '../../shared/api'
 import { useToast } from './Toast/ToastContext'
 import { ConfirmModal } from './ConfirmModal'
@@ -15,22 +15,7 @@ export default function DayStatusButton({ dayStatus, onStatusChange }) {
   const [showTooltip, setShow] = useState(false)
   const [modal, setModal] = useState({ open: false, reason: '' })
   const [loading, setLoading] = useState(false)
-  const timeoutRef = useRef(null)
   const toast = useToast()
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-    setShow(true)
-  }
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setShow(false)
-    }, 400) // 400ms delay to hide tooltip
-  }
 
   const current = DAY_STATUS_UI[dayStatus] || DAY_STATUS_UI.ABIERTO
 
@@ -63,8 +48,8 @@ export default function DayStatusButton({ dayStatus, onStatusChange }) {
     <>
       <div
         style={{ position: 'relative', display: 'inline-flex' }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
       >
         {/* Status indicator button */}
         <div

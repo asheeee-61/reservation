@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 const STATUS = {
   checking: {
@@ -37,21 +37,6 @@ export default function WhatsAppStatus() {
   const [status, setStatus]     = useState('checking')
   const [showTooltip, setShow]  = useState(false)
   const [lastChecked, setLast]  = useState(null)
-  const timeoutRef = useRef(null)
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-    setShow(true)
-  }
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setShow(false)
-    }, 400) // 400ms delay to hide tooltip
-  }
 
   const checkStatus = useCallback(async () => {
     try {
@@ -106,8 +91,8 @@ export default function WhatsAppStatus() {
   return (
     <div
       style={{ position: 'relative', display: 'inline-flex' }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
     >
       {/* WhatsApp icon + dot */}
       <div
