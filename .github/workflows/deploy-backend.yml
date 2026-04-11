@@ -1,0 +1,25 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend-repo/**'
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend via FTP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Sync files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: "161.97.169.203"
+          username: "admin_tabla"
+          password: "u%EJ9lpFqAq+fk8p"
+          local-dir: ./backend-repo/
+          server-dir: ./public_html/

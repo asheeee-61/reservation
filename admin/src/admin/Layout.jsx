@@ -12,8 +12,6 @@ import DayStatusButton from './components/DayStatusButton';
 import RestaurantLogo from '../shared/RestaurantLogo';
 import { ConfirmModal } from './components/ConfirmModal';
 import { apiClient } from '../shared/api';
-import Wizard from './components/Wizard';
-import { useWizardStore } from './store/useWizardStore';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -180,29 +178,29 @@ export default function Layout() {
           </Typography>
 
           {/* Desktop: Global Search */}
-          <Box id="wizard-header-search" sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500, ml: { lg: '24px' } }}>
+          <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500, ml: { lg: '24px' } }}>
             <GlobalSearch />
           </Box>
 
           {/* Right side: Quick Actions + User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, ml: 'auto' }}>
             {/* Quick action buttons — desktop only */}
-            <Box id="wizard-header-actions" sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
+            <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
               <QuickActions />
             </Box>
 
             {/* Copy links dropdown — desktop only */}
-            <Box id="wizard-header-copy" sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
+            <Box sx={{ display: 'none', [DESKTOP]: { display: 'block' } }}>
               <CopyLinksDropdown />
             </Box>
 
             {/* Day Status */}
-            <Box id="wizard-header-daystatus">
+            <Box>
               <DayStatusButton dayStatus={dayStatus} onStatusChange={setDayStatus} />
             </Box>
 
             {/* WhatsApp Connection Status */}
-            <Box id="wizard-header-whatsapp">
+            <Box>
               <WhatsAppStatus />
             </Box>
 
@@ -284,7 +282,6 @@ export default function Layout() {
         </Box>
       </Box>
 
-      {/* Logout confirmation modal */}
       <ConfirmModal
         open={logoutModal}
         title="Cerrar sesión"
@@ -294,7 +291,6 @@ export default function Layout() {
         onCancel={() => setLogoutModal(false)}
         onConfirm={handleLogout}
       />
-      <Wizard />
     </Box>
   );
 }

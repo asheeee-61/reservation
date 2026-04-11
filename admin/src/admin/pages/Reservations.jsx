@@ -151,7 +151,7 @@ export default function Reservations() {
         <PageHeaderSkeleton />
       ) : (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ 
+            <Typography sx={{ 
             fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
             [DESKTOP]: { fontSize: '20px' },
             [TABLET]: { fontSize: '18px' },

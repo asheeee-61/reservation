@@ -154,7 +154,6 @@ export default function Events() {
           EVENTOS
         </Typography>
         <Button 
-          id="wizard-add-event"
           variant="contained"
           startIcon={<span className="material-icons" style={{ fontSize: 16 }}>add</span>}
           onClick={() => handleOpenModal()}
@@ -297,7 +296,9 @@ export default function Events() {
             }}
           />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontSize: '14px', color: '#202124' }}>Visible para clientes</Typography>
+            <Typography sx={{ 
+              fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
+            }}>Visible para clientes</Typography>
             <Switch 
               checked={formData.is_active} 
               onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })} 

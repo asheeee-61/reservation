@@ -157,7 +157,6 @@ export default function Zones() {
           ZONAS
         </Typography>
         <Button 
-          id="wizard-add-zone"
           variant="contained"
           startIcon={<span className="material-icons" style={{ fontSize: 16 }}>add</span>}
           onClick={() => handleOpenModal()}
@@ -300,7 +299,7 @@ export default function Zones() {
             }}
           />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontSize: '14px', color: '#202124' }}>Visible para clientes</Typography>
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, color: '#202124' }}>Visible para clientes</Typography>
             <Switch 
               checked={formData.is_active} 
               onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })} 

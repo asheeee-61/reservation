@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Button } from '@mui/material';
 import { useAuthStore } from '../store/useAuthStore';
-import { useWizardStore } from '../store/useWizardStore';
 import { useToast } from '../components/Toast/ToastContext';
 import { PageHeaderSkeleton, CardSkeleton } from '../components/Skeletons';
 import { API_BASE_URL } from '../../shared/api';
 
 export default function Profile() {
   const { token, user: userStore, setUser: setUserStore } = useAuthStore();
-  const startWizard = useWizardStore(state => state.startWizard);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -145,29 +143,6 @@ export default function Profile() {
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' }}>
             Administrador
           </Typography>
-
-          <Button
-            id="wizard-start-btn"
-            onClick={startWizard}
-            variant="outlined"
-            startIcon={<span className="material-icons">auto_fix_high</span>}
-            sx={{
-              mt: '16px',
-              textTransform: 'none',
-              borderRadius: '20px',
-              px: '20px',
-              borderColor: '#1A73E8',
-              color: '#1A73E8',
-              fontFamily: 'Roboto',
-              fontWeight: 500,
-              '&:hover': {
-                bgcolor: 'rgba(26, 115, 232, 0.04)',
-                borderColor: '#1A73E8',
-              }
-            }}
-          >
-            Configurar mi negocio (Asistente)
-          </Button>
         </Box>
 
         <Box sx={{ borderBottom: '1px solid #E0E0E0', mb: '24px' }} />

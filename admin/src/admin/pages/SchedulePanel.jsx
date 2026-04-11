@@ -462,7 +462,6 @@ export default function SchedulePanel() {
 
       <Paper sx={{ width: '100%', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', p: 0, overflow: 'hidden' }}>
         <Tabs 
-          id="wizard-schedule-tabs"
           value={currentTab} 
           onChange={(e, v) => setCurrentTab(v)}
           variant="fullWidth"

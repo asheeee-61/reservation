@@ -36,7 +36,6 @@ export default function Dashboard() {
   // Today's reservations
   const [todayRes, setTodayRes] = useState([]);
   const [loadingToday, setLoadingToday] = useState(true);
-  const [bySource, setBySource] = useState({});
   const [updatingStatuses, setUpdatingStatuses] = useState({});
 
   // Cancellation Modal State
@@ -54,7 +53,6 @@ export default function Dashboard() {
       const data = await apiClient(`/admin/dashboard?date=${TODAY}`);
       const list = (data.reservations || []).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       setTodayRes(list);
-      setBySource(data.bySource || {});
     } catch (e) {
       if (e.name !== 'AbortError') setError(true);
     } finally {
