@@ -28,8 +28,10 @@ const STATUS = {
   },
 }
 
-const NOTICE_URL = import.meta.env.VITE_NOTICE_SYSTEM_URL || 'http://localhost:3001'
-const NOTICE_TOKEN = import.meta.env.VITE_NOTICE_TOKEN || ''
+import { CONFIG } from '../../config'
+
+const NOTICE_URL = CONFIG.NOTICE_URL
+const NOTICE_TOKEN = CONFIG.NOTICE_TOKEN
 
 const POLL_INTERVAL = 30000 // check every 30 seconds
 

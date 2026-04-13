@@ -1,6 +1,7 @@
 import { mockFetch } from '../../shared/api';
+import { CONFIG } from '../../config';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = CONFIG.API_BASE_URL;
 
 export const getConfig = async () => {
   try {

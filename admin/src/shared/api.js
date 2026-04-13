@@ -1,4 +1,5 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+import { CONFIG } from '../config';
+export const API_BASE_URL = CONFIG.API_BASE_URL;
 
 const cache = new Map();
 const CACHEABLE_ENDPOINTS = [
