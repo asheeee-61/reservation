@@ -11,6 +11,23 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Storage;
 
 // Public Endpoints (Customer Frontend)
+Route::get('/health', function () {
+    $startTime = defined('LARAVEL_START') ? LARAVEL_START : microtime(true);
+    try {
+        \DB::connection()->getPdo();
+        return response()->json([
+            'status' => 'API is online',
+            'response_time' => round((microtime(true) - $startTime) * 1000) . ' ms',
+            'body' => ['database' => 'connected']
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'API is down',
+            'response_time' => round((microtime(true) - $startTime) * 1000) . ' ms',
+            'body' => ['error' => $e->getMessage()]
+        ], 500);
+    }
+});
 Route::post('/reservations', [ReservationController::class, 'store']);
 Route::get('/slots', [ReservationController::class, 'availableSlots']);
 // Endpoint for config
