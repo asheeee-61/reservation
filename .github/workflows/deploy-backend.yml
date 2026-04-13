@@ -24,4 +24,4 @@ jobs:
           username: "admin_tabla"
           password: "u%EJ9lpFqAq+fk8p"
           local-dir: ./backend-repo/
-          server-dir: ./public_html/
+         
