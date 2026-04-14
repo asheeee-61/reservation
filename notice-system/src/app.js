@@ -8,9 +8,6 @@ const notifyRoutes = require('./notify');
 const app = express();
 app.use(express.json());
 
-// Notify routes
-app.use('/notify', notifyRoutes);
-
 // CORS manual middleware
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -21,6 +18,9 @@ app.use((req, res, next) => {
     }
     next();
 });
+
+// Notify routes
+app.use('/notify', notifyRoutes);
 
 // Health check endpoint for Admin Dashboard
 app.get('/health', (req, res) => {
