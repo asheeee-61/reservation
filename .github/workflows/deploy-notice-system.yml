@@ -1,0 +1,33 @@
+name: Deploy Notice System
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'notice-system/**'
+      - '.github/workflows/deploy-notice-system.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-notice-system:
+    name: Deploy Notice System via FTP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set Production Environment
+        working-directory: ./notice-system
+        run: |
+          if [ -f ".env.production" ]; then
+            mv .env.production .env
+          fi
+        
+      - name: Sync files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: "161.97.169.203"
+          username: "admin_notice"
+          password: "I+D3C3yIpsG2qE8d"
+          local-dir: ./notice-system/
