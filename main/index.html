@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hechizo Hookah Lounge | Premium Experience</title>
+<title>Hechizo Hookah Lounge | Premium Shisha & Cocktail Experience</title>
+<meta name="description" content="Descubre la experiencia premium en Hechizo Hookah Lounge. Disfruta de la mejor shisha, cócteles artesanales y un ambiente exclusivo.">
+<meta name="keywords" content="hookah lounge, shisha, cócteles, lounge VIP, Hechizo, bar, ambiente premium">
+<meta property="og:title" content="Hechizo Hookah Lounge | Premium Experience">
+<meta property="og:description" content="Descubre la experiencia premium en Hechizo Hookah Lounge. Shisha premium, sushi, burgers y cócteles en un ambiente exclusivo.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hechizo Hookah Lounge">
+<meta name="twitter:description" content="Descubre la experiencia premium en Hechizo Hookah Lounge.">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
 * {
@@ -378,55 +386,55 @@ body {
 </head>
 <body>
 
-<div class="scene">
+<main class="scene" id="main-content">
   <!-- Soft 8k Grain Detail -->
-  <div class="noise"></div>
+  <div class="noise" aria-hidden="true"></div>
   
   <!-- Matte/Velvet Finish Texturizer -->
-  <div class="velvet"></div>
+  <div class="velvet" aria-hidden="true"></div>
   
   <!-- Chiaroscuro Soft Ambient Spotlight -->
-  <div class="spotlight"></div>
+  <div class="spotlight" aria-hidden="true"></div>
   
   <!-- Interactive Mouse Tracking Glow -->
-  <div class="glow-point" id="glow"></div>
+  <div class="glow-point" id="glow" aria-hidden="true"></div>
   
   <!-- Subtle Cinematic Drifting Smoke -->
-  <div class="smoke-container">
+  <div class="smoke-container" aria-hidden="true">
     <div class="smoke-puff"></div>
     <div class="smoke-puff"></div>
     <div class="smoke-puff"></div>
   </div>
   
   <!-- Organic Out-of-Focus Foreground Leaves -->
-  <div class="leaves">
+  <div class="leaves" aria-hidden="true">
     <div class="leaf leaf-1"></div>
     <div class="leaf leaf-2"></div>
   </div>
   
-  <div class="content">
-    <div class="brand">
-      <h1 class="title">HECHIZO</h1>
+  <section class="content" aria-labelledby="main-heading">
+    <header class="brand">
+      <h1 class="title" id="main-heading">HECHIZO</h1>
       <div class="subtitle">Hookah Lounge</div>
-    </div>
+    </header>
     
-    <div class="divider"></div>
+    <div class="divider" aria-hidden="true"></div>
     
-    <div class="menu">
-      <div class="menu-item">
+    <nav class="menu" aria-label="Menú Principal">
+      <div class="menu-item" id="btn-carta-hechizo" role="button" tabindex="0">
         <span>Carta Hechizo HKL</span>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" id="btn-carta-burger" role="button" tabindex="0">
         <span>Carta Burger</span>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" id="btn-carta-sushi" role="button" tabindex="0">
         <span>Carta Sushi</span>
       </div>
-    </div>
-  </div>
+    </nav>
+  </section>
   
-  <div class="footer-text">ESENCIA PREMIUM</div>
-</div>
+  <footer class="footer-text">ESENCIA PREMIUM</footer>
+</main>
 
 <script>
 // Cinematic Ambient Mouse Tracking
