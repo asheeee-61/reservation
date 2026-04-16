@@ -31,3 +31,6 @@ jobs:
           username: "admin_notice"
           password: "I+D3C3yIpsG2qE8d"
           local-dir: ./notice-system/
+
+
+          
