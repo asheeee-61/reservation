@@ -1,0 +1,26 @@
+name: Deploy Main
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'main/**'
+      - '.github/workflows/deploy-main.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-main:
+    name: Deploy Main via FTP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Sync files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: "161.97.169.203"
+          username: " admin_main"
+          password: "ktzcC5^8!6qedb8J"
+          local-dir: ./main/
