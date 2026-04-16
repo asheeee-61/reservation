@@ -457,10 +457,16 @@ document.querySelectorAll('.menu-item').forEach(item => {
     this.style.transform = 'translateY(2px) translateZ(10px) scale(0.98)';
     setTimeout(() => {
       this.style.transform = ''; // Revert to hover state smoothly via transition
+      
+      // Routing logic
+      const text = this.innerText.trim().toUpperCase();
+      if (text === 'CARTA HECHIZO HKL') {
+        // Open PDF in a new tab
+        window.open('./assets/CARTA HECHIZO 1.pdf', '_blank');
+      } else {
+        console.log('Clicked:', text);
+      }
     }, 200);
-    
-    // Add routing logic here
-    console.log('Clicked:', this.innerText.trim());
   });
 });
 </script>
