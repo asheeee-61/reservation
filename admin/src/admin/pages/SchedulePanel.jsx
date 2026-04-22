@@ -828,7 +828,7 @@ export default function SchedulePanel() {
 
             <Box sx={{ mt: '24px', display: 'flex', justifyContent: 'flex-end', [MOBILE]: { mt: '16px' } }}>
               <Button 
-                variant="contained" onClick={manualSave} disabled={saving} 
+                variant="contained" onClick={() => manualSave()} disabled={saving} 
                 sx={{ 
                   height: { xs: 44, md: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
                   fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
