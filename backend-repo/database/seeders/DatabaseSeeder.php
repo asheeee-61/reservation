@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'admin@hechizohookah.online',
             
+            
         ]);
     }
 }

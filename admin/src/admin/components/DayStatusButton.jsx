@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Dialog, Typography, Box, Button } from '@mui/material'
 import { apiClient } from '../../shared/api'
 import { useToast } from './Toast/ToastContext'
 import { ConfirmModal } from './ConfirmModal'
@@ -12,7 +13,7 @@ const DAY_STATUS_UI = {
 }
 
 export default function DayStatusButton({ dayStatus, onStatusChange }) {
-  const [showTooltip, setShow] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   const [modal, setModal] = useState({ open: false, reason: '' })
   const [loading, setLoading] = useState(false)
   const toast = useToast()
@@ -46,14 +47,10 @@ export default function DayStatusButton({ dayStatus, onStatusChange }) {
 
   return (
     <>
-      <div
-        style={{ position: 'relative', display: 'inline-flex' }}
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-      >
+      <div style={{ position: 'relative', display: 'inline-flex' }}>
         {/* Status indicator button */}
         <div
-          onClick={handleToggle}
+          onClick={() => setInfoOpen(true)}
           style={{
             display:        'flex',
             alignItems:     'center',
@@ -61,16 +58,14 @@ export default function DayStatusButton({ dayStatus, onStatusChange }) {
             height:         36,
             padding:        '0 10px',
             borderRadius:   4,
-            cursor:         loading ? 'wait' : 'pointer',
-            background:     showTooltip ? '#F1F3F4' : 'transparent',
+            cursor:         'pointer',
+            background:     infoOpen ? '#F1F3F4' : 'transparent',
             transition:     'background 200ms ease',
-            position:       'relative',
           }}
         >
           <span className="material-icons" style={{ fontSize: 18, color: current.dot }}>
             {current.icon}
           </span>
-          {/* colored dot badge */}
           <span style={{
             fontFamily: 'Roboto, sans-serif',
             fontSize:   12,
@@ -81,60 +76,52 @@ export default function DayStatusButton({ dayStatus, onStatusChange }) {
             {current.label}
           </span>
         </div>
-
-        {/* Tooltip */}
-        {showTooltip && (
-          <div style={{
-            position:     'absolute',
-            top:          'calc(100% + 8px)',
-            right:        0,
-            background:   '#323232',
-            color:        'white',
-            borderRadius: 4,
-            padding:      '12px',
-            whiteSpace:   'nowrap',
-            zIndex:       1000,
-            boxShadow:    '0 4px 12px rgba(0,0,0,0.3)',
-            minWidth:     180,
-          }}>
-            {/* Status row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <span style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: current.dot, flexShrink: 0, display: 'block',
-              }} />
-              <span style={{ fontFamily: 'Roboto, sans-serif', fontSize: 13, fontWeight: 500 }}>
-                Estado del día: {current.label}
-              </span>
-            </div>
-            <div style={{
-              marginTop:    10,
-              paddingTop:   10,
-              borderTop:    '1px solid rgba(255,255,255,0.15)',
-            }}>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleToggle() }}
-                disabled={loading}
-                style={{
-                  background:   current.btnNext === 'ABIERTO' ? '#34A853' : '#EA4335',
-                  color:        'white',
-                  border:       'none',
-                  borderRadius: 4,
-                  padding:      '6px 12px',
-                  fontSize:     12,
-                  fontWeight:   500,
-                  cursor:       loading ? 'wait' : 'pointer',
-                  width:        '100%',
-                  fontFamily:   'Roboto, sans-serif',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {current.btnLabel}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Info Dialog instead of tooltip */}
+      <Dialog
+        open={infoOpen}
+        onClose={() => setInfoOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '100%', maxWidth: 300,
+            bgcolor: '#FFFFFF', borderRadius: '4px',
+            p: '24px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+            m: '16px',
+          },
+        }}
+      >
+        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: 2 }}>
+          Control del día
+        </Typography>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 3 }}>
+          <Box sx={{ width: 10, height: 10, borderRadius: '50%', background: current.dot, flexShrink: 0 }} />
+          <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px', fontWeight: 500, color: current.text }}>
+            Estado actual: {current.label}
+          </Typography>
+        </Box>
+
+        <Button
+          onClick={() => {
+            setInfoOpen(false);
+            handleToggle();
+          }}
+          disabled={loading}
+          variant="contained"
+          fullWidth
+          disableElevation
+          sx={{
+            height: 36, borderRadius: '4px',
+            bgcolor: current.btnNext === 'ABIERTO' ? '#34A853' : '#D93025', 
+            color: '#FFFFFF',
+            fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase',
+            '&:hover': { bgcolor: current.btnNext === 'ABIERTO' ? '#34A853' : '#D93025', filter: 'brightness(0.9)', boxShadow: 'none' }
+          }}
+        >
+          {loading ? 'Cargando...' : current.btnLabel}
+        </Button>
+      </Dialog>
 
       {/* Close day confirmation modal */}
       <ConfirmModal
