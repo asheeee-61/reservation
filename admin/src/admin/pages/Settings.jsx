@@ -84,7 +84,7 @@ export default function Settings() {
       const data = await apiClient('/config');
       setConfig({
         ...data,
-        business: data.business || { name: 'Business', address: 'Calle de Alcalá 99' },
+        business: data.business || { name: 'Hechizo Hookah Lounge', address: 'Cam. de los Romanos, 91' },
         minGuests: data.minGuests || 1,
         maxGuests: data.maxGuests || 10,
         totalCapacity: data.totalCapacity || 40

@@ -9,7 +9,7 @@ export default function RightPanelMap() {
   const { lat, lng } = config.business;
   
   // Create Google Maps embed URL
-  const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+  const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&z=18&t=k&output=embed`;
 
   return (
     <Box

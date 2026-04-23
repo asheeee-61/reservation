@@ -14,9 +14,9 @@ export const getConfig = async () => {
     return {
       maxGuests: 10, minGuests: 1,
       business: {
-        name: "Business",
-        address: "Calle de Alcalá 99, 28009 Madrid",
-        lat: 40.4214, lng: -3.6846
+        name: "Hechizo Hookah Lounge",
+        address: "Cam. de los Romanos, 91, 30820 Alcantarilla, Murcia, Spain",
+        lat: 37.96453860395277, lng: -1.2172339712475693
       },
       logo_url: null,
     };

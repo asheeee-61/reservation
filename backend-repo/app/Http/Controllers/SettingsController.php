@@ -14,10 +14,10 @@ class SettingsController extends Controller
             'maxGuests' => 10,
             'minGuests' => 1,
             'business' => [
-                'name' => 'Business',
-                'address' => 'Calle de Alcalá 99, 28009 Madrid',
-                'lat' => 40.4214,
-                'lng' => -3.6846
+                'name' => 'Hechizo Hookah Lounge',
+                'address' => 'Cam. de los Romanos, 91, 30820 Alcantarilla, Murcia, Spain',
+                'lat' => 37.96453860395277,
+                'lng' => -1.2172339712475693
             ],
             'schedule' => [
                 'monday' => ['open' => true, 'shifts' => [['id' => 1, 'openingTime' => '13:00', 'closingTime' => '23:30', 'interval' => 30, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]]]],
@@ -41,9 +41,11 @@ class SettingsController extends Controller
         $setting = Setting::firstOrCreate(
             [],
             [
+                'business_name' => 'Hechizo Hookah Lounge',
                 'global_opening_time' => '09:00:00',
                 'global_closing_time' => '00:00:00',
-                'default_interval' => 30
+                'default_interval' => 30,
+                'google_maps_link' => 'https://maps.app.goo.gl/cph25cpucNPKaodJ9'
             ]
         );
 
