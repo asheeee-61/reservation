@@ -131,7 +131,8 @@ router.post('/confirmed', async (req, res) => {
 
 // 4. New reservation notification (client + admin)
 router.post('/new-reservation', async (req, res) => {
-    const { reservation, customer, zone, event, adminPhone, restaurantName } = req.body;
+    const { reservation, customer, zone, event, adminPhone, businessName, restaurantName } = req.body;
+    const finalBusinessName = businessName || restaurantName;
 
     if (!reservation || !customer) {
         return res.status(400).json({ error: 'Missing reservation or customer data' });
@@ -146,8 +147,15 @@ router.post('/new-reservation', async (req, res) => {
         customerPhone: customer.phone,
         tableType: zone ? zone.name : null,
         specialEvent: event ? event.name : null,
-        restaurantName
+        restaurantName: finalBusinessName
     };
+
+    console.log(`📩 Processing new reservation #${reservation.id} for ${customer.name}`);
+    if (adminPhone) {
+        console.log(`📱 Admin phone provided: ${adminPhone}`);
+    } else {
+        console.warn(`⚠️ No adminPhone provided in payload for #${reservation.id}`);
+    }
 
     try {
         const clientMsg = formatClientConfirmation(data);
@@ -158,11 +166,32 @@ router.post('/new-reservation', async (req, res) => {
 
         const results = await Promise.allSettled([
             sendMessage(targetClient, clientMsg, 'Nueva Reserva (Cliente)'),
-            sendMessage(targetAdmin, adminMsg, 'Nueva Reserva (Admin)')
+            adminPhone ? sendMessage(targetAdmin, adminMsg, 'Nueva Reserva (Admin)') : Promise.resolve({ skipped: true })
         ]);
 
-        console.log(`✅ New reservation notifications sent for #${reservation.id}`);
-        res.json({ status: 'sent', details: results });
+        const clientResult = results[0];
+        const adminResult = results[1];
+
+        if (clientResult.status === 'rejected') {
+            console.error(`❌ Client notification failed for #${reservation.id}:`, clientResult.reason?.message || clientResult.reason);
+        } else {
+            console.log(`✅ Client notification successful for #${reservation.id}`);
+        }
+
+        if (adminPhone) {
+            if (adminResult.status === 'rejected') {
+                console.error(`❌ Admin notification failed for #${reservation.id}:`, adminResult.reason?.message || adminResult.reason);
+            } else {
+                console.log(`✅ Admin notification successful for #${reservation.id}`);
+            }
+        }
+
+        res.json({ 
+            status: 'processed', 
+            reservationId: reservation.id,
+            client: clientResult.status,
+            admin: adminPhone ? adminResult.status : 'skipped'
+        });
     } catch (err) {
         console.error('❌ Failed to send status update:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });

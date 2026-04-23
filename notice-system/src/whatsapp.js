@@ -90,8 +90,19 @@ Estado: Pendiente ⏳`;
 };
 
 const sendMessage = async (to, text, type = 'Notificación') => {
+    if (!to) {
+        console.error(`❌ Cannot send WhatsApp: 'to' is undefined or null`);
+        throw new Error("Recipient phone number is required");
+    }
+
     // Format to WhatsApp ID (suffix @c.us for individuals)
-    const chatId = to.includes('@c.us') ? to : `${to.replace(/\D/g, '')}@c.us`;
+    const toString = String(to).trim();
+    if (!toString) {
+        console.error(`❌ Cannot send WhatsApp: 'to' is an empty string`);
+        throw new Error("Recipient phone number is empty");
+    }
+
+    const chatId = toString.includes('@c.us') ? toString : `${toString.replace(/\D/g, '')}@c.us`;
 
     if (!clientReady) {
         logMessage(chatId, text, 'failed', type);

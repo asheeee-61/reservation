@@ -69,12 +69,18 @@ class NotificationService
             if (!$endpoint) return;
 
             $payload = $this->getWhatsAppPayload($type, $reservation);
+            $target = $reservation->customer->phone;
+            $adminPhone = $payload['adminPhone'] ?? 'N/A';
 
             Http::timeout(5)
                 ->withHeaders(['x-api-secret' => config('notice.secret')])
                 ->post("{$noticeUrl}{$endpoint}", $payload);
 
-            Log::info("WhatsApp ($type) sent to {$reservation->customer->phone}");
+            $logMsg = "WhatsApp ($type) sent to customer: $target";
+            if ($type === 'received') {
+                $logMsg .= " and Admin: $adminPhone";
+            }
+            Log::info($logMsg);
         } catch (\Exception $e) {
             Log::warning("WhatsApp notification failed ($type): " . $e->getMessage());
         }
