@@ -120,7 +120,7 @@ class NotificationService
         ];
 
         $settings = Setting::first();
-        $adminPhone = $settings->restaurant_phone ?? config('notice.admin_phone');
+        $adminPhone = $settings->admin_phone ?? null;
         $reviewLink = $settings->review_link ?? config('notice.review_link', 'https://g.page/r/YOUR_RESTAURANT_ID/review');
         $businessName = $settings->business_name ?? config('app.name', 'Business');
 

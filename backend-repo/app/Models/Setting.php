@@ -14,6 +14,7 @@ class Setting extends Model
         'whatsapp_phone',
         'instagram_username',
         'business_phone',
+        'admin_phone',
         'review_link',
         'google_maps_link',
         'menu_pdf',
