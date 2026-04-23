@@ -5,6 +5,7 @@ const {
     formatReminder2h, 
     formatPostVisitReview, 
     formatCancellation,
+    formatClientReceived,
     formatClientConfirmation,
     formatAdminNotification
 } = require('./messages');
@@ -158,7 +159,7 @@ router.post('/new-reservation', async (req, res) => {
     }
 
     try {
-        const clientMsg = formatClientConfirmation(data);
+        const clientMsg = formatClientReceived(data);
         const adminMsg = formatAdminNotification(data);
 
         const targetAdmin = process.env.TEST_PHONE || adminPhone;

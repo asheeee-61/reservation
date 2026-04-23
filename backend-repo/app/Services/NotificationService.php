@@ -122,7 +122,8 @@ class NotificationService
             'customer' => [
                 'name'  => $reservation->customer->name,
                 'phone' => $reservation->customer->phone,
-            ]
+            ],
+            'id' => $reservation->reservation_id
         ];
 
         $settings = Setting::first();
