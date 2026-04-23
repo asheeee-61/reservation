@@ -9,7 +9,7 @@ export default function RightPanelMap() {
   const { lat, lng } = config.business;
   
   // The user requested a specific Google Maps embed for HECHIZO HOOKAH LOUNGE
-  const mapUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3870.499165052954!2d-1.2175915000000002!3d37.9643242!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd648004635ee803%3A0x919bf2fb4d68b4d!2sHECHIZO%20HOOKAH%20LOUNGE!5e1!3m2!1sen!2sma!4v1776979398975!5m2!1sen!2sma";
+  const mapUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d342.4059724275721!2d-1.2169925499025762!3d37.961620533919124!2m3!1f339.5625!2f42.53161403572894!3f0!3m2!1i1024!2i768!4f35!3m3!1m2!1s0xd648004635ee803%3A0x919bf2fb4d68b4d!2sHECHIZO%20HOOKAH%20LOUNGE!5e1!3m2!1sen!2sma!4v1776979647197!5m2!1sen!2sma";
 
   return (
     <Box
