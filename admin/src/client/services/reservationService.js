@@ -16,7 +16,7 @@ export const getConfig = async () => {
       business: {
         name: "Hechizo Hookah Lounge",
         address: "Cam. de los Romanos, 91, 30820 Alcantarilla, Murcia, Spain",
-        lat: 37.96453860395277, lng: -1.2172339712475693
+        lat: 37.964344931555196, lng: -1.2175485087252154
       },
       logo_url: null,
     };

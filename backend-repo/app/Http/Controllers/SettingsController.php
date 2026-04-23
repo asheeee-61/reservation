@@ -16,8 +16,8 @@ class SettingsController extends Controller
             'business' => [
                 'name' => 'Hechizo Hookah Lounge',
                 'address' => 'Cam. de los Romanos, 91, 30820 Alcantarilla, Murcia, Spain',
-                'lat' => 37.96453860395277,
-                'lng' => -1.2172339712475693
+                'lat' => 37.964344931555196,
+                'lng' => -1.2175485087252154
             ],
             'schedule' => [
                 'monday' => ['open' => true, 'shifts' => [['id' => 1, 'openingTime' => '13:00', 'closingTime' => '23:30', 'interval' => 30, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]]]],
@@ -45,7 +45,7 @@ class SettingsController extends Controller
                 'global_opening_time' => '09:00:00',
                 'global_closing_time' => '00:00:00',
                 'default_interval' => 30,
-                'google_maps_link' => 'https://maps.app.goo.gl/cph25cpucNPKaodJ9'
+                'google_maps_link' => 'https://www.google.com/maps?q=37.964344931555196,-1.2175485087252154'
             ]
         );
 

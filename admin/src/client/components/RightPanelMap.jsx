@@ -8,8 +8,8 @@ export default function RightPanelMap() {
 
   const { lat, lng } = config.business;
   
-  // Create Google Maps embed URL
-  const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&z=18&t=k&output=embed`;
+  // The user requested a specific Google Maps embed for HECHIZO HOOKAH LOUNGE
+  const mapUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3870.499165052954!2d-1.2175915000000002!3d37.9643242!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd648004635ee803%3A0x919bf2fb4d68b4d!2sHECHIZO%20HOOKAH%20LOUNGE!5e1!3m2!1sen!2sma!4v1776979398975!5m2!1sen!2sma";
 
   return (
     <Box
@@ -24,10 +24,11 @@ export default function RightPanelMap() {
         title="Restaurant Location Map"
         width="100%"
         height="100%"
-        frameBorder="0"
         style={{ border: 0, display: 'block' }}
         src={mapUrl}
-        allowFullScreen
+        allowFullScreen=""
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
       />
     </Box>
   );
