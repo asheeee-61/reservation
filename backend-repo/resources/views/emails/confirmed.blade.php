@@ -2,80 +2,48 @@
 
 @section('header')
 <tr>
-  <td class="email-header"
-      style="background: linear-gradient(135deg,
-             #1A73E8 0%, #1557B0 100%);">
-    <p class="header-restaurant">
-      {{ $businessName }}
-    </p>
-    <h1 class="header-title">Reserva confirmada</h1>
-    <p class="header-subtitle">
-      Le esperamos con mucho gusto
-    </p>
-    <span class="header-badge">Confirmada</span>
+  <td class="email-header">
+    <p class="header-restaurant">{{ $businessName }}</p>
+    <h1 class="header-title" style="color: #1a73e8;">¡Reserva Confirmada!</h1>
+    <div style="display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 500; text-transform: uppercase; margin-top: 16px; letter-spacing: 0.5px;">
+        Te esperamos
+    </div>
   </td>
 </tr>
 @endsection
 
 @section('body')
-<p class="greeting">
-  Estimado/a {{ $reservation->customer->name }},
-</p>
+<p class="greeting">Genial {{ $reservation->customer->name }},</p>
 <p class="body-text">
-  Nos complace confirmarle su reserva en 
-  {{ $businessName }}.
-  Todo esta listo para recibirle y esperamos 
-  que disfrute de una experiencia excepcional.
+  Tu reserva en <strong>{{ $businessName }}</strong> ha sido confirmada satisfactoriamente. Aquí tienes los detalles para tu visita.
 </p>
 
-<span class="reference-chip">
-  Referencia: #{{ $reservation->reservation_id }}
-</span>
-
-<div class="details-card">
-  <div class="details-card-header">
-    Detalles de su reserva confirmada
+<div class="details-container">
+  <div class="details-row">
+    <span class="details-label">Referencia</span>
+    <span class="details-value">#{{ $reservation->reservation_id }}</span>
   </div>
   <div class="details-row">
-    <span class="details-label">Fecha</span>
+    <span class="details-label">Fecha y Hora</span>
     <span class="details-value">
-      {{ \Carbon\Carbon::parse($reservation->date)
-         ->locale('es')
-         ->isoFormat('dddd, D [de] MMMM [de] YYYY') }}
+      {{ \Carbon\Carbon::parse($reservation->date)->locale('es')->isoFormat('D [de] MMMM') }} a las {{ \Carbon\Carbon::parse($reservation->time)->format('H:i') }}
     </span>
   </div>
   <div class="details-row">
-    <span class="details-label">Hora</span>
-    <span class="details-value">
-      {{ $reservation->time }}
-    </span>
-  </div>
-  <div class="details-row">
-    <span class="details-label">Personas</span>
-    <span class="details-value">
-      {{ $reservation->guests }}
-    </span>
+    <span class="details-label">Comensales</span>
+    <span class="details-value">{{ $reservation->guests }} personas</span>
   </div>
   <div class="details-row">
     <span class="details-label">Zona</span>
-    <span class="details-value">
-      {{ $reservation->zone->name ?? 'General' }}
-    </span>
-  </div>
-  <div class="details-row">
-    <span class="details-label">Ocasion</span>
-    <span class="details-value">
-      {{ $reservation->specialEvent->name ?? 'Sin evento especial' }}
-    </span>
+    <span class="details-value">{{ $reservation->zone->name ?? 'Estándar' }}</span>
   </div>
 </div>
 
-<div class="alert-box alert-success">
-  <span class="alert-box-icon">✓</span>
-  <span>
-    Su reserva esta confirmada. Si tiene algun 
-    imprevisto, le agradeceriamos que nos lo 
-    comunicara con la mayor brevedad posible.
-  </span>
+<div class="cta-container">
+  <a href="{{ $googleMapsLink ?? '#' }}" class="cta-button">Ver ubicación en Maps</a>
 </div>
+
+<p class="body-text" style="font-size: 13px; color: #70757a; text-align: center;">
+  Si no puedes asistir, por favor cancela tu reserva con antelación para que otros puedan disfrutar del espacio.
+</p>
 @endsection

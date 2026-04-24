@@ -208,7 +208,7 @@ class SettingsController extends Controller
             'received'  => new \App\Mail\ReservationReceived($reservation, $settings),
             'confirmed' => new \App\Mail\ReservationConfirmed($reservation, $settings),
             'cancelled' => new \App\Mail\ReservationCancelled($reservation, $settings),
-            'reminder'  => new \App\Mail\ReservationReminder($reservation, $settings),
+            'reminder_2h' => new \App\Mail\ReservationReminder($reservation, $settings),
             'review'    => new \App\Mail\PostVisitReview($reservation, $settings),
             default     => null
         };
@@ -216,5 +216,38 @@ class SettingsController extends Controller
         if (!$mailable) return response()->json(['error' => 'Invalid template type'], 400);
 
         return $mailable->render();
+    }
+
+    public function previewWhatsAppTemplate(Request $request, $type)
+    {
+        $setting = Setting::first();
+        $businessName = $setting ? $setting->business_name : 'Hechizo Hookah Lounge';
+        $reviewLink = $setting ? ($setting->review_link ?: 'https://g.page/review') : 'https://g.page/review';
+
+        $data = [
+            'id' => '123',
+            'customerName' => 'Juan Pérez',
+            'customerPhone' => '+34 600 000 000',
+            'date' => date('Y-m-d'),
+            'time' => '21:00',
+            'guests' => 4,
+            'tableType' => 'Terraza',
+            'specialEvent' => 'Cumpleaños',
+            'businessName' => $businessName,
+            'reviewLink' => $reviewLink
+        ];
+
+        $message = match($type) {
+            'received' => "SOLICITUD DE RESERVA RECIBIDA - {$data['businessName']}\n\nEstimado/a {$data['customerName']}, hemos recibido su solicitud.\n\nDetalles:\n- Fecha: {$data['date']}\n- Hora: {$data['time']}\n- Personas: {$data['guests']}\n- Zona: {$data['tableType']}\n- Evento: {$data['specialEvent']}\n- Referencia: #{$data['id']}\n\nLe confirmaremos en breve. Muchas gracias.",
+            'confirmed' => "Estimado/a {$data['customerName']}, le informamos que su reserva #{$data['id']} en {$data['businessName']} ha sido CONFIRMADA. Le esperamos.",
+            'cancelled' => "Estimado/a {$data['customerName']}, le informamos que su reserva #{$data['id']} en {$data['businessName']} ha sido cancelada. Lamentamos las molestias.",
+            'reminder_2h' => "Estimado/a {$data['customerName']}, le recordamos su reserva #{$data['id']} en {$data['businessName']} para hoy a las {$data['time']}. Le esperamos.",
+            'review' => "Estimado/a {$data['customerName']}, gracias por visitarnos en {$data['businessName']}. Enlace para su opinión: {$data['reviewLink']}",
+            default => null
+        };
+
+        if (!$message) return response()->json(['error' => 'Invalid template type'], 400);
+
+        return response()->json(['message' => $message]);
     }
 }

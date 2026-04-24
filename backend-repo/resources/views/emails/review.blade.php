@@ -2,59 +2,36 @@
 
 @section('header')
 <tr>
-  <td class="email-header"
-      style="background: linear-gradient(135deg,
-             #1A73E8 0%, #1557B0 100%);">
-    <p class="header-restaurant">
-      {{ $businessName }}
-    </p>
-    <h1 class="header-title">
-      Gracias por su visita
-    </h1>
-    <p class="header-subtitle">
-      Esperamos que haya sido de su agrado
-    </p>
+  <td class="email-header">
+    <p class="header-restaurant">{{ $businessName }}</p>
+    <h1 class="header-title">¡Gracias por tu visita!</h1>
+    <div style="display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 500; text-transform: uppercase; margin-top: 16px; letter-spacing: 0.5px;">
+        Tu opinión nos importa
+    </div>
   </td>
 </tr>
 @endsection
 
 @section('body')
-<p class="greeting">
-  Estimado/a {{ $reservation->customer->name }},
+<p class="greeting">Hola {{ $reservation->customer->name }},</p>
+<p class="body-text">
+  Esperamos que hayas disfrutado de tu experiencia en <strong>{{ $businessName }}</strong> tanto como nosotros disfrutamos recibiéndote.
 </p>
 <p class="body-text">
-  Esperamos que su visita a 
-  {{ $businessName }} 
-  haya sido de su agrado y que la experiencia 
-  haya superado sus expectativas.
-</p>
-<p class="body-text">
-  Su opinion es muy valiosa para nosotros y nos 
-  ayuda a seguir mejorando cada dia. Si dispone 
-  de un momento, le agradeceriamos enormemente 
-  que compartiera su experiencia.
+  Nos encantaría conocer tu opinión para seguir mejorando y ofreciendo el mejor servicio posible. ¿Te importaría dedicarnos un minuto?
 </p>
 
 @if($reviewLink)
 <div class="cta-container">
-  <a href="{{ $reviewLink }}" 
-     class="cta-button"
-     target="_blank">
-    Dejar una valoracion
-  </a>
+  <a href="{{ $reviewLink }}" class="cta-button">Dejar una opinión</a>
 </div>
 @endif
 
-<div class="alert-box alert-info">
-  <span class="alert-box-icon">i</span>
-  <span>
-    Referencia de su visita: 
-    <strong>#{{ $reservation->reservation_id }}</strong>
-  </span>
+<div style="margin-top: 32px; text-align: center; color: #70757a; font-size: 13px;">
+    Referencia de visita: #{{ $reservation->reservation_id }}
 </div>
 
-<p class="body-text" style="margin-top: 16px;">
-  Muchas gracias por elegirnos. 
-  Esperamos volver a verle pronto.
+<p class="body-text" style="margin-top: 32px; text-align: center;">
+  ¡Esperamos volver a verte muy pronto!
 </p>
 @endsection

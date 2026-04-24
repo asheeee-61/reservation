@@ -2,78 +2,42 @@
 
 @section('header')
 <tr>
-  <td class="email-header"
-      style="background: linear-gradient(135deg,
-             #1A73E8 0%, #1557B0 100%);">
-    <p class="header-restaurant">
-      {{ $businessName }}
-    </p>
-    <h1 class="header-title">
-      Recordatorio de reserva
-    </h1>
-    <p class="header-subtitle">
-      Hoy a las {{ $reservation->time }}
-    </p>
-    <span class="header-badge">Hoy</span>
+  <td class="email-header">
+    <p class="header-restaurant">{{ $businessName }}</p>
+    <h1 class="header-title">Recordatorio de hoy</h1>
+    <div style="display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 500; text-transform: uppercase; margin-top: 16px; letter-spacing: 0.5px;">
+        Te vemos en breve
+    </div>
   </td>
 </tr>
 @endsection
 
 @section('body')
-<p class="greeting">
-  Estimado/a {{ $reservation->customer->name }},
-</p>
+<p class="greeting">Hola {{ $reservation->customer->name }},</p>
 <p class="body-text">
-  Le recordamos que tiene una reserva en 
-  {{ $businessName }} 
-  en aproximadamente 2 horas. Le esperamos.
+  Te recordamos que tienes una reserva hoy en <strong>{{ $businessName }}</strong>. Todo está listo para recibirte.
 </p>
 
-<div class="details-card">
-  <div class="details-card-header">
-    Su reserva de hoy
+<div class="details-container">
+  <div class="details-row">
+    <span class="details-label">Hora de llegada</span>
+    <span class="details-value" style="color: #1a73e8; font-weight: 500; font-size: 20px;">{{ $reservation->time }}</span>
   </div>
   <div class="details-row">
-    <span class="details-label">Hoy</span>
-    <span class="details-value">
-      {{ \Carbon\Carbon::parse($reservation->date)
-         ->locale('es')
-         ->isoFormat('dddd, D [de] MMMM') }}
-    </span>
+    <span class="details-label">Fecha</span>
+    <span class="details-value">Hoy, {{ \Carbon\Carbon::parse($reservation->date)->locale('es')->isoFormat('D [de] MMMM') }}</span>
   </div>
   <div class="details-row">
-    <span class="details-label">Hora</span>
-    <span class="details-value" 
-          style="color:#1A73E8; font-weight:500;">
-      {{ $reservation->time }}
-    </span>
-  </div>
-  <div class="details-row">
-    <span class="details-label">Personas</span>
-    <span class="details-value">
-      {{ $reservation->guests }}
-    </span>
-  </div>
-  <div class="details-row">
-    <span class="details-label">Zona</span>
-    <span class="details-value">
-      {{ $reservation->zone->name ?? 'General' }}
-    </span>
+    <span class="details-label">Comensales</span>
+    <span class="details-value">{{ $reservation->guests }} pax</span>
   </div>
   <div class="details-row">
     <span class="details-label">Referencia</span>
-    <span class="details-value">
-      #{{ $reservation->reservation_id }}
-    </span>
+    <span class="details-value">#{{ $reservation->reservation_id }}</span>
   </div>
 </div>
 
-<div class="alert-box alert-warning">
-  <span class="alert-box-icon">!</span>
-  <span>
-    Si tiene algun imprevisto y no puede asistir, 
-    le agradeceriamos que nos lo comunicara 
-    con la mayor brevedad posible.
-  </span>
-</div>
+<p class="body-text" style="font-size: 13px; color: #70757a; text-align: center;">
+  Por favor, si tus planes han cambiado y no puedes asistir, avísanos cancelando tu reserva.
+</p>
 @endsection

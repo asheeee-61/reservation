@@ -6,15 +6,6 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
   <title>{{ $businessName }}</title>
-  <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
-  <![endif]-->
   <style>
     /* Reset */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,10 +25,10 @@
       text-decoration: none;
     }
 
-    /* Base */
+    /* MD2 Light Base */
     body {
-      background-color: #F1F3F4;
-      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f8f9fa;
+      font-family: 'Roboto', Helvetica, Arial, sans-serif;
       font-size: 14px;
       line-height: 1.6;
       color: #202124;
@@ -46,285 +37,161 @@
       padding: 0;
     }
 
-    /* Wrapper */
     .email-wrapper {
       width: 100%;
-      background-color: #F1F3F4;
-      padding: 32px 16px;
+      background-color: #f8f9fa;
+      padding: 40px 16px;
     }
 
-    /* Card */
     .email-card {
       max-width: 560px;
       margin: 0 auto;
-      background-color: #FFFFFF;
-      border-radius: 4px;
+      background-color: #ffffff;
+      border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12),
-                  0 1px 2px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
     }
 
     /* Header */
     .email-header {
-      padding: 32px 40px 28px;
-      position: relative;
+      padding: 40px 48px 32px;
+      text-align: center;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f3f4;
     }
-    .email-header::after {
-      content: '';
-      display: block;
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 3px;
-      background: rgba(255,255,255,0.2);
-    }
+    
     .header-restaurant {
-      font-family: 'Google Sans', Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 400;
-      color: rgba(255,255,255,0.85);
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .header-title {
-      font-family: 'Google Sans', Arial, sans-serif;
-      font-size: 24px;
-      font-weight: 400;
-      color: #FFFFFF;
-      line-height: 1.3;
-      margin: 0;
-    }
-    .header-subtitle {
-      font-size: 14px;
-      color: rgba(255,255,255,0.75);
-      margin-top: 6px;
-    }
-
-    /* Status badge in header */
-    .header-badge {
-      display: inline-block;
-      background: rgba(255,255,255,0.2);
-      border: 1px solid rgba(255,255,255,0.4);
-      border-radius: 100px;
-      padding: 4px 14px;
       font-size: 12px;
       font-weight: 500;
-      color: white;
-      margin-top: 16px;
-      letter-spacing: 0.25px;
+      color: #1a73e8;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .header-title {
+      font-size: 26px;
+      font-weight: 400;
+      color: #202124;
+      line-height: 1.3;
+      margin: 0;
     }
 
     /* Body */
     .email-body {
-      padding: 32px 40px;
+      padding: 40px 48px 48px;
     }
 
-    /* Greeting */
     .greeting {
-      font-family: 'Google Sans', Arial, sans-serif;
-      font-size: 16px;
-      font-weight: 400;
+      font-size: 18px;
+      font-weight: 500;
       color: #202124;
-      margin-bottom: 12px;
-    }
-
-    /* Body text */
-    .body-text {
-      font-size: 14px;
-      color: #5F6368;
-      line-height: 1.7;
       margin-bottom: 16px;
     }
 
-    /* Reference chip */
-    .reference-chip {
-      display: inline-block;
-      background: #E8F0FE;
-      border-radius: 100px;
-      padding: 6px 16px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #1A73E8;
-      margin: 8px 0 24px;
-      letter-spacing: 0.25px;
+    .body-text {
+      font-size: 15px;
+      color: #5f6368;
+      line-height: 1.7;
+      margin-bottom: 24px;
     }
 
-    /* Details card */
-    .details-card {
-      background: #FAFAFA;
-      border: 1px solid #E0E0E0;
+    /* Details styling (MD2 List Style) */
+    .details-container {
+      background: #f8f9fa;
       border-radius: 4px;
-      overflow: hidden;
-      margin: 8px 0 24px;
-    }
-    .details-card-header {
-      background: #F1F3F4;
-      padding: 10px 20px;
-      border-bottom: 1px solid #E0E0E0;
-      font-size: 11px;
-      font-weight: 500;
-      color: #70757A;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
+      padding: 24px;
+      margin: 24px 0;
+      border: 1px solid #f1f3f4;
     }
     .details-row {
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f3f4;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 20px;
-      border-bottom: 1px solid #F1F3F4;
     }
     .details-row:last-child {
       border-bottom: none;
     }
     .details-label {
-      font-size: 13px;
-      color: #70757A;
+      font-size: 12px;
+      color: #70757a;
       font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .details-value {
-      font-size: 13px;
+      font-size: 15px;
       color: #202124;
       text-align: right;
-      font-weight: 400;
     }
 
-    /* Alert boxes */
-    .alert-box {
-      border-radius: 4px;
-      padding: 14px 16px;
-      margin: 16px 0;
-      font-size: 13px;
-      line-height: 1.5;
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-    .alert-box-icon {
-      font-size: 16px;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-    .alert-info, .alert-success, .alert-warning, .alert-error {
-      background: #E8F0FE;
-      border-left: 3px solid #1A73E8;
-      color: #174EA6;
-    }
-
-    /* CTA Button */
+    /* MD2 Button */
     .cta-container {
       text-align: center;
-      margin: 24px 0;
+      margin: 32px 0 16px;
     }
     .cta-button {
       display: inline-block;
-      background-color: #1A73E8;
-      color: #FFFFFF !important;
+      background-color: #1a73e8;
+      color: #ffffff !important;
       text-decoration: none;
-      font-family: 'Google Sans', Arial, sans-serif;
       font-size: 14px;
       font-weight: 500;
-      letter-spacing: 0.25px;
+      letter-spacing: 1.25px;
       padding: 12px 32px;
       border-radius: 4px;
-      border: none;
-    }
-    .cta-button:hover {
-      background-color: #1557B0;
-    }
-
-    /* Divider */
-    .divider {
-      border: none;
-      border-top: 1px solid #E0E0E0;
-      margin: 24px 0;
-    }
-
-    /* Sign off */
-    .sign-off {
-      font-size: 14px;
-      color: #5F6368;
-      margin-top: 24px;
-    }
-    .sign-off-name {
-      font-family: 'Google Sans', Arial, sans-serif;
-      font-size: 15px;
-      font-weight: 500;
-      color: #202124;
-      margin-top: 4px;
+      text-transform: uppercase;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
 
     /* Footer */
     .email-footer {
-      background: #F8F9FA;
-      border-top: 1px solid #E0E0E0;
-      padding: 20px 40px;
+      padding: 32px 48px;
       text-align: center;
+      background: #f8f9fa;
+      border-top: 1px solid #f1f3f4;
     }
     .footer-text {
-      font-size: 11px;
-      color: #9AA0A6;
+      font-size: 12px;
+      color: #70757a;
       line-height: 1.6;
     }
-    .footer-text a {
-      color: #9AA0A6;
-      text-decoration: underline;
-    }
 
-    /* Mobile responsive */
     @media only screen and (max-width: 600px) {
       .email-wrapper { padding: 16px 8px !important; }
-      .email-header  { padding: 24px 24px 20px !important; }
+      .email-header  { padding: 32px 24px 24px !important; }
       .email-body    { padding: 24px !important; }
-      .email-footer  { padding: 16px 24px !important; }
-      .header-title  { font-size: 20px !important; }
-      .details-row   { flex-direction: column; gap: 2px; }
-      .details-value { text-align: left !important; }
+      .header-title  { font-size: 22px !important; }
+      .details-row   { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .details-value { text-align: left; }
     }
   </style>
 </head>
 <body>
   <div class="email-wrapper">
-    <table class="email-card" 
-           width="100%" 
-           cellpadding="0" 
-           cellspacing="0"
-           role="presentation">
-
-      {{-- Header --}}
+    <table class="email-card" width="100%" cellpadding="0" cellspacing="0" role="presentation">
       @yield('header')
-
-      {{-- Body --}}
       <tr>
         <td class="email-body">
           @yield('body')
-
-          <hr class="divider">
-
-          <p class="sign-off">
-            Un saludo,<br>
-            <span class="sign-off-name">
-              {{ $businessName }}
-            </span>
-          </p>
+          
+          <div style="margin-top: 40px; border-top: 1px solid #f1f3f4; padding-top: 24px;">
+            <p style="font-size: 14px; color: #70757a;">
+              Atentamente,<br>
+              <span style="font-weight: 500; color: #202124;">{{ $businessName }}</span>
+            </p>
+          </div>
         </td>
       </tr>
-
-      {{-- Footer --}}
       <tr>
         <td class="email-footer">
           <p class="footer-text">
-            Este mensaje ha sido enviado por 
-            <strong>
-              {{ $businessName }}
-            </strong>
-            en relacion a su reserva.<br>
-            Si no ha realizado ninguna reserva, 
-            ignore este mensaje.
+            Este es un mensaje automático de {{ $businessName }}.<br>
+            © {{ date('Y') }} {{ $businessName }}. Todos los derechos reservados.
           </p>
         </td>
       </tr>
-
     </table>
   </div>
 </body>

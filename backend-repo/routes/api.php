@@ -44,6 +44,12 @@ Route::get('/availability', [ReservationController::class, 'availability']);
 // Admin Authentication
 Route::post('/admin/login', [AuthController::class, 'login']);
 
+// Template Previews (Public or token-based, moved out of sanctum to avoid login redirect)
+Route::prefix('admin/templates/preview')->group(function () {
+    Route::get('/email/{type}', [SettingsController::class, 'previewTemplate']);
+    Route::get('/whatsapp/{type}', [SettingsController::class, 'previewWhatsAppTemplate']);
+});
+
 // Protected Admin Endpoints
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index']);
@@ -72,7 +78,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/config', [SettingsController::class, 'updateConfig']);
-    Route::get('/templates/preview/{type}', [SettingsController::class, 'previewTemplate']);
     Route::get('/blocked-dates', [DayStatusController::class, 'index']);
     Route::get('/search', [SearchController::class, 'index']);
     Route::get('/day-status', [DayStatusController::class, 'show']);
