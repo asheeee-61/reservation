@@ -11,6 +11,7 @@ jest.mock('../src/whatsapp', () => ({
 }));
 
 process.env.API_SECRET = 'test_secret';
+process.env.ADMIN_ACCESS_TOKEN = 'test_token';
 
 describe('Notice System API', () => {
 
@@ -39,8 +40,8 @@ describe('Notice System API', () => {
         const payload = {
             reservation: { id: 1, date: '2026-03-28', time: '20:00', guests: 2 },
             customer: { name: 'Juan Doe', phone: '34600000001' },
-            tableType: { name: 'Terraza' },
-            specialEvent: { name: 'Cumpleaños' },
+            zone: { name: 'Terraza' },
+            event: { name: 'Cumpleaños' },
             adminPhone: '34600000000'
         };
 
@@ -50,17 +51,17 @@ describe('Notice System API', () => {
             .send(payload);
 
         expect(res.status).toBe(200);
-        expect(res.body.status).toBe('sent');
+        expect(res.body.status).toBe('processed');
     });
 
-    it('GET /qr should show ready status if ready', async () => {
-        const res = await request(app).get('/qr');
-        expect(res.text).toContain('WhatsApp client is already ready!');
+    it('GET /qr should show connected status if ready', async () => {
+        const res = await request(app).get('/qr?token=test_token');
+        expect(res.text).toContain('WhatsApp conectado');
     });
 
-    it('GET / should redirect to /qr', async () => {
-        const res = await request(app).get('/');
+    it('GET / should redirect to /monitoring', async () => {
+        const res = await request(app).get('/?token=test_token');
         expect(res.status).toBe(302);
-        expect(res.headers.location).toBe('/qr');
+        expect(res.headers.location).toContain('/monitoring');
     });
 });

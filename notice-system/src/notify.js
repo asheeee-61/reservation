@@ -22,17 +22,21 @@ router.use(authMiddleware);
 
 // 1. Two hour reminder
 router.post('/reminder-2h', async (req, res) => {
-    const { customer, reservation, restaurantName } = req.body;
+    const { customer, reservation, restaurantName, businessName, id } = req.body;
+    const finalBusinessName = businessName || restaurantName;
+    const finalId = id || reservation?.id;
+
     if (!customer?.phone || !reservation) {
         return res.status(400).json({ error: 'Missing customer phone or reservation data' });
     }
 
     try {
         const msg = formatReminder2h({
+            id: finalId,
             customerName: customer.name,
             date: reservation.date,
             time: reservation.time,
-            restaurantName
+            businessName: finalBusinessName
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -48,8 +52,10 @@ router.post('/reminder-2h', async (req, res) => {
 
 // 2. Post visit review
 router.post('/review', async (req, res) => {
-    const { customer, reviewLink, restaurantName } = req.body;
+    const { customer, reviewLink, restaurantName, businessName, id } = req.body;
     const link = reviewLink || process.env.REVIEW_LINK;
+    const finalBusinessName = businessName || restaurantName;
+    const finalId = id || (req.body.reservation ? req.body.reservation.id : null);
 
     if (!customer?.phone || !link) {
         return res.status(400).json({ error: 'Missing customer phone or review link' });
@@ -57,9 +63,10 @@ router.post('/review', async (req, res) => {
 
     try {
         const msg = formatPostVisitReview({
+            id: finalId,
             customerName: customer.name,
             reviewLink: link,
-            restaurantName
+            businessName: finalBusinessName
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -75,7 +82,9 @@ router.post('/review', async (req, res) => {
 
 // 3. Cancellation
 router.post('/cancellation', async (req, res) => {
-    const { customer, reason, restaurantName } = req.body;
+    const { customer, reason, restaurantName, businessName, id } = req.body;
+    const finalBusinessName = businessName || restaurantName;
+    const finalId = id || (req.body.reservation ? req.body.reservation.id : null);
 
     if (!customer?.phone) {
         return res.status(400).json({ error: 'Missing customer phone' });
@@ -83,9 +92,10 @@ router.post('/cancellation', async (req, res) => {
 
     try {
         const msg = formatCancellation({
+            id: finalId,
             customerName: customer.name,
             reason,
-            restaurantName
+            businessName: finalBusinessName
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -101,19 +111,21 @@ router.post('/cancellation', async (req, res) => {
 
 // 3.5. Confirmation (status update to confirmed)
 router.post('/confirmed', async (req, res) => {
-    const { reservation, customer, restaurantName } = req.body;
+    const { reservation, customer, restaurantName, businessName, id } = req.body;
+    const finalBusinessName = businessName || restaurantName;
+    const finalId = id || reservation?.id;
 
     if (!reservation || !customer) {
         return res.status(400).json({ error: 'Missing reservation or customer data' });
     }
 
     const data = {
-        id: reservation.id,
+        id: finalId,
         date: reservation.date,
         time: reservation.time,
         guests: reservation.guests,
         customerName: customer.name,
-        restaurantName
+        businessName: finalBusinessName
     };
 
     try {
@@ -132,15 +144,16 @@ router.post('/confirmed', async (req, res) => {
 
 // 4. New reservation notification (client + admin)
 router.post('/new-reservation', async (req, res) => {
-    const { reservation, customer, zone, event, adminPhone, businessName, restaurantName } = req.body;
+    const { reservation, customer, zone, event, adminPhone, businessName, restaurantName, id } = req.body;
     const finalBusinessName = businessName || restaurantName;
+    const finalId = id || reservation?.id;
 
     if (!reservation || !customer) {
         return res.status(400).json({ error: 'Missing reservation or customer data' });
     }
 
     const data = {
-        id: reservation.id,
+        id: finalId,
         date: reservation.date,
         time: reservation.time,
         guests: reservation.guests,
@@ -148,7 +161,7 @@ router.post('/new-reservation', async (req, res) => {
         customerPhone: customer.phone,
         tableType: zone ? zone.name : null,
         specialEvent: event ? event.name : null,
-        restaurantName: finalBusinessName
+        businessName: finalBusinessName
     };
 
     console.log(`📩 Processing new reservation #${reservation.id} for ${customer.name}`);

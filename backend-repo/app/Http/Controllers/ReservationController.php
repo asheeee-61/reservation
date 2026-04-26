@@ -271,11 +271,14 @@ class ReservationController extends Controller
             'date'             => $validated['date'],
             'time'             => $validated['slot']['time'],
             'guests'           => $validated['guests'],
-            'special_requests' => $validated['special_requests'] ?? null,
+            'special_requests' => $validated['special_requests'] 
+                ?? $request->input('user.special_requests') 
+                ?? $request->input('user.specialRequests') 
+                ?? null,
             'status'           => $status,   // enforced by origin, never from request
             'source'           => $source,   // immutable, set here only
-            'zone_id'    => $validated['zone_id'],
-            'event_id' => $validated['event_id'] ?? null,
+            'zone_id'          => $validated['zone_id'],
+            'event_id'         => $validated['event_id'] ?? null,
         ]);
 
         $notificationService = app(NotificationService::class);

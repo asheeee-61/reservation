@@ -8,6 +8,7 @@ const DEFAULT_BUSINESS = process.env.BUSINESS_NAME || 'Business';
 
 const formatClientReceived = (data) => {
     const { id, date, time, guests, customerName, tableType, specialEvent, businessName = DEFAULT_BUSINESS } = data;
+    const ref = id ? `\n\nReferencia: #${id}` : '';
     return `SOLICITUD DE RESERVA RECIBIDA - ${businessName}
 
 Estimado/a ${customerName}, hemos recibido su solicitud.
@@ -17,31 +18,34 @@ Detalles:
 - Hora: ${time}
 - Personas: ${guests}
 - Zona: ${tableType || 'Estándar'}
-- Evento: ${specialEvent || 'Ninguno'}
-- Referencia: #${id}
+- Evento: ${specialEvent || 'Ninguno'}${ref}
 
 Le confirmaremos en breve. Muchas gracias.`;
 };
 
 const formatClientConfirmation = (data) => {
     const { id, customerName, businessName = DEFAULT_BUSINESS } = data;
-    return `Estimado/a ${customerName}, le informamos que su reserva #${id} en ${businessName} ha sido CONFIRMADA. Le esperamos.`;
+    const ref = id ? ` #${id}` : '';
+    return `Estimado/a ${customerName}, le informamos que su reserva${ref} en ${businessName} ha sido CONFIRMADA. Le esperamos.`;
 };
 
 const formatCancellation = (data) => {
     const { id, customerName, reason, businessName = DEFAULT_BUSINESS } = data;
+    const ref = id ? ` #${id}` : '';
     const reasonText = reason ? ` por el siguiente motivo: ${reason}` : '';
-    return `Estimado/a ${customerName}, le informamos que su reserva #${id} en ${businessName} ha sido cancelada${reasonText}. Lamentamos las molestias.`;
+    return `Estimado/a ${customerName}, le informamos que su reserva${ref} en ${businessName} ha sido cancelada${reasonText}. Lamentamos las molestias.`;
 };
 
 const formatReminder2h = (data) => {
-    const { customerName, date, time, businessName = DEFAULT_BUSINESS } = data;
-    return `Estimado/a ${customerName}, le recordamos su reserva #${data.id || ''} en ${businessName} para hoy a las ${time}. Le esperamos.`;
+    const { id, customerName, date, time, businessName = DEFAULT_BUSINESS } = data;
+    const ref = id ? ` #${id}` : '';
+    return `Estimado/a ${customerName}, le recordamos su reserva${ref} en ${businessName} para hoy a las ${time}. Le esperamos.`;
 };
 
 const formatPostVisitReview = (data) => {
-    const { customerName, reviewLink, businessName = DEFAULT_BUSINESS } = data;
-    return `Estimado/a ${customerName}, gracias por visitarnos en ${businessName}. Enlace para su opinión: ${reviewLink}`;
+    const { id, customerName, reviewLink, businessName = DEFAULT_BUSINESS } = data;
+    const ref = id ? ` #${id}` : '';
+    return `Estimado/a ${customerName}, gracias por visitarnos en ${businessName}. Esperamos que haya disfrutado su reserva${ref}. Enlace para su opinión: ${reviewLink}`;
 };
 
 const formatAdminNotification = (data) => {

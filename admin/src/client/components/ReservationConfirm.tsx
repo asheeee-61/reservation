@@ -388,7 +388,8 @@ export default function ReservationConfirm({ onBack, onSuccess }: { onBack: () =
         slot: selectedSlot,
         user: userData,
         zone_id: selectedZone?.id,
-        event_id: selectedEvent?.id
+        event_id: selectedEvent?.id,
+        special_requests: userData.specialRequests
       };
       
       const res = await createReservation(payload) as any;
