@@ -37,7 +37,7 @@ export default function Settings() {
   const globalHours = useSettingsStore(state => state.globalHours);
   
   const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
-  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', businessPhone: '', adminPhone: '', reviewLink: '' });
+  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', businessPhone: '', reviewLink: '' });
   const [localLinks, setLocalLinks] = useState({ googleMapsLink: '', menuPdfUrl: '', menuPdfFile: null, reservationLink: '' });
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
@@ -62,7 +62,6 @@ export default function Settings() {
         whatsappPhone: globalHours.whatsapp_phone || '',
         instagramUsername: globalHours.instagram_username || '',
         businessPhone: globalHours.business_phone || '',
-        adminPhone: globalHours.admin_phone || '',
         reviewLink: globalHours.review_link || ''
       });
       setLocalLinks({
@@ -151,7 +150,6 @@ export default function Settings() {
           whatsapp_phone: localContact.whatsappPhone,
           instagram_username: localContact.instagramUsername,
           business_phone: localContact.businessPhone,
-          admin_phone: localContact.adminPhone,
           review_link: localContact.reviewLink
         })
       });
@@ -199,7 +197,6 @@ export default function Settings() {
       formData.append('whatsapp_phone', localContact.whatsappPhone);
       formData.append('instagram_username', localContact.instagramUsername);
       formData.append('business_phone', localContact.businessPhone);
-      formData.append('admin_phone', localContact.adminPhone);
       formData.append('review_link', localContact.reviewLink);
       formData.append('google_maps_link', localLinks.googleMapsLink);
       formData.append('reservation_link', localLinks.reservationLink);
@@ -406,24 +403,6 @@ export default function Settings() {
                 />
               </Box>
 
-              <Box>
-                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '6px', textTransform: 'uppercase' }}>Teléfono de Administrador (Notificaciones)</Typography>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="34612345678"
-                  value={localContact.adminPhone}
-                  onChange={(e) => setLocalContact({ ...localContact, adminPhone: e.target.value.replace(/\D/g, '') })}
-                  helperText="Número que recibirá notificaciones de las reservas."
-                  InputProps={{ 
-                    sx: { 
-                      height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px',
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: '2px' }
-                    } 
-                  }}
-                  FormHelperTextProps={{ sx: { fontFamily: 'Roboto', fontSize: '12px', color: '#70757A' } }}
-                />
-              </Box>
 
               <Divider sx={{ my: 1 }} />
 

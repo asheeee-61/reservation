@@ -28,7 +28,6 @@ export const useSettingsStore = create((set) => ({
           whatsapp_phone: data.whatsapp_phone || '',
           instagram_username: data.instagram_username || '',
           business_phone: data.business_phone || '',
-          admin_phone: data.admin_phone || '',
           review_link: data.review_link || '',
           google_maps_link: data.google_maps_link || '',
           menu_pdf_url: data.menu_pdf_url || '',

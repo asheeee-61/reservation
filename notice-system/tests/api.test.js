@@ -41,8 +41,7 @@ describe('Notice System API', () => {
             reservation: { id: 1, date: '2026-03-28', time: '20:00', guests: 2 },
             customer: { name: 'Juan Doe', phone: '34600000001' },
             zone: { name: 'Terraza' },
-            event: { name: 'Cumpleaños' },
-            adminPhone: '34600000000'
+            event: { name: 'Cumpleaños' }
         };
 
         const res = await request(app)

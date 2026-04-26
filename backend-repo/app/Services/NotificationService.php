@@ -70,16 +70,11 @@ class NotificationService
 
             $payload = $this->getWhatsAppPayload($type, $reservation);
             $target = $reservation->customer->phone;
-            $adminPhone = $payload['adminPhone'] ?? 'N/A';
-
             Http::timeout(5)
                 ->withHeaders(['x-api-secret' => config('notice.secret')])
                 ->post("{$noticeUrl}{$endpoint}", $payload);
 
             $logMsg = "WhatsApp ($type) sent to customer: $target";
-            if ($type === 'received') {
-                $logMsg .= " and Admin: $adminPhone";
-            }
             Log::info($logMsg);
         } catch (\Exception $e) {
             Log::warning("WhatsApp notification failed ($type): " . $e->getMessage());
@@ -127,7 +122,6 @@ class NotificationService
         ];
 
         $settings = Setting::first();
-        $adminPhone = $settings->admin_phone ?? null;
         $reviewLink = $settings->review_link ?? config('notice.review_link', 'https://g.page/r/YOUR_RESTAURANT_ID/review');
         $businessName = $settings->business_name ?? config('app.name', 'Business');
 
@@ -141,7 +135,6 @@ class NotificationService
                 ],
                 'zone'           => $reservation->zone ? ['name' => $reservation->zone->name] : null,
                 'event'          => $reservation->event ? ['name' => $reservation->event->name] : null,
-                'adminPhone'     => $adminPhone,
                 'businessName' => $businessName,
             ]),
             'confirmed' => array_merge($base, [
