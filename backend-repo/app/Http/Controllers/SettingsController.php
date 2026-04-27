@@ -13,6 +13,7 @@ class SettingsController extends Controller
         $defaultConfig = [
             'maxGuests' => 10,
             'minGuests' => 1,
+            'maxDailyGuests' => 50,
             'business' => [
                 'name' => 'Hechizo Hookah Lounge',
                 'address' => 'Cam. de los Romanos, 91, 30820 Alcantarilla, Murcia, Spain',

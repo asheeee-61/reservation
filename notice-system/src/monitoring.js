@@ -725,10 +725,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div style="margin-top:auto; padding-top:16px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                            <span style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; font-weight:500;">
-                                <span class="material-icons" style="font-size:16px; color:#25D366;">message</span> WhatsApp
-                            </span>
+                        <div style="margin-top:auto; padding-top:16px; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <button class="btn btn-outline" style="height:28px; font-size:11px; padding:0 8px;" onclick="previewWhatsApp('\${t.id}')">
                                     <span class="material-icons" style="font-size:14px;">visibility</span> VISTA PREVIA
@@ -761,10 +758,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div style="margin-top:auto; padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; font-weight:500;">
-                                <span class="material-icons" style="font-size:16px; color:#EA4335;">mail</span> Email
-                            </span>
+                        <div style="margin-top:auto; padding-top:16px; display:flex; justify-content:flex-end; align-items:center;">
                             <button class="btn btn-outline" style="height:28px; font-size:11px; padding:0 8px;" onclick="previewEmail('\${t.id}')">
                                 <span class="material-icons" style="font-size:14px;">visibility</span> VISTA PREVIA
                             </button>

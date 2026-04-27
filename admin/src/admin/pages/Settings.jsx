@@ -86,7 +86,8 @@ export default function Settings() {
         ...data,
         business_name: data.business_name || 'Hechizo Hookah Lounge',
         minGuests: data.minGuests || 1,
-        maxGuests: data.maxGuests || 10
+        maxGuests: data.maxGuests || 10,
+        maxDailyGuests: data.maxDailyGuests || 50
       });
       setLogoPreview(data.logo_url || '');
       setLoading(false);
@@ -685,10 +686,17 @@ export default function Settings() {
                 fullWidth
               />
               <TextField
-                label="Máximo de personas" type="number" variant="outlined" value={config.maxGuests} onChange={(e) => setConfig({ ...config, maxGuests: e.target.value })}
+                label="Máximo de personas por reserva" type="number" variant="outlined" value={config.maxGuests} onChange={(e) => setConfig({ ...config, maxGuests: e.target.value })}
                 InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
                 InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
                 fullWidth
+              />
+              <TextField
+                label="Aforo máximo diario (personas)" type="number" variant="outlined" value={config.maxDailyGuests} onChange={(e) => setConfig({ ...config, maxDailyGuests: e.target.value })}
+                InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
+                InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
+                fullWidth
+                helperText="Capacidad total del día usada para la barra de ocupación en el calendario"
               />
             </Box>
 

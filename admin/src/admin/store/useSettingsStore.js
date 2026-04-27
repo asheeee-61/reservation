@@ -39,6 +39,7 @@ export const useSettingsStore = create((set) => ({
         globalSettings: {
           minGuests: data.minGuests || 1,
           maxGuests: data.maxGuests || 10,
+          maxDailyGuests: data.maxDailyGuests || 50,
           openingTime: data.global_opening_time || '09:00',
           closingTime: data.global_closing_time || '00:00'
         },

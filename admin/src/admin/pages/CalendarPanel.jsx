@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Box, Typography, Button, IconButton, Paper, 
+import {
+  Box, Typography, Button, IconButton, Paper,
   CircularProgress, Tooltip, Divider,
   Dialog, DialogContent, DialogActions, TextField,
   Select, MenuItem, FormControl, Drawer, SwipeableDrawer, Slide,
@@ -15,6 +15,8 @@ import { MOBILE, TABLET, DESKTOP } from '../utils/breakpoints';
 import ReservationFormModal from '../components/ReservationFormModal';
 import { useToast } from '../components/Toast/ToastContext';
 import { ConfirmModal } from '../components/ConfirmModal';
+import SourceBadge from '../components/SourceBadge';
+import { calculateCredibility } from '../utils/credibility';
 
 // --- CONSTANTS ---
 const STATUS_COLORS = {
@@ -118,6 +120,7 @@ export default function CalendarPanel() {
 
   // App state
   const globalHours = useSettingsStore(state => state.globalHours);
+  const globalSettings = useSettingsStore(state => state.globalSettings);
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const adminCalendar = useSettingsStore(state => state.adminCalendar);
   
@@ -283,13 +286,13 @@ export default function CalendarPanel() {
             ))}
           </Box>
 
-          <Button 
+          <Button
             variant="contained" startIcon={<span className="material-icons" style={{ fontSize: 18 }}>add</span>}
             onClick={() => {
               setBookingInitialData(null);
               setIsBookingModalOpen(true);
             }}
-            sx={{ 
+            sx={{
               height: 36, px: '16px', borderRadius: '4px', bgcolor: '#1A73E8', boxShadow: 'none',
               fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'none',
               '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
@@ -320,6 +323,11 @@ export default function CalendarPanel() {
         </Box>
       </Box>
 
+      {/* STATS STRIP — week/day views only */}
+      {(view === 'week' || view === 'day') && (
+        <StatsStrip reservations={reservations} activeDate={view === 'day' ? currentDate : new Date()} />
+      )}
+
       {/* CALENDAR CONTENT AREA */}
       <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', bgcolor: '#FFFFFF' }}>
         {loading && (
@@ -330,10 +338,11 @@ export default function CalendarPanel() {
         
         {/* View Grid will go here */}
         {view === 'month' && (
-          <MonthView 
-            currentDate={currentDate} 
-            range={visibleRange} 
-            reservations={reservations} 
+          <MonthView
+            currentDate={currentDate}
+            range={visibleRange}
+            reservations={reservations}
+            maxDailyGuests={globalSettings.maxDailyGuests}
             onCellClick={(date) => {
               setBookingInitialData({ date: formatDateISO(date) });
               setIsBookingModalOpen(true);
@@ -427,7 +436,41 @@ export default function CalendarPanel() {
 
 // --- SUB-COMPONENTS ---
 
-function MonthView({ currentDate, range, reservations, onCellClick, onResClick }) {
+function StatPill({ icon, value, color }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <span className="material-icons" style={{ fontSize: 14, color }}>{icon}</span>
+      <Typography sx={{ fontFamily: 'Roboto', fontSize: '12px', color: '#202124' }}>{value}</Typography>
+    </Box>
+  );
+}
+
+function StatsStrip({ reservations, activeDate }) {
+  const dateStr = formatDateISO(activeDate);
+  const dayRes = reservations.filter(r => r.date === dateStr);
+  const confirmed = dayRes.filter(r => r.status === 'CONFIRMADA' || r.status === 'ASISTIÓ');
+  const pending = dayRes.filter(r => r.status === 'PENDIENTE');
+  const noShow = dayRes.filter(r => r.status === 'NO_ASISTIÓ');
+  const confirmedGuests = confirmed.reduce((s, r) => s + (r.guests || 0), 0);
+
+  if (dayRes.length === 0) return null;
+
+  return (
+    <Box sx={{
+      height: 32, minHeight: 32, bgcolor: '#FFFFFF', borderBottom: '1px solid #E0E0E0',
+      display: 'flex', alignItems: 'center', px: '16px', gap: '24px'
+    }}>
+      <Typography sx={{ fontFamily: 'Roboto', fontSize: '11px', fontWeight: 500, color: '#70757A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        Hoy
+      </Typography>
+      <StatPill icon="people" value={`${confirmedGuests} personas`} color="#34A853" />
+      {pending.length > 0 && <StatPill icon="schedule" value={`${pending.length} pendientes`} color="#F9AB00" />}
+      {noShow.length > 0 && <StatPill icon="person_off" value={`${noShow.length} no asistió`} color="#C5221F" />}
+    </Box>
+  );
+}
+
+function MonthView({ currentDate, range, reservations, maxDailyGuests, onCellClick, onResClick }) {
   const days = useMemo(() => {
     const arr = [];
     let curr = new Date(range.startDate);
@@ -496,9 +539,9 @@ function MonthView({ currentDate, range, reservations, onCellClick, onResClick }
                 '&:hover': { bgcolor: '#F8F9FA' }
               }}
             >
-              {/* Day Number */}
-              <Box sx={{ display: 'flex', mb: '4px' }}>
-                <Box sx={{ 
+              {/* Day Number + Pending Badge */}
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: '4px' }}>
+                <Box sx={{
                   width: 24, height: 24, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   bgcolor: isToday ? '#1A73E8' : 'transparent',
@@ -507,26 +550,60 @@ function MonthView({ currentDate, range, reservations, onCellClick, onResClick }
                 }}>
                   {date.getDate()}
                 </Box>
+                {(() => {
+                  const pending = dayRes.filter(r => r.status === 'PENDIENTE').length;
+                  if (!pending) return null;
+                  return (
+                    <Box sx={{
+                      ml: 'auto', minWidth: 16, height: 16, borderRadius: '8px',
+                      bgcolor: '#F9AB00', display: 'flex', alignItems: 'center', justifyContent: 'center', px: '4px'
+                    }}>
+                      <Typography sx={{ fontFamily: 'Roboto', fontWeight: 700, fontSize: '10px', color: '#FFFFFF', lineHeight: 1 }}>
+                        {pending}
+                      </Typography>
+                    </Box>
+                  );
+                })()}
               </Box>
+
+              {/* Occupancy bar */}
+              {(() => {
+                const activeRes = dayRes.filter(r => !['CANCELADA', 'NO_ASISTIÓ'].includes(r.status));
+                const totalGuests = activeRes.reduce((s, r) => s + (r.guests || 0), 0);
+                const pct = Math.min((totalGuests / (maxDailyGuests || 50)) * 100, 100);
+                if (pct === 0) return null;
+                const barColor = pct >= 80 ? '#C5221F' : pct >= 50 ? '#F9AB00' : '#34A853';
+                return (
+                  <Box sx={{ height: 3, bgcolor: '#F1F3F4', borderRadius: 2, mb: '4px', overflow: 'hidden' }}>
+                    <Box sx={{ height: '100%', width: `${pct}%`, bgcolor: barColor, borderRadius: 2 }} />
+                  </Box>
+                );
+              })()}
 
               {/* Chips */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
                 {dayRes.slice(0, 3).map(res => {
                   const colors = STATUS_COLORS[res.status] || STATUS_COLORS.pending;
+                  const cred = calculateCredibility({
+                    total: res.customer?.reservations_count || 0,
+                    arrived: res.customer?.arrived_count || 0,
+                    noShow: res.customer?.no_show_count || 0,
+                  });
                   return (
-                    <Box 
+                    <Box
                       key={res.id}
                       onClick={(e) => { e.stopPropagation(); onResClick(res); }}
-                      sx={{ 
+                      sx={{
                         height: 22, px: '6px', borderRadius: '4px', bgcolor: colors.bg,
                         display: 'flex', alignItems: 'center', cursor: 'pointer',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                        border: `1px solid ${colors.bg}` // subtle border
+                        overflow: 'hidden',
+                        border: `1px solid ${colors.bg}`
                       }}
                     >
-                      <Typography sx={{ 
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: cred.color, flexShrink: 0, mr: '4px' }} />
+                      <Typography sx={{
                         fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: colors.text,
-                        overflow: 'hidden', textOverflow: 'ellipsis'
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1
                       }}>
                         {res.time.slice(0, 5)} {res.customer?.name}
                       </Typography>
@@ -748,26 +825,37 @@ function renderDayReservations(dayRes, globalHours, onResClick, isDayView = fals
       }
       
       const colors = STATUS_COLORS[res.status?.toUpperCase()] || STATUS_COLORS.CONFIRMADA;
+      const cred = calculateCredibility({
+        total: res.customer?.reservations_count || 0,
+        arrived: res.customer?.arrived_count || 0,
+        noShow: res.customer?.no_show_count || 0,
+      });
       return (
-        <Box 
-          key={res.id} 
-          onClick={(e) => { e.stopPropagation(); onResClick(res); }} 
+        <Box
+          key={res.id}
+          onClick={(e) => { e.stopPropagation(); onResClick(res); }}
           onMouseDown={(e) => onDragStart && onDragStart(e, res)}
-          sx={{ 
-            position: 'absolute', top: top + 2, left: `${idx * widthPercent}%`, width: `calc(${widthPercent}% - 4px)`, 
-            height: 44, bgcolor: colors.bg, borderRadius: '4px', borderLeft: `3px solid ${colors.border}`, 
-            p: '4px 8px', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'grab', zIndex: isDragging ? 100 : 5, 
-            transition: isDragging ? 'none' : 'all 200ms ease', 
+          sx={{
+            position: 'absolute', top: top + 2, left: `${idx * widthPercent}%`, width: `calc(${widthPercent}% - 4px)`,
+            height: 44, bgcolor: colors.bg, borderRadius: '4px', borderLeft: `3px solid ${colors.border}`,
+            p: '4px 8px', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'grab', zIndex: isDragging ? 100 : 5,
+            transition: isDragging ? 'none' : 'all 200ms ease',
             '&:hover': { boxShadow: '0 2px 4px rgba(0,0,0,0.15)', zIndex: 10 },
             ...(isDragging && { opacity: 0.7, boxShadow: '0 4px 12px rgba(0,0,0,0.2)', cursor: 'grabbing' })
           }}
         >
-          <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: colors.text }}>
-            {res.time.slice(0, 5)} · {res.customer?.name}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: cred.color, flexShrink: 0 }} />
+            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: colors.text, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {res.time.slice(0, 5)} · {res.customer?.name}
+            </Typography>
+          </Box>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '11px', color: '#70757A' }}>
             {res.guests} pers · {res.zone?.name}
           </Typography>
+          <Box sx={{ position: 'absolute', top: 4, right: 6, opacity: 0.6, transform: 'scale(0.75)', transformOrigin: 'top right' }}>
+            <SourceBadge source={res.source} />
+          </Box>
         </Box>
       );
     });
@@ -903,6 +991,25 @@ function ReservationDrawer({ reservation, onClose, onRefresh, onEdit }) {
           </Box>
 
           <Divider sx={{ mb: '24px' }} />
+
+          {/* QUICK CONFIRM — shown only when PENDIENTE */}
+          {currentStatus?.toUpperCase() === 'PENDIENTE' && (
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => handleStatusUpdate('CONFIRMADA')}
+              disabled={loading}
+              sx={{
+                mb: '12px', height: 44, borderRadius: '4px', bgcolor: '#1A73E8',
+                fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'none',
+                boxShadow: 'none', gap: '8px',
+                '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+              }}
+            >
+              <span className="material-icons" style={{ fontSize: 18 }}>check_circle</span>
+              Confirmar reserva
+            </Button>
+          )}
 
           {/* STATUS BUTTONS */}
           <Box sx={{ display: 'flex', gap: '8px', mb: '24px', flexWrap: 'wrap' }}>
