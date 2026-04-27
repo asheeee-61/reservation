@@ -12,6 +12,7 @@ import { BackButton } from '../components/BackButton';
 import { useToast } from '../components/Toast/ToastContext';
 import { PageHeaderSkeleton, CardSkeleton, TableSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 const STATUS_CHIP_STYLE = {
   'PENDIENTE':  { bg: '#FEF7E0', text: '#7D4A00', label: 'Pendiente' },
@@ -74,6 +75,8 @@ export default function CustomerDetail() {
   const [tagInput, setTagInput] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '' });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchCustomer = useCallback(async () => {
     setLoading(true);
@@ -189,6 +192,20 @@ export default function CustomerDetail() {
     setCustomer({ ...customer, ...editForm });
     setIsEditing(false);
     toast.success('Datos actualizados correctamente');
+  };
+
+  const handleDeleteCustomer = async () => {
+    setIsDeleting(true);
+    try {
+      await apiClient(`/admin/customers/${id}`, { method: 'DELETE' });
+      toast.success('Cliente eliminado correctamente');
+      navigate('/admin/customers');
+    } catch (e) {
+      console.error(e);
+      toast.error('Error al eliminar el cliente');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   useEffect(() => {
@@ -456,6 +473,25 @@ export default function CustomerDetail() {
               fullWidth
             />
           </Box>
+
+          <Divider sx={{ my: '24px', borderColor: '#E0E0E0' }} />
+
+          <Button
+            fullWidth
+            variant="text"
+            startIcon={<span className="material-icons">delete_outline</span>}
+            onClick={() => setDeleteModalOpen(true)}
+            sx={{ 
+              color: '#D93025', 
+              fontFamily: 'Roboto', 
+              fontSize: '13px', 
+              fontWeight: 500,
+              textTransform: 'none',
+              '&:hover': { bgcolor: '#FDECEA' }
+            }}
+          >
+            Eliminar Cliente
+          </Button>
         </Paper>
 
         {/* RIGHT COLUMN: RESERVATION HISTORY CARD */}
@@ -548,6 +584,16 @@ export default function CustomerDetail() {
         </Paper>
       </Box>
 
+      <ConfirmModal 
+        open={deleteModalOpen}
+        title="Eliminar cliente"
+        body={`¿Estás seguro de que deseas eliminar a ${customer?.name}? Se mantendrá su historial de reservas pero no aparecerá en el directorio.`}
+        confirmLabel="Eliminar"
+        confirmColor="#D93025"
+        confirmDisabled={isDeleting}
+        onCancel={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteCustomer}
+      />
     </Box>
   );
 }

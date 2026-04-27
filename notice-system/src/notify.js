@@ -66,6 +66,7 @@ router.post('/review', async (req, res) => {
             id: finalId,
             customerName: customer.name,
             reviewLink: link,
+            googleMapsLink: req.body.googleMapsLink,
             businessName: finalBusinessName
         });
 

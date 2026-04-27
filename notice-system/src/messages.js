@@ -46,9 +46,13 @@ const formatReminder2h = (data) => {
 };
 
 const formatPostVisitReview = (data) => {
-    const { id, customerName, reviewLink, businessName = DEFAULT_BUSINESS } = data;
+    const { id, customerName, reviewLink, googleMapsLink, businessName = DEFAULT_BUSINESS } = data;
     const ref = id ? ` #${id}` : '';
-    return `Estimado/a ${customerName}, gracias por visitarnos en ${businessName}. Esperamos que haya disfrutado su reserva${ref}. Enlace para su opinión: ${reviewLink}`;
+    const mapsLine = googleMapsLink ? `\n\nDéjanos tu opinión aquí: ${googleMapsLink}` : '';
+    
+    return `Estimado/a ${customerName}, gracias por visitarnos en ${businessName}. Esperamos que haya disfrutado su reserva${ref}.
+
+Valoramos mucho su opinión. Si tiene un momento, nos ayudaría mucho que compartiera su experiencia.${mapsLine}`;
 };
 
 module.exports = {

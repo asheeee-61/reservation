@@ -11,6 +11,10 @@ import TablePagination from '../components/TablePagination';
 import { TableSkeleton, PageHeaderSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
+import { Button } from '@mui/material';
+import { ConfirmModal } from '../components/ConfirmModal';
+import CustomerFormModal from '../components/CustomerFormModal';
+import { useToast } from '../components/Toast/ToastContext';
 
 export default function Customers() {
   const navigate = useNavigate();
@@ -21,6 +25,11 @@ export default function Customers() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [meta, setMeta] = useState(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const toast = useToast();
 
   const fetchCustomers = useCallback(async (p = page, pp = perPage, search = searchTerm, signal) => {
     setLoading(true);
@@ -70,6 +79,29 @@ export default function Customers() {
     </Tooltip>
   );
 
+  const handleDeleteClick = (e, customer) => {
+    e.stopPropagation();
+    setCustomerToDelete(customer);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!customerToDelete) return;
+    setIsDeleting(true);
+    try {
+      await apiClient(`/admin/customers/${customerToDelete.id}`, { method: 'DELETE' });
+      toast.success('Cliente eliminado correctamente');
+      setDeleteModalOpen(false);
+      setCustomerToDelete(null);
+      fetchCustomers();
+    } catch (e) {
+      console.error(e);
+      toast.error('Error al eliminar el cliente');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
 
   if (error) {
     return (
@@ -88,14 +120,28 @@ export default function Customers() {
       {loading ? (
         <PageHeaderSkeleton />
       ) : (
-        <Typography sx={{ 
-          fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
-        [DESKTOP]: { fontSize: '20px' },
-        [TABLET]: { fontSize: '18px' },
-        [MOBILE]: { fontSize: '16px' }
-      }}>
-        DIRECTORIO DE CLIENTES
-      </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography sx={{ 
+            fontFamily: 'Roboto', fontWeight: 500, color: '#202124',
+            [DESKTOP]: { fontSize: '20px' },
+            [TABLET]: { fontSize: '18px' },
+            [MOBILE]: { fontSize: '16px' }
+          }}>
+            DIRECTORIO DE CLIENTES
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<span className="material-icons">add</span>}
+            onClick={() => setCreateModalOpen(true)}
+            sx={{ 
+              bgcolor: '#1A73E8', borderRadius: '4px', boxShadow: 'none',
+              fontFamily: 'Roboto', fontWeight: 500, textTransform: 'none',
+              '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
+            }}
+          >
+            Nuevo Cliente
+          </Button>
+        </Box>
       )}
 
       <Paper sx={{ p: '24px', borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none', [MOBILE]: { p: '16px' } }}>
@@ -207,6 +253,11 @@ export default function Customers() {
                       disabled={!c.email}
                       onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${c.email}`; }}
                     />
+                    <ActionBtn
+                      icon="delete_outline"
+                      tooltip="Eliminar cliente"
+                      onClick={(e) => handleDeleteClick(e, c)}
+                    />
                   </Box>
                 </TableCell>
               </TableRow>
@@ -305,6 +356,11 @@ export default function Customers() {
                   disabled={!c.email}
                   onClick={() => { window.location.href = `mailto:${c.email}`; }}
                 />
+                <ActionBtn
+                  icon="delete_outline"
+                  tooltip="Eliminar cliente"
+                  onClick={(e) => handleDeleteClick(e, c)}
+                />
               </Box>
             </Box>
           </Paper>
@@ -320,6 +376,22 @@ export default function Customers() {
         )}
       </Box>
 
+      <CustomerFormModal 
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSuccess={() => fetchCustomers()}
+      />
+
+      <ConfirmModal 
+        open={deleteModalOpen}
+        title="Eliminar cliente"
+        body={`¿Estás seguro de que deseas eliminar a ${customerToDelete?.name}? Se mantendrá su historial de reservas pero no aparecerá en el directorio.`}
+        confirmLabel="Eliminar"
+        confirmColor="#D93025"
+        confirmDisabled={isDeleting}
+        onCancel={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </Box>
   );
 }

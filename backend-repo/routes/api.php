@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::patch('/reservations/{id}/status', [ReservationController::class, 'updateStatus']);
     
     Route::get('/customers', [CustomerController::class, 'index']);
+    Route::post('/customers', [CustomerController::class, 'store']);
     Route::get('/customers/{customer}', [CustomerController::class, 'show']);
     Route::get('/customers/{customer}/stats', [CustomerController::class, 'stats']);
     Route::get('/customers/{customer}/reservations', [CustomerController::class, 'reservations']);
