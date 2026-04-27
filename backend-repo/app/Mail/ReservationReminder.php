@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -32,6 +33,8 @@ class ReservationReminder extends Mailable implements ShouldQueue
         $title = $isToday ? 'Tu mesa es hoy' : 'Tu mesa es mañana';
         
         return new Envelope(
+            from: new Address('contacto@hechizohookah.online', config('app.name')),
+            replyTo: [new Address('contacto@hechizohookah.online')],
             subject: $title . ' - ' . $bName,
         );
     }
