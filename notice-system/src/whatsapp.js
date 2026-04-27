@@ -35,9 +35,24 @@ const client = new Client({
     authStrategy: new LocalAuth({
         dataPath: './sessions'
     }),
+    webVersionCache: {
+        type: 'local',
+        path: './wwebjs_cache',
+    },
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--disable-gpu',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-extensions',
+        ],
         handleSIGINT: false,
+        timeout: 60000,
     }
 });
 
