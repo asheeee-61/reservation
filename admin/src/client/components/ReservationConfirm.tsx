@@ -20,7 +20,7 @@ import {
   Schedule,
   Group,
   Map as MapIcon,
-  AutoAwesome,
+  AutoAwesomeOutlined,
   InfoOutlined,
   ArrowBackIosNew
 } from '@mui/icons-material';
@@ -89,6 +89,7 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
 
   const isMobile = useMediaQuery('(max-width:600px)');
   const [mounted, setMounted] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -100,7 +101,17 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
   const validEmailIfPresent = userData.email.trim() === '' || isEmailValid(userData.email);
   const isValid = hasName && hasPhoneOrEmail && validEmailIfPresent;
 
-  const formattedDate = date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
+  const handleConfirmClick = () => {
+    if (!isValid) {
+      setShowValidation(true);
+      
+      // scroll to first error if needed, but simple state is fine
+      return;
+    }
+    onSubmit();
+  };
+
+  const formattedDate = date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
   const displayTime = typeof time === 'string' ? time : (time?.time || '');
 
   return (
@@ -147,52 +158,64 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
           <Fade in={mounted} style={{ transitionDelay: '100ms' }}>
             <Box>
               <Slide direction="up" in={mounted} style={{ transitionDelay: '100ms' }} easing="ease">
-                <Paper
-                  elevation={1}
-                  sx={{
-                    borderRadius: '8px',
-                    bgcolor: 'background.paper',
-                    p: 3,
-                    mb: 4,
-                    overflow: 'hidden',
-                    border: '1px solid #E0E0E0'
-                  }}
-                >
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CalendarToday color="primary" sx={{ mr: 2 }} />
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px', textTransform: 'capitalize' }}>
-                        {date ? new Date(date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : ''}
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      borderRadius: '12px',
+                      bgcolor: 'background.paper',
+                      mb: 4,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Box sx={{ p: 3 }}>
+                      <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: 1 }}>
+                        Fecha y Hora
                       </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Schedule color="primary" sx={{ mr: 2 }} />
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px' }}>
-                        {displayTime}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Group color="primary" sx={{ mr: 2 }} />
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px' }}>
-                        {guests} personas
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <MapIcon color="primary" sx={{ mr: 2 }} />
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px' }}>
-                        {zone?.name || 'Cualquier zona'}
-                      </Typography>
-                    </Box>
-                    {category && (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <AutoAwesome color="primary" sx={{ mr: 2 }} />
-                        <Typography sx={{ fontWeight: 500, fontSize: '16px' }}>
-                          {category.name}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5, mb: 1.5 }}>
+                        <CalendarToday color="primary" sx={{ mr: 2 }} />
+                        <Typography sx={{ fontWeight: 500, fontSize: '16px', textTransform: 'capitalize', color: 'text.primary' }}>
+                          {formattedDate} a las {displayTime}
                         </Typography>
                       </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Group color="primary" sx={{ mr: 2 }} />
+                        <Typography sx={{ fontWeight: 500, fontSize: '16px', color: 'text.primary' }}>
+                          {guests} personas
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Divider />
+
+                    <Box sx={{ p: 3 }}>
+                      <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: 1 }}>
+                        Zona
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5 }}>
+                        <MapIcon color="primary" sx={{ mr: 2 }} />
+                        <Typography sx={{ fontWeight: 500, fontSize: '16px', color: 'text.primary' }}>
+                          {zone?.name || 'Cualquier zona'}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {category && (
+                      <>
+                        <Divider />
+                        <Box sx={{ p: 3 }}>
+                          <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: 1 }}>
+                            Evento
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5 }}>
+                            <AutoAwesomeOutlined color="primary" sx={{ mr: 2 }} />
+                            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: 'text.primary' }}>
+                              {category.name}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </>
                     )}
-                  </Box>
-                </Paper>
+                  </Paper>
               </Slide>
             </Box>
           </Fade>
@@ -210,7 +233,12 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
               variant="outlined"
               required
               value={userData.name}
-              onChange={(e) => onChangeUserData({ name: e.target.value })}
+              onChange={(e) => {
+                 onChangeUserData({ name: e.target.value });
+                 if (showValidation) setShowValidation(false);
+              }}
+              error={showValidation && !hasName}
+              helperText={showValidation && !hasName ? "El nombre es obligatorio" : ""}
               autoComplete="name"
               inputMode="text"
               InputProps={{ sx: { fontSize: '16px' } }}
@@ -226,8 +254,16 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
                   variant="outlined"
                   type="email"
                   value={userData.email}
-                  onChange={(e) => onChangeUserData({ email: e.target.value })}
-                  error={userData.email.length > 0 && !isEmailValid(userData.email)}
+                  onChange={(e) => {
+                     onChangeUserData({ email: e.target.value });
+                     if (showValidation) setShowValidation(false);
+                  }}
+                  error={showValidation && (!hasPhoneOrEmail || !validEmailIfPresent)}
+                  helperText={
+                    showValidation && !validEmailIfPresent 
+                      ? "Formato de email inválido" 
+                      : (showValidation && !hasPhoneOrEmail ? "Ingrese email o teléfono" : "")
+                  }
                   autoComplete="email"
                   inputMode="email"
                   InputProps={{ sx: { fontSize: '16px' } }}
@@ -242,7 +278,12 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
                   variant="outlined"
                   type="tel"
                   value={userData.phone}
-                  onChange={(e) => onChangeUserData({ phone: e.target.value })}
+                  onChange={(e) => {
+                     onChangeUserData({ phone: e.target.value });
+                     if (showValidation) setShowValidation(false);
+                  }}
+                  error={showValidation && !hasPhoneOrEmail}
+                  helperText={showValidation && !hasPhoneOrEmail ? "Ingrese email o teléfono" : ""}
                   autoComplete="tel"
                   inputMode="tel"
                   InputProps={{ sx: { fontSize: '16px' } }}
@@ -250,6 +291,12 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
                 />
               </Box>
             </Box>
+
+            {showValidation && !hasPhoneOrEmail && (
+               <Typography color="error" variant="body2" sx={{ mt: -2, fontWeight: 500 }}>
+                 Debe proporcionar al menos un correo electrónico o un número de teléfono para contactarle.
+               </Typography>
+            )}
 
             <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', mt: -1 }}>
               <InfoOutlined color="primary" sx={{ fontSize: 18, mr: 1 }} />
@@ -277,8 +324,8 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', pb: 4 }}>
               <Button
                 variant="contained"
-                onClick={onSubmit}
-                disabled={!isValid || submitting}
+                onClick={handleConfirmClick}
+                disabled={submitting}
                 sx={{
                   background: '#1A73E8',
                   color: '#FFFFFF',
@@ -327,8 +374,8 @@ function ReservationConfirmView(props: ReservationConfirmProps) {
               <Button
                 fullWidth
                 variant="contained"
-                onClick={onSubmit}
-                disabled={!isValid || submitting}
+                onClick={handleConfirmClick}
+                disabled={submitting}
                 sx={{
                   background: '#1A73E8',
                   color: '#FFFFFF',

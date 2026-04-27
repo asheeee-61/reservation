@@ -42,7 +42,7 @@ export default function Customers() {
     } catch (e) {
       if (e.name !== 'AbortError') setError(true);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [page, perPage, searchTerm]);
 

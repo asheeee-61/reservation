@@ -21,10 +21,16 @@ export const apiClient = async (endpoint, options = {}) => {
 
   // Clear relevant cache on mutations
   if (method !== 'GET') {
-    if (endpoint.includes('/admin/zones')) cache.delete('/admin/zones');
-    if (endpoint.includes('/admin/events')) cache.delete('/admin/events');
-    if (endpoint.includes('/admin/config')) cache.delete('/admin/config');
-    if (endpoint.includes('/config')) cache.delete('/config');
+    const basesToClear = [];
+    if (endpoint.includes('/admin/zones')) basesToClear.push('/admin/zones');
+    if (endpoint.includes('/admin/events')) basesToClear.push('/admin/events');
+    if (endpoint.includes('/admin/config') || endpoint.includes('/config')) basesToClear.push('/config');
+    
+    for (const key of cache.keys()) {
+      if (basesToClear.some(base => key.includes(base))) {
+        cache.delete(key);
+      }
+    }
   }
   
   const headers = {
@@ -65,7 +71,7 @@ export const apiClient = async (endpoint, options = {}) => {
     throw new Error(errorMessage);
   }
 
-  const result = await response.json();
+  const result = response.status === 204 ? null : await response.json();
 
   // Store in cache if cacheable
   if (method === 'GET' && CACHEABLE_ENDPOINTS.includes(endpoint.split('?')[0])) {

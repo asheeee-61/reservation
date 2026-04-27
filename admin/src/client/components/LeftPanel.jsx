@@ -34,6 +34,8 @@ export default function LeftPanel({ onAutoAdvance }) {
   } = useReservationStore();
   const [loading, setLoading] = useState(false);
   const [continuing, setContinuing] = useState(false);
+  const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [slots, setSlots] = useState([]);
   const timeSlotsRef = useRef(null);
   const cacheKey = `${date}-${guests}`;
@@ -55,6 +57,7 @@ export default function LeftPanel({ onAutoAdvance }) {
     }
 
     setLoading(true);
+    setError(false);
     
     // Small debounce to avoid flooding on rapid clicks (guests +- etc)
     const timeoutId = setTimeout(() => {
@@ -67,7 +70,10 @@ export default function LeftPanel({ onAutoAdvance }) {
           }
         })
         .catch(() => {
-          if (active) setLoading(false);
+          if (active) {
+            setError(true);
+            setLoading(false);
+          }
         });
     }, 300);
       
@@ -75,7 +81,7 @@ export default function LeftPanel({ onAutoAdvance }) {
       active = false; 
       clearTimeout(timeoutId);
     };
-  }, [date, guests, config, cacheKey, slotsCache, setSlotsCache]);
+  }, [date, guests, config, cacheKey, slotsCache, setSlotsCache, retryCount]);
 
   const handleOpenDatePicker = (event) => {
     // Determine month/year from selected date directly for better UX
@@ -334,6 +340,17 @@ export default function LeftPanel({ onAutoAdvance }) {
                 ))}
               </Box>
             );
+          }
+
+          if (error) {
+             return (
+               <Box sx={{ py: 3, textAlign: 'center' }}>
+                 <Typography color="error" mb={2}>Error al cargar los horarios</Typography>
+                 <Button variant="outlined" onClick={() => setRetryCount(c => c + 1)}>
+                   Reintentar
+                 </Button>
+               </Box>
+             );
           }
 
           if (!date) {

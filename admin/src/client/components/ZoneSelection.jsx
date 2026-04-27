@@ -16,11 +16,13 @@ export default function ZoneSelection({ onBack, onAutoAdvance }) {
     zones: cachedZones, setZones: setCachedZones
   } = useReservationStore();
   const [loading, setLoading] = useState(!cachedZones);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (cachedZones) return;
     
     setLoading(true);
+    setError(false);
     getZones().then(zones => {
       const activeZones = zones.filter(t => t.is_active);
       setCachedZones(activeZones);
@@ -30,6 +32,9 @@ export default function ZoneSelection({ onBack, onAutoAdvance }) {
       if (activeZones.length > 0 && !selectedZone) {
         setSelectedZone(activeZones[0]);
       }
+    }).catch(() => {
+      setError(true);
+      setLoading(false);
     });
   }, [cachedZones, setCachedZones, setSelectedZone, selectedZone]);
 
@@ -39,6 +44,29 @@ export default function ZoneSelection({ onBack, onAutoAdvance }) {
         <PageHeaderSkeleton />
         <CardSkeleton />
         <CardSkeleton />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box p={4} textAlign="center" height="100%">
+         <Typography color="error" mb={2}>Error al cargar las zonas</Typography>
+         <Button variant="outlined" onClick={() => {
+           setError(false);
+           setLoading(true);
+           getZones().then(zones => {
+             const activeZones = zones.filter(t => t.is_active);
+             setCachedZones(activeZones);
+             setLoading(false);
+             if (activeZones.length > 0 && !selectedZone) {
+               setSelectedZone(activeZones[0]);
+             }
+           }).catch(() => {
+             setError(true);
+             setLoading(false);
+           });
+         }}>Reintentar</Button>
       </Box>
     );
   }

@@ -5,8 +5,8 @@ import {
   ListItemText, ListItemIcon, Skeleton,
   IconButton
 } from '@mui/material';
+import { CelebrationOutlined, AutoAwesomeOutlined } from '@mui/icons-material';
 import { PageHeaderSkeleton, CardSkeleton } from '../../admin/components/Skeletons';
-import { ErrorState } from '../../admin/components/ErrorState';
 import { useReservationStore } from '../store/useReservationStore';
 import { getEvents } from '../services/reservationService';
 
@@ -26,6 +26,7 @@ export default function EventSelection({ onBack, onAutoAdvance }) {
 
     let active = true;
     setLoading(true);
+    setError(false);
     getEvents()
       .then(res => {
         if (active) {
@@ -58,7 +59,26 @@ export default function EventSelection({ onBack, onAutoAdvance }) {
   }
 
   if (error) {
-     return <ErrorState message="Error al cargar eventos" onRetry={() => window.location.reload()} />;
+     return (
+       <Box p={4} textAlign="center">
+         <Typography color="error" mb={2}>Error al cargar los eventos</Typography>
+         <Button variant="outlined" onClick={() => {
+           setError(false);
+           setLoading(true);
+           getEvents().then(res => {
+             const activeEvents = res.filter(e => e.is_active);
+             setCachedEvents(activeEvents);
+             if (activeEvents.length > 0 && !selectedEvent) {
+               setSelectedEvent(activeEvents[0]);
+             }
+             setLoading(false);
+           }).catch(() => {
+             setError(true);
+             setLoading(false);
+           });
+         }}>Reintentar</Button>
+       </Box>
+     );
   }
 
   const formatDateShort = (dateStr) => {
@@ -106,7 +126,7 @@ export default function EventSelection({ onBack, onAutoAdvance }) {
 
         {(!cachedEvents || cachedEvents.length === 0) ? (
           <Box sx={{ textAlign: 'center', mt: 4 }}>
-             <span className="material-icons" style={{ fontSize: 48, color: '#BDBDBD' }}>celebration</span>
+             <CelebrationOutlined sx={{ fontSize: 48, color: '#BDBDBD' }} />
              <Typography sx={{ mt: 2, color: '#70757A' }}>No hay eventos disponibles</Typography>
           </Box>
         ) : (
@@ -143,7 +163,7 @@ export default function EventSelection({ onBack, onAutoAdvance }) {
                     bgcolor: isSelected ? '#FFFFFF' : '#F1F3F4',
                     color: isSelected ? '#1A73E8' : '#70757A'
                   }}>
-                    <span className="material-icons" style={{ fontSize: 24 }}>auto_awesome</span>
+                    <AutoAwesomeOutlined sx={{ fontSize: 24 }} />
                   </Box>
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography variant="body1" fontWeight={isSelected ? 600 : 500} sx={{ color: '#202124', fontSize: '16px' }}>

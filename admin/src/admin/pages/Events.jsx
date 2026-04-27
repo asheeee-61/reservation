@@ -36,7 +36,9 @@ export default function Events() {
         console.error(err);
       }
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [page, perPage]);
 

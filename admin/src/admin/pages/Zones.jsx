@@ -36,7 +36,9 @@ export default function Zones() {
         console.error(err);
       }
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [page, perPage]);
 
