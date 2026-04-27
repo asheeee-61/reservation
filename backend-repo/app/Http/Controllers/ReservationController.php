@@ -133,7 +133,6 @@ class ReservationController extends Controller
         }
 
         $defaultConfig = [
-            'totalCapacity' => 40,
             'schedule' => [
                 'monday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
                 'tuesday' => ['open' => true, 'slots' => ["13:00"=>true, "13:30"=>true, "14:00"=>true, "14:30"=>true, "20:00"=>true, "20:30"=>true, "21:00"=>true, "21:30"=>true, "22:00"=>true, "22:30"=>true, "23:00"=>true, "23:30"=>true]],
@@ -163,13 +162,7 @@ class ReservationController extends Controller
             return response()->json([]);
         }
 
-        $totalCapacity = $config['totalCapacity'] ?? 40;
-
-        $reservedGuestsForSlots = \App\Models\Reservation::where('date', $date)
-            ->whereIn('status', [Reservation::STATUS_CONFIRMADA, Reservation::STATUS_PENDIENTE])
-            ->selectRaw('time, SUM(guests) as total_guests')
-            ->groupBy('time')
-            ->pluck('total_guests', 'time');
+        // Slots configuration logic
 
         $masterSlots = [];
         if (isset($dayConfig['shifts']) && is_array($dayConfig['shifts']) && !empty($dayConfig['shifts'])) {
@@ -191,12 +184,9 @@ class ReservationController extends Controller
             
             foreach ($slotDefinitions as $time) {
                 if ($masterSlots[$time] === true) {
-                    $booked = (int) $reservedGuestsForSlots->get($time, 0);
-                    $remaining = $totalCapacity - $booked;
-                    
                     $availableSlots[] = [
                         'time' => $time,
-                        'available' => $remaining >= $guests
+                        'available' => true
                     ];
                 }
             }
@@ -440,7 +430,6 @@ class ReservationController extends Controller
         if (!$date) return response()->json(['slots' => [], 'shifts' => []]);
 
         $defaultConfig = [
-            'totalCapacity' => 40,
             'schedule' => [
                 'monday' => ['open' => true, 'shifts' => []],
                 'tuesday' => ['open' => true, 'shifts' => []],
@@ -464,12 +453,7 @@ class ReservationController extends Controller
 
         if (!$dayConfig['open']) return response()->json(['slots' => [], 'shifts' => []]);
 
-        $totalCapacity = $config['totalCapacity'] ?? 40;
-        $reservedGuestsForSlots = \App\Models\Reservation::where('date', $date)
-            ->whereIn('status', [Reservation::STATUS_CONFIRMADA, Reservation::STATUS_PENDIENTE])
-            ->selectRaw('time, SUM(guests) as total_guests')
-            ->groupBy('time')
-            ->pluck('total_guests', 'time');
+        // Availability logic
 
         $slots = [];
         $shifts = [];
@@ -479,11 +463,8 @@ class ReservationController extends Controller
             $shiftSlots = [];
             foreach ($rawShift['slots'] as $time => $isOpen) {
                 if ($isOpen) {
-                    $booked = (int) $reservedGuestsForSlots->get($time, 0);
-                    if (($totalCapacity - $booked) >= $guests) {
-                        $shiftSlots[] = $time;
-                        $slots[] = $time;
-                    }
+                    $shiftSlots[] = $time;
+                    $slots[] = $time;
                 }
             }
             if (!empty($shiftSlots)) {

@@ -31,7 +31,6 @@ export default function Settings() {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
-  const [savingCap, setSavingCap] = useState(false);
 
   const fetchGlobalHours = useSettingsStore(state => state.fetchGlobalHours);
   const globalHours = useSettingsStore(state => state.globalHours);
@@ -85,8 +84,7 @@ export default function Settings() {
         ...data,
         business: data.business || { name: 'Hechizo Hookah Lounge', address: 'Cam. de los Romanos, 91' },
         minGuests: data.minGuests || 1,
-        maxGuests: data.maxGuests || 10,
-        totalCapacity: data.totalCapacity || 40
+        maxGuests: data.maxGuests || 10
       });
       setLogoPreview(data.logo_url || '');
       setLoading(false);
@@ -228,9 +226,8 @@ export default function Settings() {
     }
   };
 
-  const handleSaveAll = async (isCap = false) => {
-    if (isCap) setSavingCap(true);
-    else setSavingSettings(true);
+  const handleSaveAll = async () => {
+    setSavingSettings(true);
     
     try {
       await apiClient('/admin/config', {
@@ -238,11 +235,10 @@ export default function Settings() {
         body: JSON.stringify(config)
       });
       await fetchGlobalHours();
-      toast.success(isCap ? "Capacidades guardadas exitosamente." : "Detalles guardados exitosamente.");
+      toast.success("Ajustes guardados exitosamente.");
     } catch (e) {
       toast.error('Error al guardar ajustes');
     } finally {
-      setSavingCap(false);
       setSavingSettings(false);
     }
   };
@@ -366,7 +362,7 @@ export default function Settings() {
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button 
-                variant="contained" onClick={() => handleSaveAll(false)} disabled={savingSettings}
+                variant="contained" onClick={handleSaveAll} disabled={savingSettings}
                 sx={{ 
                   width: { xs: '100%', sm: 'auto' }, minWidth: 160, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
                   fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
@@ -551,7 +547,7 @@ export default function Settings() {
           </Paper>
         </Box>
 
-        {/* Right Column: Rango Global, Reglas de Reserva, Capacidad Total */}
+        {/* Right Column: Rango Global, Reglas de Reserva */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Horario Card */}
           <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
@@ -660,7 +656,7 @@ export default function Settings() {
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button 
-                variant="contained" onClick={() => handleSaveAll(false)} disabled={savingSettings}
+                variant="contained" onClick={handleSaveAll} disabled={savingSettings}
                 sx={{ 
                   width: { xs: '100%', sm: 'auto' }, minWidth: 160, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
                   fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
@@ -672,34 +668,6 @@ export default function Settings() {
             </Box>
           </Paper>
 
-          {/* Capacity Card */}
-          <Paper sx={{ p: { xs: '16px', sm: '24px' }, borderRadius: '4px', border: '1px solid #E0E0E0', boxShadow: 'none' }}>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124', mb: '4px' }}>Capacidad Total</Typography>
-            <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mb: '24px' }}>Número máximo de personas que el negocio puede atender simultáneamente.</Typography>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mb: '24px' }}>
-              <TextField
-                label="Capacidad de personas" type="number" variant="outlined" value={config.totalCapacity} onChange={(e) => setConfig({ ...config, totalCapacity: e.target.value })}
-                InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
-                InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
-                sx={{ width: { xs: '100%', sm: '50%' } }}
-                helperText="Define el límite de aforo para todas las zonas combinadas."
-              />
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button 
-                variant="contained" onClick={() => handleSaveAll(true)} disabled={savingCap}
-                sx={{ 
-                  width: { xs: '100%', sm: 'auto' }, minWidth: 160, height: { xs: 44, sm: 36 }, px: '24px', bgcolor: '#1A73E8', boxShadow: 'none', borderRadius: '4px',
-                  fontFamily: 'Roboto', fontWeight: 500, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1.25px',
-                  '&:hover': { bgcolor: '#1557B0', boxShadow: 'none' }
-                }}
-              >
-                {savingCap ? 'Guardando...' : 'Guardar Capacidad'}
-              </Button>
-            </Box>
-          </Paper>
         </Box>
       </Box>
     </Box>

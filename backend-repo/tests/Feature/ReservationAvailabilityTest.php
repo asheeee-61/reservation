@@ -26,7 +26,6 @@ class ReservationAvailabilityTest extends TestCase
         // Ensure config exists
         Storage::fake('local');
         Storage::put('config.json', json_encode([
-            'totalCapacity' => 10,
             'schedule' => [
                 'monday' => ['open' => true, 'slots' => ["18:00" => true]],
                 'tuesday' => ['open' => true, 'slots' => ["18:00" => true]],
@@ -60,46 +59,6 @@ class ReservationAvailabilityTest extends TestCase
                  ->assertJson(['message' => 'No hay disponibilidad para esta fecha']);
     }
 
-    /** @test */
-    public function it_rejects_reservation_when_no_capacity_left()
-    {
-        // Mock capacity full for a date
-        $date = '2026-04-01';
-        $time = '18:00';
-        
-        $customer = \App\Models\Customer::create([
-            'name' => 'Test Customer',
-            'phone' => '111222333'
-        ]);
-
-        // Existing reservation uses all capacity (10)
-        Reservation::create([
-            'reservation_id' => '#1111',
-            'customer_id' => $customer->id,
-            'date' => $date,
-            'time' => $time,
-            'guests' => 10,
-            'status' => Reservation::STATUS_CONFIRMADA,
-            'source' => Reservation::SOURCE_ADMIN,
-            'zone_id' => Zone::first()->id
-        ]);
-
-        $payload = [
-            'date' => $date,
-            'slot' => ['time' => $time],
-            'guests' => 1,
-            'user' => [
-                'name' => 'Jane Doe',
-                'phone' => '987654321'
-            ],
-            'zone_id' => Zone::first()->id
-        ];
-
-        $response = $this->postJson('/api/reservations', $payload);
-
-        $response->assertStatus(422)
-                 ->assertJson(['message' => 'No hay disponibilidad para esta fecha']);
-    }
 
     /** @test */
     public function it_allows_reservation_when_available()
