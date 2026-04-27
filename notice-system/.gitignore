@@ -2,3 +2,5 @@ node_modules/
 .env
 sessions/
 .DS_Store
+.wwebjs_auth
+.wwebjs_cache
