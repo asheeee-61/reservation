@@ -48,20 +48,10 @@ const formatPostVisitReview = (data) => {
     return `Estimado/a ${customerName}, gracias por visitarnos en ${businessName}. Esperamos que haya disfrutado su reserva${ref}. Enlace para su opinión: ${reviewLink}`;
 };
 
-const formatAdminNotification = (data) => {
-    const { id, date, time, guests, customerName, customerPhone, tableType, specialEvent } = data;
-    return `NUEVA RESERVA (#${id})
-Cliente: ${customerName} (${customerPhone})
-Fecha: ${date} | Hora: ${time} | Pax: ${guests}
-Zona: ${tableType || 'Estándar'}
-Estado: Pendiente`;
-};
-
 module.exports = {
     formatReminder2h,
     formatPostVisitReview,
     formatCancellation,
     formatClientReceived,
-    formatClientConfirmation,
-    formatAdminNotification
+    formatClientConfirmation
 };
