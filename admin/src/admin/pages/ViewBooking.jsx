@@ -7,6 +7,8 @@ import SourceBadge from '../components/SourceBadge';
 import { useToast } from '../components/Toast/ToastContext';
 import { PageHeaderSkeleton, CardSkeleton } from '../components/Skeletons';
 import { BackButton } from '../components/BackButton';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { EmptyState } from '../components/EmptyState';
 
 const STATUS_COLORS = {
   'PENDIENTE': { bg: '#FEF7E0', text: '#7D4A00' },
@@ -118,13 +120,26 @@ export default function ViewBooking() {
     }
   };
 
-  if (loading || !resData) {
+  if (loading) {
     return (
       <Box p={3} display="flex" flexDirection="column" gap={3}>
         <PageHeaderSkeleton />
         <Box display="flex" gap={3} flexDirection={{ xs: 'column', md: 'row' }}>
           <Box flex={1}><CardSkeleton /></Box>
         </Box>
+      </Box>
+    );
+  }
+
+  if (!resData) {
+    return (
+      <Box p={3}>
+        <BackButton fallback="/admin/reservations" />
+        <EmptyState 
+          icon="event_busy" 
+          title="Reserva no encontrada" 
+          message="La reserva solicitada no existe o fue eliminada." 
+        />
       </Box>
     );
   }
@@ -444,97 +459,23 @@ export default function ViewBooking() {
           </Paper>
         </Box>
       </Box>
-
-      {/* Cancellation Modal */}
-      <Dialog 
-        open={cancelModalOpen} 
-        onClose={() => setCancelModalOpen(false)}
-        PaperProps={{
-          sx: {
-            width: '100%',
-            maxWidth: '400px',
-            bgcolor: '#FFFFFF',
-            borderRadius: '4px',
-            p: '24px',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-            m: '16px'
-          }
+      <ConfirmModal 
+        open={cancelModalOpen}
+        title="Cancelar reserva"
+        body={`¿Seguro que deseas cancelar la reserva #${resData.reservation_id || id}? Esta acción no se puede deshacer.`}
+        confirmLabel="Cancelar Reserva"
+        confirmColor="#D93025"
+        confirmDisabled={cancelLoading}
+        showInput={true}
+        inputValue={cancelReason}
+        onInputChange={setCancelReason}
+        inputPlaceholder="Motivo (opcional — se enviará al cliente)"
+        onCancel={() => {
+          setCancelModalOpen(false);
+          setCancelReason('');
         }}
-        slotProps={{
-          backdrop: {
-            sx: {
-              backgroundColor: 'rgba(0,0,0,0.4)'
-            }
-          }
-        }}
-      >
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '16px', color: '#202124' }}>
-          Cancelar reserva
-        </Typography>
-        <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '8px' }}>
-          ¿Seguro que deseas cancelar la reserva #{resData.reservation_id || id}?<br/>
-          Esta acción no se puede deshacer.
-        </Typography>
-
-        <div style={{ marginTop: 16 }}>
-          <label style={{
-            fontFamily:    'Roboto, sans-serif',
-            fontSize:      12,
-            fontWeight:    500,
-            color:         '#70757A',
-            textTransform: 'uppercase',
-            letterSpacing: '1.5px',
-            display:       'block',
-            marginBottom:  6,
-          }}>
-            Motivo (opcional — se enviará al cliente)
-          </label>
-          <input
-            value={cancelReason}
-            onChange={e => setCancelReason(e.target.value)}
-            placeholder="Ej: Cierre por evento privado..."
-            maxLength={100}
-            style={{
-              width:        '100%',
-              height:       44,
-              border:       '1px solid #DADCE0',
-              borderRadius: 4,
-              padding:      '0 12px',
-              fontSize:     14,
-              fontFamily:   'Roboto, sans-serif',
-              color:        '#202124',
-              outline:      'none',
-              boxSizing:    'border-box',
-            }}
-          />
-        </div>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', mt: '24px' }}>
-          <Button 
-            onClick={() => setCancelModalOpen(false)}
-            variant="outlined"
-            disabled={cancelLoading}
-            sx={{ 
-              height: 36, px: '24px', borderRadius: '4px', border: '1px solid #DADCE0', 
-              color: '#70757A', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase'
-            }}
-          >
-            VOLVER
-          </Button>
-          <Button 
-            onClick={handleCancelClick}
-            variant="contained"
-            disabled={cancelLoading}
-            sx={{ 
-              height: 36, px: '24px', borderRadius: '4px', bgcolor: '#D93025', 
-              color: '#FFFFFF', fontFamily: 'Roboto', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase',
-              boxShadow: 'none',
-              '&:hover': { bgcolor: '#B3261E', boxShadow: 'none' }
-            }}
-          >
-            {cancelLoading ? 'Guardando...' : 'CANCELAR RESERVA'}
-          </Button>
-        </Box>
-      </Dialog>
+        onConfirm={handleCancelClick}
+      />
     </Box>
   );
 }

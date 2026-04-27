@@ -227,7 +227,16 @@ export default function CustomerDetail() {
       <TableSkeleton rows={3} cols={5} />
     </Box>
   );
-  if (!customer) return <EmptyState icon="person_off" title="Cliente no encontrado" message="El cliente solicitado no existe o fue eliminado." />;
+  if (!customer) return (
+    <Box p={3}>
+      <BackButton fallback="/admin/customers" />
+      <EmptyState 
+        icon="person_off" 
+        title="Cliente no encontrado" 
+        message="El cliente solicitado no existe o fue eliminado." 
+      />
+    </Box>
+  );
 
   const avgDisplay = Number.isInteger(stats.avgParty) 
     ? stats.avgParty.toString() 
@@ -515,15 +524,11 @@ export default function CustomerDetail() {
               </TableHead>
               <TableBody>
                 {loadingRes ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <TableCell key={`skeleton-${i}-${j}`}>
-                          <Box sx={{ width: '100%', height: 20, bgcolor: '#F1F3F4', borderRadius: 1, animation: 'pulse 1.5s infinite ease-in-out' }} />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
+                  <TableRow>
+                    <TableCell colSpan={5} sx={{ p: 0 }}>
+                      <TableSkeleton rows={5} cols={5} />
+                    </TableCell>
+                  </TableRow>
                 ) : reservations.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} align="center" sx={{ py: 0, borderBottom: 'none' }}>

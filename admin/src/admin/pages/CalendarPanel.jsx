@@ -399,34 +399,27 @@ export default function CalendarPanel() {
           />
         )}
 
-        {/* Drag Confirmation */}
-        <Dialog open={!!confirmMove} onClose={() => setConfirmMove(null)}>
-          <DialogTitle sx={{ fontFamily: 'Roboto', fontSize: '16px' }}>¿Mover reserva?</DialogTitle>
-          <DialogContent>
-            <Typography sx={{ fontFamily: 'Roboto', fontSize: '14px' }}>
-              ¿Mover a las {confirmMove?.newTime}?
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setConfirmMove(null)} sx={{ color: '#70757A' }}>Cancelar</Button>
-            <Button 
-              onClick={async () => {
-                const { id, newTime } = confirmMove;
-                try {
-                  await apiClient(`/admin/reservations/${id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ time: newTime })
-                  });
-                  fetchReservations();
-                } catch (e) { console.error(e); }
-                setConfirmMove(null);
-              }} 
-              sx={{ color: '#1A73E8', fontWeight: 500 }}
-            >
-              Mover
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <ConfirmModal 
+          open={!!confirmMove}
+          title="¿Mover reserva?"
+          body={`¿Deseas mover la reserva a las ${confirmMove?.newTime}?`}
+          confirmLabel="Mover"
+          confirmColor="#1A73E8"
+          onCancel={() => setConfirmMove(null)}
+          onConfirm={async () => {
+            const { id, newTime } = confirmMove;
+            try {
+              await apiClient(`/admin/reservations/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ time: newTime })
+              });
+              fetchReservations();
+            } catch (e) { 
+              toast.error(e.message || 'Error al mover reserva');
+            }
+            setConfirmMove(null);
+          }}
+        />
       </Box>
     </Box>
   );

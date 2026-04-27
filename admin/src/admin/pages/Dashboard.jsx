@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../shared/api';
 import SourceBadge from '../components/SourceBadge';
 import { useToast } from '../components/Toast/ToastContext';
-import { TableSkeleton, ServiceRowSkeleton } from '../components/Skeletons';
+import { TableSkeleton, ServiceRowSkeleton, StatCardSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -124,11 +124,23 @@ export default function Dashboard() {
 
       {/* ROW 1 — STATS */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(5, 1fr)' }, gap: '16px' }}>
-        <StatCard icon="event" label="Reservas de hoy" value={activeRes.length} color="#1A73E8" />
-        <StatCard icon="group" label="Personas hoy" value={guestsToday} color="#137333" />
-        <StatCard icon="schedule" label="Próxima reserva" value={nextRes ? nextRes.time : '—'} sub={nextRes?.customer?.name} color="#7D4A00" />
-        <StatCard icon="person_off" label="No presentados" value={noShows} color="#C5221F" />
-        <StatCard icon="cancel" label="Canceladas" value={cancelledRes} color="#5F6368" />
+        {loadingToday ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard icon="event" label="Reservas de hoy" value={activeRes.length} color="#1A73E8" />
+            <StatCard icon="group" label="Personas hoy" value={guestsToday} color="#137333" />
+            <StatCard icon="schedule" label="Próxima reserva" value={nextRes ? nextRes.time : '—'} sub={nextRes?.customer?.name} color="#7D4A00" />
+            <StatCard icon="person_off" label="No presentados" value={noShows} color="#C5221F" />
+            <StatCard icon="cancel" label="Canceladas" value={cancelledRes} color="#5F6368" />
+          </>
+        )}
       </Box>
 
       {/* ROW 2 — MAIN CONTENT */}

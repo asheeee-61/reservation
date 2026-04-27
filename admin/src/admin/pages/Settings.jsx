@@ -247,7 +247,22 @@ export default function Settings() {
     }
   };
 
-  if (loading || !config) return <Box p={4} display="flex" flexDirection="column" gap={3}><PageHeaderSkeleton /><CardSkeleton /><CardSkeleton /></Box>;
+  if (loading || !config) return (
+    <Box sx={{ maxWidth: 1200, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <PageHeaderSkeleton />
+      <CardSkeleton />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: '24px' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <CardSkeleton />
+          <CardSkeleton />
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <CardSkeleton />
+          <CardSkeleton />
+        </Box>
+      </Box>
+    </Box>
+  );
 
   return (
     <Box sx={{ maxWidth: 1200, display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}>

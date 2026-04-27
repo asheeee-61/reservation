@@ -9,6 +9,7 @@ import TablePagination from '../components/TablePagination';
 import { useToast } from '../components/Toast/ToastContext';
 import { TableSkeleton } from '../components/Skeletons';
 import { EmptyState } from '../components/EmptyState';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 export default function Zones() {
   const [types, setTypes] = useState([]);
@@ -325,32 +326,16 @@ export default function Zones() {
         </Box>
       </Dialog>
 
-      {/* Delete Confirmation Modal */}
-      <Dialog 
-        open={deleteModalOpen} 
-        onClose={() => setDeleteModalOpen(false)}
-        PaperProps={{ sx: { borderRadius: '4px', width: '100%', maxWidth: 400, p: '24px' } }}
-      >
-        <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#202124', mb: '12px' }}>Eliminar zona</Typography>
-        <Typography sx={{ fontSize: '14px', color: '#70757A', mb: '24px' }}>
-          ¿Eliminar '{editingType?.name}'? Las reservas existentes no se verán afectadas.
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-          <Button 
-            onClick={() => setDeleteModalOpen(false)} 
-            sx={{ border: '1px solid #DADCE0', color: '#70757A', px: '24px', height: 36, borderRadius: '4px' }}
-          >
-            VOLVER
-          </Button>
-          <Button 
-            onClick={handleDelete} 
-            variant="contained" 
-            sx={{ bgcolor: '#D93025', color: '#FFFFFF', px: '24px', height: 36, borderRadius: '4px', '&:hover': { bgcolor: '#B71C1C' } }}
-          >
-            ELIMINAR
-          </Button>
-        </Box>
-      </Dialog>
+      <ConfirmModal 
+        open={deleteModalOpen}
+        title="Eliminar zona"
+        body={`¿Estás seguro de que deseas eliminar la zona "${editingType?.name}"? Esta acción no afectará a las reservas existentes.`}
+        confirmLabel="Eliminar"
+        confirmColor="#D93025"
+        confirmDisabled={submitting}
+        onCancel={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+      />
     </Box>
   );
 }
