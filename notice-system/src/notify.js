@@ -177,13 +177,10 @@ router.post('/new-reservation', async (req, res) => {
 
         await sendMessage(targetClient, clientMsg, 'Nueva Reserva (Cliente)');
         console.log(`✅ Client notification successful for #${reservation.id}`);
-        await sendMessage(targetClient, clientMsg, 'Nueva Reserva (Cliente)');
-        console.log(`✅ Client notification successful for #${reservation.id}`);
 
-        res.json({ 
-            status: 'processed', 
+        res.json({
+            status: 'processed',
             reservationId: reservation.id,
-            client: 'sent'
             client: 'sent'
         });
     } catch (err) {
