@@ -365,6 +365,8 @@ class ReservationController extends Controller
         }
 
         $oldStatus = $reservation->status;
+        $oldDateTime = $reservation->date . ' ' . $reservation->time;
+        
         $reservation->update([
             'customer_id' => $customer->id,
             'date' => $validated['date'],
@@ -376,6 +378,8 @@ class ReservationController extends Controller
             'event_id' => $validated['event_id'] ?? null,
         ]);
 
+        $newDateTime = $reservation->date . ' ' . $reservation->time;
+
         if ($oldStatus !== $reservation->status) {
             $this->logActivity(
                 $reservation, 
@@ -384,6 +388,8 @@ class ReservationController extends Controller
                 ['from' => $oldStatus, 'to' => $reservation->status]
             );
             $this->handleStatusNotification($reservation, $oldStatus);
+        } elseif ($reservation->status === Reservation::STATUS_CONFIRMADA && $oldDateTime !== $newDateTime) {
+            $this->dispatchReminderJob($reservation);
         }
 
         return response()->json([
@@ -526,9 +532,68 @@ class ReservationController extends Controller
 
         if ($reservation->status === Reservation::STATUS_CONFIRMADA) {
             $notificationService->notify('confirmed', $reservation);
+            $this->dispatchReminderJob($reservation);
         } elseif ($reservation->status === Reservation::STATUS_CANCELADA) {
             $notificationService->notify('cancelled', $reservation);
+            $this->cancelPendingJobs($reservation);
+        } elseif ($reservation->status === Reservation::STATUS_ASISTIO) {
+            $this->dispatchReviewJob($reservation);
+        } else {
+            // For other statuses (like no_show, pendiente), cancel pending jobs
+            $this->cancelPendingJobs($reservation);
         }
     }
 
+    private function dispatchReminderJob(Reservation $reservation): void
+    {
+        $this->cancelPendingJobs($reservation, \App\Jobs\SendReminderJob::class);
+        
+        $settings = \App\Models\Setting::first();
+        $notificationSettings = $settings ? $settings->notification_settings : null;
+        $minutes = $notificationSettings['whatsapp']['reminder_2h']['minutes'] ?? 120;
+        
+        $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
+        $delay = $resDateTime->subMinutes($minutes);
+
+        if ($delay->isFuture()) {
+            \App\Jobs\SendReminderJob::dispatch($reservation)->delay($delay);
+        } elseif ($resDateTime->isFuture()) {
+            // If it's already within the window but hasn't happened yet, send now
+            \App\Jobs\SendReminderJob::dispatch($reservation);
+        }
+    }
+
+    private function dispatchReviewJob(Reservation $reservation): void
+    {
+        $this->cancelPendingJobs($reservation, \App\Jobs\SendReviewJob::class);
+        
+        $settings = \App\Models\Setting::first();
+        $notificationSettings = $settings ? $settings->notification_settings : null;
+        $minutes = $notificationSettings['whatsapp']['review']['minutes'] ?? 120;
+        
+        // Review is sent AFTER the reservation
+        $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
+        $delay = $resDateTime->addMinutes($minutes);
+
+        if ($delay->isFuture()) {
+            \App\Jobs\SendReviewJob::dispatch($reservation)->delay($delay);
+        } else {
+            \App\Jobs\SendReviewJob::dispatch($reservation);
+        }
+    }
+
+    private function cancelPendingJobs(Reservation $reservation, $jobClass = null): void
+    {
+        // Cancel jobs in the database queue driver by checking the payload
+        $query = \Illuminate\Support\Facades\DB::table('jobs')
+            ->where('payload', 'LIKE', '%"class":"App\\\\Models\\\\Reservation"%')
+            ->where('payload', 'LIKE', '%"id";i:' . $reservation->id . '%');
+            
+        if ($jobClass) {
+            $escapedClass = str_replace('\\', '\\\\', $jobClass);
+            $query->where('payload', 'LIKE', '%"displayName":"' . $escapedClass . '"%');
+        }
+
+        $query->delete();
+    }
 }

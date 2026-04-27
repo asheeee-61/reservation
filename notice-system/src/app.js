@@ -61,7 +61,7 @@ const tokenAuth = (req, res, next) => {
 };
 
 const { renderMonitoring } = require('./monitoring');
-const { resendMessage } = require('./whatsapp');
+const { resendMessage, destroySession } = require('./whatsapp');
 
 app.get('/', tokenAuth, (req, res) => {
     res.redirect(`/monitoring?token=${req.query.token}`);
@@ -251,6 +251,15 @@ app.post('/resend', tokenAuth, async (req, res) => {
     try {
         await resendMessage(index);
         res.json({ status: 'ok' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/disconnect', tokenAuth, async (req, res) => {
+    try {
+        await destroySession();
+        res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

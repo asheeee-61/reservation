@@ -5,6 +5,7 @@ require('dotenv').config();
 let clientReady = false;
 let lastQR = null;
 let lastCheck = new Date();
+let intentionalDisconnect = false;
 
 // Activity tracking
 let stats = {
@@ -62,7 +63,9 @@ client.on('disconnected', (reason) => {
     console.log('🔌 Client was logged out', reason);
     clientReady = false;
     lastCheck = new Date();
-    client.initialize();
+    if (!intentionalDisconnect) {
+        client.initialize();
+    }
 });
 
 client.on('ready', () => {
@@ -131,6 +134,18 @@ const resendMessage = async (index) => {
     return await sendMessage(msg.recipient, msg.text, msg.type);
 };
 
+const destroySession = async () => {
+    intentionalDisconnect = true;
+    clientReady = false;
+    lastQR = null;
+    try { await client.logout(); } catch (_) {}
+    try { await client.destroy(); } catch (_) {}
+    setTimeout(() => {
+        intentionalDisconnect = false;
+        client.initialize().catch(err => console.error('Failed to reinitialize WhatsApp:', err.message));
+    }, 2000);
+};
+
 module.exports = {
     client,
     sendMessage,
@@ -140,5 +155,6 @@ module.exports = {
     getLastQR: () => lastQR,
     getStats: () => ({ ...stats, lastCheck: lastCheck.toLocaleString('es-ES') }),
     getMessageHistory: () => messageHistory,
-    resendMessage
+    resendMessage,
+    destroySession
 };

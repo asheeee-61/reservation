@@ -3,7 +3,6 @@ const { isReady, getStats, getMessageHistory, getLastQR } = require('./whatsapp'
 const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
     const ready = isReady();
     const stats = getStats();
-    const history = getMessageHistory();
     const qr = getLastQR();
 
     return `
@@ -12,7 +11,8 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitoreo - Notice System</title>
+    <meta name="description" id="meta-description" content="Panel de monitoreo de notificaciones — Notice System">
+    <title id="page-title">Notice System — Monitoreo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
@@ -21,7 +21,6 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             --primary-dark: #1557b0;
             --primary-light: #E8F0FE;
             --accent: #1a73e8;
-
             --background: #F5F5F5;
             --surface: #FFFFFF;
             --error: #D32F2F;
@@ -31,16 +30,12 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             --text-secondary: rgba(0, 0, 0, 0.60);
             --text-disabled: rgba(0, 0, 0, 0.38);
             --border: rgba(0, 0, 0, 0.12);
-            
-            /* MD2 Elevation 2 */
-            --shadow-elevation-2: 0px 3px 1px -2px rgba(0,0,0,0.2), 
-                                 0px 2px 2px 0px rgba(0,0,0,0.14), 
-                                 0px 1px 5px 0px rgba(0,0,0,0.12);
-            
-            /* MD2 Elevation 4 */
-            --shadow-elevation-4: 0px 2px 4px -1px rgba(0,0,0,0.2), 
-                                 0px 4px 5px 0px rgba(0,0,0,0.14), 
-                                 0px 1px 10px 0px rgba(0,0,0,0.12);
+            --shadow-elevation-2: 0px 3px 1px -2px rgba(0,0,0,0.2),
+                                  0px 2px 2px 0px rgba(0,0,0,0.14),
+                                  0px 1px 5px 0px rgba(0,0,0,0.12);
+            --shadow-elevation-4: 0px 2px 4px -1px rgba(0,0,0,0.2),
+                                  0px 4px 5px 0px rgba(0,0,0,0.14),
+                                  0px 1px 10px 0px rgba(0,0,0,0.12);
         }
 
         body {
@@ -77,16 +72,9 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             letter-spacing: 0.25px;
         }
 
-        .header h1 .material-icons {
-            color: var(--primary);
-            font-size: 24px;
-        }
+        .header h1 .material-icons { color: var(--primary); font-size: 24px; }
 
-        .container {
-            max-width: 1100px;
-            margin: 32px auto;
-            padding: 0 24px;
-        }
+        .container { max-width: 1100px; margin: 32px auto; padding: 0 24px; }
 
         .card {
             background: var(--surface);
@@ -95,6 +83,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             margin-bottom: 24px;
             box-shadow: var(--shadow-elevation-2);
             border: 1px solid var(--border);
+            position: relative;
         }
 
         h3 {
@@ -107,10 +96,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             gap: 12px;
         }
 
-        h3 .material-icons {
-            color: var(--text-secondary);
-            font-size: 22px;
-        }
+        h3 .material-icons { color: var(--text-secondary); font-size: 22px; }
 
         /* Stat Cards */
         .stats-grid {
@@ -129,12 +115,10 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             gap: 20px;
             border: 1px solid var(--border);
             transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
         }
 
-        .stat-item:hover {
-            box-shadow: var(--shadow-elevation-4);
-            transform: translateY(-2px);
-        }
+        .stat-item:hover { box-shadow: var(--shadow-elevation-4); transform: translateY(-2px); }
 
         .stat-icon {
             width: 48px;
@@ -147,11 +131,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             color: var(--primary);
         }
 
-
-        .stat-content {
-            display: flex;
-            flex-direction: column;
-        }
+        .stat-content { display: flex; flex-direction: column; }
 
         .stat-label {
             font-size: 12px;
@@ -162,10 +142,18 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             margin-bottom: 4px;
         }
 
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
+        .stat-value { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.88);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 8px;
         }
 
         /* Tabs */
@@ -187,32 +175,19 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             transition: color 0.2s;
         }
 
-        .tab:hover {
-            color: var(--primary-dark);
-            background: rgba(255, 179, 0, 0.04);
-        }
-
-        .tab.active {
-            color: var(--primary-dark);
-        }
-
+        .tab:hover { color: var(--primary-dark); background: rgba(26,115,232,0.04); }
+        .tab.active { color: var(--primary-dark); }
         .tab.active::after {
             content: '';
             position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
+            bottom: -1px; left: 0; right: 0;
             height: 3px;
             background: var(--primary);
             border-radius: 3px 3px 0 0;
         }
 
         /* Template Cards */
-        .template-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
 
         .template-card {
             background: var(--surface);
@@ -224,24 +199,9 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             transition: all 0.2s;
         }
 
-        .template-card:hover {
-            box-shadow: var(--shadow-elevation-4);
-            border-color: var(--primary-light);
-        }
-
-        .template-title {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--text-primary);
-            margin: 0 0 8px 0;
-        }
-
-        .template-desc {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin: 0;
-            flex-grow: 1;
-        }
+        .template-card:hover { box-shadow: var(--shadow-elevation-4); border-color: var(--primary-light); }
+        .template-title { font-weight: 600; font-size: 16px; color: var(--text-primary); margin: 0 0 8px 0; }
+        .template-desc { font-size: 14px; color: var(--text-secondary); margin: 0; flex-grow: 1; }
 
         /* Buttons */
         .btn {
@@ -261,28 +221,12 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             transition: all 0.2s;
         }
 
-        .btn-primary {
-            background-color: var(--primary);
-            color: rgba(0,0,0,0.87);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .btn-outline:hover {
-            background: rgba(0,0,0,0.04);
-            border-color: var(--text-primary);
-            color: var(--text-primary);
-        }
+        .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .btn-primary:hover { background-color: var(--primary-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+        .btn-outline:hover { background: rgba(0,0,0,0.04); border-color: var(--text-primary); color: var(--text-primary); }
+        .btn-danger { background-color: #D32F2F; color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .btn-danger:hover { background-color: #B71C1C; }
 
         /* Badges */
         .status-badge {
@@ -295,15 +239,8 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             font-weight: 600;
         }
 
-        .status-connected {
-            background: #E8F5E9;
-            color: #2E7D32;
-        }
-
-        .status-disconnected {
-            background: #FFEBEE;
-            color: #C62828;
-        }
+        .status-connected { background: #E8F5E9; color: #2E7D32; }
+        .status-disconnected { background: #FFEBEE; color: #C62828; }
 
         .badge-table {
             padding: 4px 8px;
@@ -317,16 +254,9 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         .badge-failed { background: #FFEBEE; color: #C62828; }
         .badge-invalid { background: #F5F5F5; color: #757575; }
 
-        /* Switches & Controls */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 36px;
-            height: 20px;
-        }
-
+        /* Switches */
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-
         .slider {
             position: absolute;
             cursor: pointer;
@@ -335,7 +265,6 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             transition: .3s;
             border-radius: 20px;
         }
-
         .slider:before {
             position: absolute;
             content: "";
@@ -346,31 +275,24 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             border-radius: 50%;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
-
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(16px); }
 
         .timing-input {
-            width: 50px;
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 4px 8px;
             font-family: inherit;
+            font-size: 13px;
             font-weight: 600;
-            text-align: center;
             outline: none;
+            background: white;
+            cursor: pointer;
         }
-
-        .timing-input:focus {
-            border-color: var(--primary);
-        }
+        .timing-input:focus { border-color: var(--primary); }
 
         /* Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
+        table { width: 100%; border-collapse: collapse; }
         th {
             text-align: left;
             padding: 16px;
@@ -381,16 +303,8 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             color: var(--text-secondary);
             border-bottom: 2px solid var(--border);
         }
-
-        td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-        }
-
-        tr:hover td {
-            background-color: rgba(0,0,0,0.02);
-        }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        tr:hover td { background-color: rgba(0,0,0,0.02); }
 
         /* Save Bar */
         .save-bar {
@@ -409,7 +323,6 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 2000;
         }
-
         .save-bar.visible { transform: translateX(-50%) translateY(0); }
 
         /* Modal */
@@ -424,10 +337,9 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             padding: 24px;
             opacity: 0;
             transition: opacity 0.2s;
+            box-sizing: border-box;
         }
-
         .modal.visible { opacity: 1; }
-
         .modal-content {
             background: var(--surface);
             border-radius: 8px;
@@ -439,7 +351,6 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             flex-direction: column;
             box-shadow: var(--shadow-elevation-4);
         }
-
         .modal-header {
             padding: 16px 24px;
             border-bottom: 1px solid var(--border);
@@ -448,30 +359,10 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             align-items: center;
             background: #F5F5F5;
         }
+        .modal-body { flex-grow: 1; overflow-y: auto; background: #F5F5F5; display: flex; flex-direction: column; }
 
-        .modal-body {
-            flex-grow: 1;
-            overflow-y: auto;
-            background: #F5F5F5;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #preview-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .preview-frame {
-            width: 100%;
-            flex-grow: 1;
-            min-height: 600px;
-            border: none;
-            background: white;
-            display: block;
-        }
-
+        #preview-content { flex-grow: 1; display: flex; flex-direction: column; }
+        .preview-frame { width: 100%; flex-grow: 1; min-height: 600px; border: none; background: white; display: block; }
 
         .whatsapp-preview-container {
             background: #e5ddd5;
@@ -481,7 +372,6 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             display: flex;
             flex-direction: column;
         }
-
         .wa-bubble {
             background: white;
             padding: 12px 16px;
@@ -492,24 +382,42 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             font-size: 14.5px;
             line-height: 1.4;
         }
-
         .wa-bubble::before {
             content: "";
             position: absolute;
-            left: -10px;
-            top: 0;
+            left: -10px; top: 0;
             width: 0; height: 0;
             border-style: solid;
             border-width: 0 10px 10px 0;
             border-color: transparent white transparent transparent;
         }
+        .wa-time { font-size: 11px; color: #999; display: block; text-align: right; margin-top: 4px; }
 
-        .wa-time {
-            font-size: 11px;
-            color: #999;
-            display: block;
-            text-align: right;
-            margin-top: 4px;
+        /* Logs Modal */
+        .logs-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            padding: 24px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-sizing: border-box;
+        }
+        .logs-modal.visible { opacity: 1; }
+        .logs-modal-content {
+            background: var(--surface);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 860px;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-elevation-4);
         }
 
         .rotating { animation: rot 1s infinite linear; }
@@ -518,142 +426,122 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
 </head>
 <body>
     <div class="header">
-        <h1>
+        <h1 id="header-title">
             <span class="material-icons">notifications_active</span>
             Notice System
         </h1>
-        <div class="status-badge ${ready ? 'status-connected' : 'status-disconnected'}">
-            <span class="material-icons" style="font-size: 16px;">${ready ? 'check_circle' : 'error'}</span>
-            ${ready ? 'WhatsApp Conectado' : 'WhatsApp Desconectado'}
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="status-badge ${ready ? 'status-connected' : 'status-disconnected'}">
+                <span class="material-icons" style="font-size: 16px;">${ready ? 'check_circle' : 'error'}</span>
+                ${ready ? 'WhatsApp Conectado' : 'WhatsApp Desconectado'}
+            </div>
+            ${ready ? `<button class="btn btn-danger" id="disconnect-btn" onclick="disconnectWhatsApp()">
+                <span class="material-icons" style="font-size:16px;">link_off</span> Desconectar
+            </button>` : ''}
         </div>
     </div>
 
     <div class="container">
-        <!-- System Overview -->
+        <!-- Panel de Control -->
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
                 <h3><span class="material-icons">dashboard</span> Panel de Control</h3>
                 <span style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">
-                    Última sincronización: <strong style="color: var(--text-primary);">${stats.lastCheck || 'Nunca'}</strong>
+                    Última sincronización: <strong style="color: var(--text-primary);" id="stat-last">—</strong>
                 </span>
             </div>
-            
+
             <div class="stats-grid">
-                <div class="stat-item">
+                <div class="stat-item" title="Ver mensajes enviados" onclick="openLogsModal('sent')">
                     <div class="stat-icon"><span class="material-icons">send</span></div>
                     <div class="stat-content">
                         <span class="stat-label">Enviados</span>
-                        <span class="stat-value">${stats.sent}</span>
+                        <span class="stat-value" id="stat-sent">—</span>
                     </div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" title="Ver mensajes fallidos" onclick="openLogsModal('failed')">
                     <div class="stat-icon" style="background:#FFEBEE; color:#C62828;"><span class="material-icons">error_outline</span></div>
                     <div class="stat-content">
                         <span class="stat-label">Fallidos</span>
-                        <span class="stat-value">${stats.failed}</span>
+                        <span class="stat-value" id="stat-failed">—</span>
                     </div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" title="Ver números no registrados" onclick="openLogsModal('invalid')">
                     <div class="stat-icon" style="background:#FFF3E0; color:#EF6C00;"><span class="material-icons">person_off</span></div>
                     <div class="stat-content">
                         <span class="stat-label">No Registrados</span>
-                        <span class="stat-value">${stats.invalid || 0}</span>
+                        <span class="stat-value" id="stat-invalid">—</span>
                     </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-icon" style="background:#E3F2FD; color:#1565C0;"><span class="material-icons">schedule</span></div>
+                <div class="stat-item" style="cursor:default;" onclick="openLogsModal('all')">
+                    <div class="stat-icon" style="background:#E3F2FD; color:#1565C0;"><span class="material-icons">history</span></div>
                     <div class="stat-content">
-                        <span class="stat-label">Uptime</span>
-                        <span class="stat-value">100%</span>
+                        <span class="stat-label">Total registros</span>
+                        <span class="stat-value" id="stat-total">—</span>
                     </div>
                 </div>
             </div>
 
             ${!ready ? `
                 <div style="margin-top: 32px; padding: 24px; background: #E8F0FE; border-radius: 8px; border: 1px solid #1a73e8; text-align: center;">
-                    <span class="material-icons" style="font-size: 48px; color: #1a73e8; margin-bottom: 16px;">qr_code_2</span>
+                    <span class="material-icons" style="font-size: 48px; color: #1a73e8; margin-bottom: 16px; display:block;">qr_code_2</span>
                     <h4 style="margin: 0 0 8px 0; color: #1557b0;">Acción Requerida</h4>
                     <p style="color: #1a73e8; margin-bottom: 24px;">La sesión de WhatsApp ha expirado o no ha sido vinculada todavía.</p>
-                    <a href="/qr?token=${process.env.ADMIN_ACCESS_TOKEN || ''}" class="btn btn-primary" style="background: #1a73e8; color: white;">
+                    <a href="/qr?token=${process.env.ADMIN_ACCESS_TOKEN || ''}" class="btn btn-primary">
                         <span class="material-icons">link</span> Vincular Ahora
                     </a>
                 </div>
             ` : ''}
-
         </div>
 
-
         <!-- Template Management -->
-        <div class="card" style="position:relative;">
+        <div class="card">
             <div id="templates-loading" class="loading-overlay">
                 <div class="material-icons rotating" style="font-size:32px; color:var(--primary);">refresh</div>
             </div>
-            
+
             <h3><span class="material-icons">dashboard_customize</span> Gestión de Plantillas</h3>
-            
+
             <div class="tabs">
-                <div class="tab active" onclick="switchTab('whatsapp')">WhatsApp</div>
-                <div class="tab" onclick="switchTab('email')">Email</div>
+                <div class="tab active" onclick="switchTab('whatsapp', event)">WhatsApp</div>
+                <div class="tab" onclick="switchTab('email', event)">Email</div>
             </div>
 
             <div id="whatsapp-templates" class="tab-content">
-                <div class="template-grid" id="wa-grid">
-                    <!-- WhatsApp templates will be rendered here -->
-                </div>
+                <div class="template-grid" id="wa-grid"></div>
             </div>
 
             <div id="email-templates" class="tab-content" style="display:none;">
-                <div class="template-grid" id="email-grid">
-                    <!-- Email templates will be rendered here -->
-                </div>
+                <div class="template-grid" id="email-grid"></div>
             </div>
         </div>
 
-        <!-- Activity History -->
+        <!-- Historial Reciente -->
         <div class="card">
             <h3><span class="material-icons">history</span> Historial Reciente</h3>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
                         <tr>
+                            <th>Canal</th>
+                            <th>Plantilla</th>
                             <th>Destinatario</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
                             <th>Fecha/Hora</th>
-                            <th>Acción</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${history.map((msg, index) => `
-                            <tr>
-                                <td><div style="display:flex; align-items:center; gap:12px;">
-                                    <span class="material-icons" style="font-size:18px; color:var(--text-medium);">person</span>
-                                    <span style="color:var(--text-high);">${msg.recipient.split('@')[0]}</span>
-                                </div></td>
-                                <td style="color:var(--text-medium);">${msg.type}</td>
-                                <td>
-                                    <span class="badge-table ${msg.status === 'sent' ? 'badge-sent' : msg.status === 'invalid' ? 'badge-invalid' : 'badge-failed'}">
-                                        ${msg.status === 'sent' ? 'Enviado' : msg.status === 'invalid' ? 'No Registrado' : 'Fallido'}
-                                    </span>
-                                </td>
-                                <td><span style="color:var(--text-medium);">${msg.timestamp}</span></td>
-                                <td>
-                                    ${msg.status === 'failed' ? `
-                                        <button onclick="resend(${index})" class="btn btn-outline" style="height: 28px; font-size:11px; padding: 0 8px;">
-                                            <span class="material-icons" style="font-size:14px;">refresh</span> Reintentar
-                                        </button>
-                                    ` : '-'}
-                                </td>
-                            </tr>
-                        `).join('')}
-                        ${history.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding: 64px; color: var(--text-disabled);"><span class="material-icons" style="font-size:48px; opacity:0.2; display:block; margin-bottom:16px;">inbox</span>No hay actividad reciente</td></tr>' : ''}
+                    <tbody id="history-table-body">
+                        <tr><td colspan="5" style="text-align:center; padding: 64px; color: var(--text-disabled);">
+                            <span class="material-icons rotating" style="font-size:32px; color:var(--primary); display:block; margin-bottom:16px;">refresh</span>
+                            Cargando historial...
+                        </td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Save Bar (Snackbar Style) -->
+    <!-- Save Bar -->
     <div id="save-bar" class="save-bar">
         <span style="display:flex; align-items:center; gap:12px; font-size: 14px; color: rgba(255,255,255,0.87);">
             Tienes cambios sin guardar
@@ -669,7 +557,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title" style="margin:0; font-size:18px;">Vista Previa</h3>
-                <button onclick="closeModal()" class="btn btn-outline" style="min-width:auto; padding:6px; border:none; background:rgba(255,255,255,0.05);">
+                <button onclick="closeModal()" class="btn btn-outline" style="min-width:auto; padding:6px; border:none;">
                     <span class="material-icons">close</span>
                 </button>
             </div>
@@ -681,28 +569,66 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         </div>
     </div>
 
+    <!-- Logs Modal -->
+    <div id="logs-modal" class="logs-modal">
+        <div class="logs-modal-content">
+            <div class="modal-header">
+                <h3 id="logs-modal-title" style="margin:0; font-size:18px;">Registros</h3>
+                <button onclick="closeLogsModal()" class="btn btn-outline" style="min-width:auto; padding:6px; border:none;">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="overflow-x: auto; max-height: 60vh;">
+                    <table style="margin: 0; width: 100%;">
+                        <thead style="position: sticky; top: 0; background: var(--surface); z-index: 1;">
+                            <tr>
+                                <th>Canal</th>
+                                <th>Plantilla</th>
+                                <th>Destinatario</th>
+                                <th>Fecha/Hora</th>
+                                <th>Estado / Error</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const BACKEND_URL = '${backendUrl}';
         const TOKEN = new URLSearchParams(window.location.search).get('token');
         let currentSettings = null;
         let originalSettings = null;
 
+        const TEMPLATE_NAMES = {
+            'received':    'Nueva Reserva',
+            'confirmed':   'Confirmación',
+            'cancelled':   'Cancelación',
+            'reminder_2h': 'Recordatorio',
+            'review':      'Pedido de Opinión'
+        };
+
         const TEMPLATE_INFO = {
             whatsapp: [
-                { id: 'received', title: 'Nueva reserva (Admin)', desc: 'Notificación al administrador cuando entra una reserva.' },
-                { id: 'confirmed', title: 'Confirmación (Cliente)', desc: 'Enviado al cliente cuando su reserva es confirmada.' },
-                { id: 'cancelled', title: 'Cancelación', desc: 'Enviado al cliente si su reserva es cancelada.' },
+                { id: 'received',    title: 'Nueva reserva (Admin)', desc: 'Notificación al administrador cuando entra una reserva.' },
+                { id: 'confirmed',   title: 'Confirmación (Cliente)', desc: 'Enviado al cliente cuando su reserva es confirmada.' },
+                { id: 'cancelled',   title: 'Cancelación', desc: 'Enviado al cliente si su reserva es cancelada.' },
                 { id: 'reminder_2h', title: 'Recordatorio', desc: 'Recordatorio automático antes de la visita.', hasTiming: true },
-                { id: 'review', title: 'Pedido de Opinión', desc: 'Solicitud de reseña después de la visita.', hasTiming: true }
+                { id: 'review',      title: 'Pedido de Opinión', desc: 'Solicitud de reseña después de la visita.', hasTiming: true }
             ],
             email: [
-                { id: 'received', title: 'Reserva recibida', desc: 'Email informando que la solicitud fue enviada.' },
-                { id: 'confirmed', title: 'Reserva confirmada', desc: 'Email con los detalles de la confirmación.' },
-                { id: 'cancelled', title: 'Reserva cancelada', desc: 'Aviso de cancelación por el negocio.' },
+                { id: 'received',    title: 'Reserva recibida', desc: 'Email informando que la solicitud fue enviada.' },
+                { id: 'confirmed',   title: 'Reserva confirmada', desc: 'Email con los detalles de la confirmación.' },
+                { id: 'cancelled',   title: 'Reserva cancelada', desc: 'Aviso de cancelación por el negocio.' },
                 { id: 'reminder_2h', title: 'Recordatorio', desc: 'Recordatorio automático por email.' },
-                { id: 'review', title: 'Feedback post-visita', desc: 'Email para agradecer y pedir reseña.' }
+                { id: 'review',      title: 'Feedback post-visita', desc: 'Email para agradecer y pedir reseña.' }
             ]
         };
+
+        // ── Settings & Templates ──────────────────────────────────────────────
 
         async function fetchSettings() {
             document.getElementById('templates-loading').style.display = 'flex';
@@ -712,23 +638,37 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                 currentSettings = JSON.parse(JSON.stringify(data.notification_settings));
                 originalSettings = JSON.parse(JSON.stringify(data.notification_settings));
                 renderTemplates();
+
+                if (data.business_name) {
+                    document.title = data.business_name + ' — Notice System';
+                    const metaDesc = document.getElementById('meta-description');
+                    if (metaDesc) metaDesc.content = 'Panel de monitoreo de notificaciones para ' + data.business_name;
+                    const headerTitle = document.getElementById('header-title');
+                    if (headerTitle) headerTitle.innerHTML =
+                        '<span class="material-icons">notifications_active</span>' +
+                        data.business_name + ' — Notice System';
+                }
             } catch (err) {
                 console.error('Error fetching settings:', err);
-                const waGrid = document.getElementById('wa-grid');
-                waGrid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 32px; color: var(--error);">No se pudo conectar con el backend para cargar las plantillas.</div>';
+                document.getElementById('wa-grid').innerHTML =
+                    '<div style="grid-column:1/-1; text-align:center; padding:32px; color:var(--error);">No se pudo conectar con el backend.</div>';
             } finally {
                 document.getElementById('templates-loading').style.display = 'none';
             }
         }
 
         function renderTemplates() {
-            if(!currentSettings) return;
-            // WhatsApp Grid
+            if (!currentSettings) return;
+
+            // WhatsApp
             const waGrid = document.getElementById('wa-grid');
             waGrid.innerHTML = TEMPLATE_INFO.whatsapp.map(t => {
                 const setting = currentSettings.whatsapp[t.id];
-                const active = typeof setting === 'object' ? setting.active : setting;
-                const hours = typeof setting === 'object' ? setting.hours : 2;
+                const active  = typeof setting === 'object' ? setting.active : setting;
+                const minutes = typeof setting === 'object' ? (setting.minutes || 120) : 120;
+                const timeOptions = [20, 40, 60, 80, 100, 120]
+                    .map(m => '<option value="' + m + '"' + (minutes === m ? ' selected' : '') + '>' + m + ' min</option>')
+                    .join('');
 
                 return \`
                     <div class="template-card">
@@ -742,18 +682,18 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; gap: 8px;">
-                            <span style="font-size:12px; color:var(--text-medium); display:flex; align-items:center; gap:8px; font-weight:500;">
+                        <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                            <span style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; font-weight:500;">
                                 <span class="material-icons" style="font-size:16px; color:#25D366;">message</span> WhatsApp
                             </span>
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <button class="btn btn-outline" style="height: 28px; font-size:11px; padding: 0 8px;" onclick="previewWhatsApp('\${t.id}')">
+                                <button class="btn btn-outline" style="height:28px; font-size:11px; padding:0 8px;" onclick="previewWhatsApp('\${t.id}')">
                                     <span class="material-icons" style="font-size:14px;">visibility</span> VISTA PREVIA
                                 </button>
                                 \${t.hasTiming ? \`
-                                    <div style="display:flex; align-items:center; gap:8px;">
-                                        <span style="font-size:11px; color:var(--text-medium);">HORAS:</span>
-                                        <input type="number" class="timing-input" value="\${hours}" onchange="updateTiming('\${t.id}', this.value)">
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <span style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Tiempo:</span>
+                                        <select class="timing-input" onchange="updateTiming('\${t.id}', this.value)">\${timeOptions}</select>
                                     </div>
                                 \` : ''}
                             </div>
@@ -762,7 +702,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                 \`;
             }).join('');
 
-            // Email Grid
+            // Email
             const emailGrid = document.getElementById('email-grid');
             emailGrid.innerHTML = TEMPLATE_INFO.email.map(t => {
                 const active = currentSettings.email[t.id];
@@ -778,11 +718,11 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:12px; color:var(--text-medium); display:flex; align-items:center; gap:8px; font-weight:500;">
-                                <span class="material-icons" style="font-size:16px; color:#EA4335;">mail</span> EMAIL
+                        <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; font-weight:500;">
+                                <span class="material-icons" style="font-size:16px; color:#EA4335;">mail</span> Email
                             </span>
-                            <button class="btn btn-outline" style="height: 28px; font-size:11px; padding: 0 8px;" onclick="previewEmail('\${t.id}')">
+                            <button class="btn btn-outline" style="height:28px; font-size:11px; padding:0 8px;" onclick="previewEmail('\${t.id}')">
                                 <span class="material-icons" style="font-size:14px;">visibility</span> VISTA PREVIA
                             </button>
                         </div>
@@ -791,12 +731,11 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             }).join('');
         }
 
-        function switchTab(type) {
+        function switchTab(type, evt) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
+            if (evt && evt.target) evt.target.classList.add('active');
             document.getElementById('whatsapp-templates').style.display = type === 'whatsapp' ? 'block' : 'none';
-            document.getElementById('email-templates').style.display = type === 'email' ? 'block' : 'none';
+            document.getElementById('email-templates').style.display   = type === 'email'    ? 'block' : 'none';
         }
 
         function toggleStatus(channel, id, status) {
@@ -808,19 +747,14 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             checkForChanges();
         }
 
-        function updateTiming(id, hours) {
-            currentSettings.whatsapp[id].hours = parseInt(hours);
+        function updateTiming(id, val) {
+            currentSettings.whatsapp[id].minutes = parseInt(val);
             checkForChanges();
         }
 
         function checkForChanges() {
             const hasChanges = JSON.stringify(currentSettings) !== JSON.stringify(originalSettings);
-            const saveBar = document.getElementById('save-bar');
-            if (hasChanges) {
-                saveBar.classList.add('visible');
-            } else {
-                saveBar.classList.remove('visible');
-            }
+            document.getElementById('save-bar').classList.toggle('visible', hasChanges);
         }
 
         function discardChanges() {
@@ -834,26 +768,19 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             const originalText = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<span class="material-icons rotating" style="font-size:16px;">autorenew</span> Guardando...';
-            
+
             try {
                 const res = await fetch(\`\${BACKEND_URL}/api/admin/config\`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ notification_settings: currentSettings })
                 });
-                
+
                 if (res.ok) {
                     originalSettings = JSON.parse(JSON.stringify(currentSettings));
                     checkForChanges();
-                    
-                    // Show success temporary state
                     btn.innerHTML = '<span class="material-icons" style="font-size:16px;">check</span> Guardado';
-                    btn.style.background = 'var(--success)';
-                    setTimeout(() => {
-                        btn.style.background = '';
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }, 2000);
+                    setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
                 } else {
                     alert('Error al guardar la configuración.');
                     btn.disabled = false;
@@ -866,18 +793,122 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             }
         }
 
-        async function previewEmail(type) {
-            const modal = document.getElementById('preview-modal');
-            document.getElementById('modal-title').innerText = 'Vista Previa Email: ' + type;
+        // ── History & Stats ───────────────────────────────────────────────────
+
+        async function fetchHistory() {
+            const tbody = document.getElementById('history-table-body');
+            try {
+                const res = await fetch(\`\${BACKEND_URL}/api/notification-logs?limit=15\`);
+                const data = await res.json();
+                const logs = data.logs || [];
+
+                // Update stats
+                if (data.stats) {
+                    document.getElementById('stat-sent').textContent    = data.stats.sent;
+                    document.getElementById('stat-failed').textContent  = data.stats.failed;
+                    document.getElementById('stat-invalid').textContent = data.stats.invalid;
+                    document.getElementById('stat-last').textContent    = data.stats.lastCheck;
+                    const total = (data.stats.sent || 0) + (data.stats.failed || 0) + (data.stats.invalid || 0);
+                    document.getElementById('stat-total').textContent   = total;
+                }
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--text-disabled);">No hay registros aún.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(log => {
+                    const isWa = log.channel === 'whatsapp';
+                    const channelBadge = isWa
+                        ? '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#25D366;"><span class="material-icons" style="font-size:16px;">message</span> WA</span>'
+                        : '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#EA4335;"><span class="material-icons" style="font-size:16px;">mail</span> Email</span>';
+                    const name    = (log.reservation && log.reservation.customer) ? log.reservation.customer.name : '—';
+                    const ts      = new Date(log.created_at).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+                    const sCls    = log.status === 'sent' ? 'badge-sent' : log.status === 'failed' ? 'badge-failed' : 'badge-invalid';
+                    const sLabel  = log.status === 'sent' ? 'Enviado' : log.status === 'failed' ? 'Fallido' : 'No reg.';
+                    return '<tr>' +
+                        '<td>' + channelBadge + '</td>' +
+                        '<td>' + (TEMPLATE_NAMES[log.template] || log.template) + '</td>' +
+                        '<td><div style="font-weight:500;">' + name + '</div><div style="font-size:12px; color:var(--text-secondary);">' + (log.recipient || '') + '</div></td>' +
+                        '<td style="white-space:nowrap; color:var(--text-secondary);">' + ts + '</td>' +
+                        '<td><span class="badge-table ' + sCls + '">' + sLabel + '</span></td>' +
+                        '</tr>';
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--error);">Error al cargar historial.</td></tr>';
+            }
+        }
+
+        // ── Logs Modal ────────────────────────────────────────────────────────
+
+        async function openLogsModal(filterStatus) {
+            const TITLES = { sent: 'Registros — Enviados', failed: 'Registros — Fallidos', invalid: 'Registros — No Registrados', all: 'Todos los registros' };
+            document.getElementById('logs-modal-title').textContent = TITLES[filterStatus] || 'Registros';
+
+            const modal = document.getElementById('logs-modal');
             modal.style.display = 'flex';
             void modal.offsetWidth;
             modal.classList.add('visible');
-            
+
+            const tbody = document.getElementById('logs-table-body');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px;"><span class="material-icons rotating" style="font-size:28px; color:var(--primary);">autorenew</span></td></tr>';
+
+            try {
+                const qs = filterStatus === 'all' ? 'limit=200' : 'status=' + filterStatus + '&limit=200';
+                const res = await fetch(\`\${BACKEND_URL}/api/notification-logs?\${qs}\`);
+                const data = await res.json();
+                const logs = data.logs || [];
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-disabled);">No hay registros.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(log => {
+                    const isWa = log.channel === 'whatsapp';
+                    const channelBadge = isWa
+                        ? '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#25D366;"><span class="material-icons" style="font-size:15px;">message</span> WA</span>'
+                        : '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#EA4335;"><span class="material-icons" style="font-size:15px;">mail</span> Email</span>';
+                    const name    = (log.reservation && log.reservation.customer) ? log.reservation.customer.name : '—';
+                    const ts      = new Date(log.created_at).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+                    const sCls    = log.status === 'sent' ? 'badge-sent' : log.status === 'failed' ? 'badge-failed' : 'badge-invalid';
+                    const sLabel  = log.status === 'sent' ? 'Enviado' : log.status === 'failed' ? 'Fallido' : 'No registrado';
+                    const errTxt  = log.error_message
+                        ? '<div style="color:var(--error); font-size:11px; margin-top:2px;">' + log.error_message.substring(0, 80) + (log.error_message.length > 80 ? '…' : '') + '</div>'
+                        : '';
+                    return '<tr>' +
+                        '<td>' + channelBadge + '</td>' +
+                        '<td>' + (TEMPLATE_NAMES[log.template] || log.template) + '</td>' +
+                        '<td><div style="font-weight:500;">' + name + '</div><div style="font-size:12px; color:var(--text-secondary);">' + (log.recipient || '') + '</div></td>' +
+                        '<td style="white-space:nowrap; color:var(--text-secondary);">' + ts + '</td>' +
+                        '<td><span class="badge-table ' + sCls + '">' + sLabel + '</span>' + errTxt + '</td>' +
+                        '</tr>';
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--error);">Error al cargar registros.</td></tr>';
+            }
+        }
+
+        function closeLogsModal() {
+            const modal = document.getElementById('logs-modal');
+            modal.classList.remove('visible');
+            setTimeout(() => { modal.style.display = 'none'; }, 220);
+        }
+
+        // ── Preview Modal ─────────────────────────────────────────────────────
+
+        async function previewEmail(type) {
+            const modal = document.getElementById('preview-modal');
+            document.getElementById('modal-title').innerText = 'Vista Previa Email: ' + (TEMPLATE_NAMES[type] || type);
+            modal.style.display = 'flex';
+            void modal.offsetWidth;
+            modal.classList.add('visible');
+
             const content = document.getElementById('preview-content');
             content.innerHTML = '<iframe id="preview-iframe" class="preview-frame"></iframe>';
             const iframe = document.getElementById('preview-iframe');
             iframe.srcdoc = '<div style="display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; color:#666;">Cargando vista previa...</div>';
-            
+
             try {
                 const res = await fetch(\`\${BACKEND_URL}/api/admin/templates/preview/email/\${type}\`);
                 const html = await res.text();
@@ -889,20 +920,18 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
 
         async function previewWhatsApp(type) {
             const modal = document.getElementById('preview-modal');
-            document.getElementById('modal-title').innerText = 'Vista Previa WhatsApp: ' + type;
+            document.getElementById('modal-title').innerText = 'Vista Previa WhatsApp: ' + (TEMPLATE_NAMES[type] || type);
             modal.style.display = 'flex';
             void modal.offsetWidth;
             modal.classList.add('visible');
-            
+
             const content = document.getElementById('preview-content');
             content.innerHTML = '<div class="whatsapp-preview-container"><div style="display:flex; align-items:center; justify-content:center; height:100%; width:100%; color:#555;">Cargando...</div></div>';
-            
+
             try {
                 const res = await fetch(\`\${BACKEND_URL}/api/admin/templates/preview/whatsapp/\${type}\`);
                 const data = await res.json();
-                
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
                 content.innerHTML = \`
                     <div class="whatsapp-preview-container">
                         <div class="wa-bubble">
@@ -919,10 +948,35 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         function closeModal() {
             const modal = document.getElementById('preview-modal');
             modal.classList.remove('visible');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300);
+            setTimeout(() => { modal.style.display = 'none'; }, 220);
         }
+
+        // ── WhatsApp Disconnect ───────────────────────────────────────────────
+
+        async function disconnectWhatsApp() {
+            if (!confirm('¿Está seguro de que desea desconectar WhatsApp?\\n\\nSe generará un nuevo código QR para vincular un dispositivo diferente.')) return;
+
+            const btn = document.getElementById('disconnect-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-icons rotating" style="font-size:16px;">autorenew</span> Desconectando...';
+            }
+
+            try {
+                const res = await fetch('/disconnect?token=' + TOKEN, { method: 'POST' });
+                if (res.ok) {
+                    setTimeout(() => { window.location.href = '/qr?token=' + TOKEN; }, 2000);
+                } else {
+                    alert('Error al desconectar WhatsApp.');
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons" style="font-size:16px;">link_off</span> Desconectar'; }
+                }
+            } catch (err) {
+                alert('Error de conexión.');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons" style="font-size:16px;">link_off</span> Desconectar'; }
+            }
+        }
+
+        // ── Resend (legacy) ───────────────────────────────────────────────────
 
         async function resend(index) {
             try {
@@ -931,20 +985,21 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ index })
                 });
-                if (res.ok) window.location.reload();
+                if (res.ok) fetchHistory();
                 else alert('Error al reintentar el mensaje');
             } catch (err) {
                 alert('Error de conexión');
             }
         }
 
-        // Initialize
+        // ── Init ──────────────────────────────────────────────────────────────
+
         fetchSettings();
-        
-        // Auto refresh history every 60s (unless there are unsaved changes)
+        fetchHistory();
+
         setInterval(() => {
             if (!document.getElementById('save-bar').classList.contains('visible')) {
-                window.location.reload();
+                fetchHistory();
             }
         }, 60000);
     </script>

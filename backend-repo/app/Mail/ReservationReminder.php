@@ -10,7 +10,9 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Carbon\Carbon;
 
-class ReservationReminder extends Mailable
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class ReservationReminder extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

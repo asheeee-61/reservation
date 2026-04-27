@@ -41,6 +41,7 @@ class NotificationService
 
     protected function sendWhatsApp(string $type, Reservation $reservation): void
     {
+        $target = $reservation->customer->phone;
         try {
             $noticeUrl = config('notice.url');
             if (!$noticeUrl) return;
@@ -69,25 +70,45 @@ class NotificationService
             if (!$endpoint) return;
 
             $payload = $this->getWhatsAppPayload($type, $reservation);
-            $target = $reservation->customer->phone;
             $adminPhone = $payload['adminPhone'] ?? 'N/A';
 
-            Http::timeout(5)
+            $response = Http::timeout(5)
                 ->withHeaders(['x-api-secret' => config('notice.secret')])
                 ->post("{$noticeUrl}{$endpoint}", $payload);
 
-            $logMsg = "WhatsApp ($type) sent to customer: $target";
-            if ($type === 'received') {
-                $logMsg .= " and Admin: $adminPhone";
+            if ($response->successful()) {
+                \App\Models\NotificationLog::create([
+                    'reservation_id' => $reservation->id,
+                    'channel' => 'whatsapp',
+                    'template' => $type,
+                    'recipient' => $target,
+                    'status' => 'sent'
+                ]);
+
+                $logMsg = "WhatsApp ($type) sent to customer: $target";
+                if ($type === 'received') {
+                    $logMsg .= " and Admin: $adminPhone";
+                }
+                Log::info($logMsg);
+            } else {
+                throw new \Exception("HTTP request failed with status: " . $response->status());
             }
-            Log::info($logMsg);
         } catch (\Exception $e) {
+            \App\Models\NotificationLog::create([
+                'reservation_id' => $reservation->id,
+                'channel' => 'whatsapp',
+                'template' => $type,
+                'recipient' => $target ?? 'unknown',
+                'status' => 'failed',
+                'error_message' => $e->getMessage()
+            ]);
             Log::warning("WhatsApp notification failed ($type): " . $e->getMessage());
         }
     }
 
     protected function sendEmail(string $type, Reservation $reservation): void
     {
+        $target = $reservation->customer->email;
         try {
             $settingsModel = Setting::first();
             $settings = $settingsModel ? $settingsModel->toArray() : [];
@@ -108,10 +129,26 @@ class NotificationService
 
             if (!$mailable) return;
 
-            Mail::to($reservation->customer->email)->send($mailable);
+            Mail::to($target)->queue($mailable);
 
-            Log::info("Email ($type) sent to {$reservation->customer->email}");
+            \App\Models\NotificationLog::create([
+                'reservation_id' => $reservation->id,
+                'channel' => 'email',
+                'template' => $type,
+                'recipient' => $target,
+                'status' => 'sent'
+            ]);
+
+            Log::info("Email ($type) sent to {$target}");
         } catch (\Exception $e) {
+            \App\Models\NotificationLog::create([
+                'reservation_id' => $reservation->id,
+                'channel' => 'email',
+                'template' => $type,
+                'recipient' => $target ?? 'unknown',
+                'status' => 'failed',
+                'error_message' => $e->getMessage()
+            ]);
             Log::warning("Email notification failed ($type): " . $e->getMessage());
         }
     }

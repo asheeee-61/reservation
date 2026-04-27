@@ -87,8 +87,8 @@ class SettingsController extends Controller
                     'received' => true,
                     'confirmed' => true,
                     'cancelled' => true,
-                    'reminder_2h' => ['active' => true, 'hours' => 2],
-                    'review' => ['active' => true, 'hours' => 2]
+                    'reminder_2h' => ['active' => true, 'minutes' => 120],
+                    'review' => ['active' => true, 'minutes' => 120]
                 ]
             ],
             'dayStatuses' => $dayStatuses
@@ -251,5 +251,33 @@ class SettingsController extends Controller
         if (!$message) return response()->json(['error' => 'Invalid template type'], 400);
 
         return response()->json(['message' => $message]);
+    }
+
+    public function notificationLogs(Request $request)
+    {
+        $query = \App\Models\NotificationLog::with('reservation.customer')->latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('channel')) {
+            $query->where('channel', $request->channel);
+        }
+
+        $limit = min((int) $request->input('limit', 15), 500);
+        $logs = $query->take($limit)->get();
+
+        $stats = [
+            'sent'      => \App\Models\NotificationLog::where('status', 'sent')->count(),
+            'failed'    => \App\Models\NotificationLog::where('status', 'failed')->count(),
+            'invalid'   => \App\Models\NotificationLog::where('status', 'invalid')->count(),
+            'lastCheck' => now()->format('H:i:s d/m/Y')
+        ];
+
+        return response()->json([
+            'logs'  => $logs,
+            'stats' => $stats
+        ]);
     }
 }
