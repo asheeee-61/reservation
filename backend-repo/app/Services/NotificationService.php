@@ -125,14 +125,26 @@ class NotificationService
             ],
             'id' => $reservation->reservation_id
         ];
-
+    
         $settings = Setting::first();
-        $adminPhone = $settings->admin_phone ?? null;
         $reviewLink = $settings->review_link ?? config('notice.review_link', 'https://g.page/r/YOUR_RESTAURANT_ID/review');
         $businessName = $settings->business_name ?? config('app.name', 'Business');
-
+        $address = $settings->address ?? '';
+        $contacts = [
+            'phone' => $settings->business_phone,
+            'whatsapp' => $settings->whatsapp_phone,
+            'instagram' => $settings->instagram_username,
+            'email' => $settings->business_email,
+        ];
+    
+        $payload = [
+            'businessName' => $businessName,
+            'address' => $address,
+            'contacts' => array_filter($contacts),
+        ];
+    
         return match($type) {
-            'received' => array_merge($base, [
+            'received' => array_merge($base, $payload, [
                 'reservation' => [
                     'id'     => $reservation->reservation_id,
                     'date'   => $reservation->date,
@@ -141,34 +153,28 @@ class NotificationService
                 ],
                 'zone'           => $reservation->zone ? ['name' => $reservation->zone->name] : null,
                 'event'          => $reservation->event ? ['name' => $reservation->event->name] : null,
-                'adminPhone'     => $adminPhone,
-                'businessName' => $businessName,
             ]),
-            'confirmed' => array_merge($base, [
+            'confirmed' => array_merge($base, $payload, [
                 'reservation' => [
                     'id'     => $reservation->reservation_id,
                     'date'   => $reservation->date,
                     'time'   => $reservation->time,
                     'guests' => $reservation->guests,
                 ],
-                'businessName' => $businessName,
             ]),
-            'cancelled' => array_merge($base, [
+            'cancelled' => array_merge($base, $payload, [
                 'reason'         => $reservation->cancellation_reason,
-                'businessName' => $businessName,
             ]),
-            'reminder_2h' => array_merge($base, [
+            'reminder_2h' => array_merge($base, $payload, [
                 'reservation' => [
                     'date' => $reservation->date,
                     'time' => $reservation->time,
                 ],
-                'businessName' => $businessName,
             ]),
-            'review' => array_merge($base, [
+            'review' => array_merge($base, $payload, [
                 'reviewLink'     => $reviewLink,
-                'businessName' => $businessName,
             ]),
-            default => $base
+            default => array_merge($base, $payload)
         };
     }
 }

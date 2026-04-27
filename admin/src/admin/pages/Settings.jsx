@@ -36,7 +36,7 @@ export default function Settings() {
   const globalHours = useSettingsStore(state => state.globalHours);
   
   const [localGlobal, setLocalGlobal] = useState({ openingTime: '09:00', closingTime: '00:00', defaultInterval: 30 });
-  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', businessPhone: '', reviewLink: '' });
+  const [localContact, setLocalContact] = useState({ whatsappPhone: '', instagramUsername: '', businessPhone: '', businessEmail: '', address: '', reviewLink: '' });
   const [localLinks, setLocalLinks] = useState({ googleMapsLink: '', menuPdfUrl: '', menuPdfFile: null, reservationLink: '' });
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
@@ -61,6 +61,8 @@ export default function Settings() {
         whatsappPhone: globalHours.whatsapp_phone || '',
         instagramUsername: globalHours.instagram_username || '',
         businessPhone: globalHours.business_phone || '',
+        businessEmail: globalHours.business_email || '',
+        address: globalHours.address || '',
         reviewLink: globalHours.review_link || ''
       });
       setLocalLinks({
@@ -82,7 +84,7 @@ export default function Settings() {
       const data = await apiClient('/config');
       setConfig({
         ...data,
-        business: data.business || { name: 'Hechizo Hookah Lounge', address: 'Cam. de los Romanos, 91' },
+        business_name: data.business_name || 'Hechizo Hookah Lounge',
         minGuests: data.minGuests || 1,
         maxGuests: data.maxGuests || 10
       });
@@ -195,6 +197,8 @@ export default function Settings() {
       formData.append('whatsapp_phone', localContact.whatsappPhone);
       formData.append('instagram_username', localContact.instagramUsername);
       formData.append('business_phone', localContact.businessPhone);
+      formData.append('business_email', localContact.businessEmail);
+      formData.append('address', localContact.address);
       formData.append('review_link', localContact.reviewLink);
       formData.append('google_maps_link', localLinks.googleMapsLink);
       formData.append('reservation_link', localLinks.reservationLink);
@@ -281,7 +285,7 @@ export default function Settings() {
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <RestaurantLogo
             logoUrl={logoPreview}
-            restaurantName={config.business?.name}
+            restaurantName={config.business_name}
             size={96}
           />
 
@@ -316,10 +320,10 @@ export default function Settings() {
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '20px', color: '#202124' }}>
-            {config.business?.name || 'Negocio'}
+            {config.business_name || 'Negocio'}
           </Typography>
           <Typography sx={{ fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A', mt: '4px' }}>
-            {config.business?.address || ''}
+            {localContact.address || ''}
           </Typography>
 
         </Box>
@@ -343,8 +347,8 @@ export default function Settings() {
               <TextField
                 label="Nombre del negocio"
                 variant="outlined"
-                value={config.business?.name || ''}
-                onChange={(e) => setConfig({ ...config, business: { ...config.business, name: e.target.value } })}
+                value={config.business_name || ''}
+                onChange={(e) => setConfig({ ...config, business_name: e.target.value })}
                 InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
                 InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
                 sx={{ flex: 1, minWidth: 200 }}
@@ -352,8 +356,8 @@ export default function Settings() {
               <TextField
                 label="Dirección"
                 variant="outlined"
-                value={config.business?.address || ''}
-                onChange={(e) => setConfig({ ...config, business: { ...config.business, address: e.target.value } })}
+                value={localContact.address || ''}
+                onChange={(e) => setLocalContact({ ...localContact, address: e.target.value })}
                 InputLabelProps={{ sx: { fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#70757A' } }}
                 InputProps={{ sx: { height: { xs: 52, sm: 56 }, fontFamily: 'Roboto', fontWeight: 400, fontSize: { xs: '16px', sm: '14px' }, color: '#202124', borderRadius: '4px' } }}
                 sx={{ flex: 1, minWidth: 200 }}
@@ -425,6 +429,25 @@ export default function Settings() {
                     instagram.com/{localContact.instagramUsername}
                   </Typography>
                 )}
+              </Box>
+
+              <Divider sx={{ my: 1 }} />
+
+              <Box>
+                <Typography sx={{ fontFamily: 'Roboto', fontWeight: 500, fontSize: '12px', color: '#70757A', mb: '6px', textTransform: 'uppercase' }}>Email del negocio</Typography>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder="contacto@negocio.com"
+                  value={localContact.businessEmail}
+                  onChange={(e) => setLocalContact({ ...localContact, businessEmail: e.target.value })}
+                  InputProps={{ 
+                    sx: { 
+                      height: 56, fontFamily: 'Roboto', fontWeight: 400, fontSize: '14px', color: '#202124', borderRadius: '4px',
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: '2px' }
+                    } 
+                  }}
+                />
               </Box>
             </Box>
 

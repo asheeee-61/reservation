@@ -21,7 +21,7 @@ router.use(authMiddleware);
 
 // 1. Two hour reminder
 router.post('/reminder-2h', async (req, res) => {
-    const { customer, reservation, restaurantName, businessName, id } = req.body;
+    const { customer, reservation, restaurantName, businessName, address, id } = req.body;
     const finalBusinessName = businessName || restaurantName;
     const finalId = id || reservation?.id;
 
@@ -35,7 +35,8 @@ router.post('/reminder-2h', async (req, res) => {
             customerName: customer.name,
             date: reservation.date,
             time: reservation.time,
-            businessName: finalBusinessName
+            businessName: finalBusinessName,
+            address
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -51,7 +52,7 @@ router.post('/reminder-2h', async (req, res) => {
 
 // 2. Post visit review
 router.post('/review', async (req, res) => {
-    const { customer, reviewLink, restaurantName, businessName, id } = req.body;
+    const { customer, reviewLink, restaurantName, businessName, address, id } = req.body;
     const link = reviewLink || process.env.REVIEW_LINK;
     const finalBusinessName = businessName || restaurantName;
     const finalId = id || (req.body.reservation ? req.body.reservation.id : null);
@@ -81,7 +82,7 @@ router.post('/review', async (req, res) => {
 
 // 3. Cancellation
 router.post('/cancellation', async (req, res) => {
-    const { customer, reason, restaurantName, businessName, id } = req.body;
+    const { customer, reason, restaurantName, businessName, address, id } = req.body;
     const finalBusinessName = businessName || restaurantName;
     const finalId = id || (req.body.reservation ? req.body.reservation.id : null);
 
@@ -94,7 +95,8 @@ router.post('/cancellation', async (req, res) => {
             id: finalId,
             customerName: customer.name,
             reason,
-            businessName: finalBusinessName
+            businessName: finalBusinessName,
+            address
         });
 
         const target = process.env.TEST_PHONE || customer.phone;
@@ -110,7 +112,7 @@ router.post('/cancellation', async (req, res) => {
 
 // 3.5. Confirmation (status update to confirmed)
 router.post('/confirmed', async (req, res) => {
-    const { reservation, customer, restaurantName, businessName, id } = req.body;
+    const { reservation, customer, restaurantName, businessName, address, id } = req.body;
     const finalBusinessName = businessName || restaurantName;
     const finalId = id || reservation?.id;
 
@@ -124,7 +126,8 @@ router.post('/confirmed', async (req, res) => {
         time: reservation.time,
         guests: reservation.guests,
         customerName: customer.name,
-        businessName: finalBusinessName
+        businessName: finalBusinessName,
+        address
     };
 
     try {
@@ -143,7 +146,7 @@ router.post('/confirmed', async (req, res) => {
 
 // 4. New reservation notification (client + admin)
 router.post('/new-reservation', async (req, res) => {
-    const { reservation, customer, zone, event, businessName, restaurantName, id } = req.body;
+    const { reservation, customer, zone, event, businessName, restaurantName, address, id } = req.body;
     const finalBusinessName = businessName || restaurantName;
     const finalId = id || reservation?.id;
 
@@ -160,7 +163,8 @@ router.post('/new-reservation', async (req, res) => {
         customerPhone: customer.phone,
         tableType: zone ? zone.name : null,
         specialEvent: event ? event.name : null,
-        businessName: finalBusinessName
+        businessName: finalBusinessName,
+        address
     };
 
     console.log(`📩 Processing new reservation #${reservation.id} for ${customer.name}`);

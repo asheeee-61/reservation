@@ -155,17 +155,47 @@
                     </tr>
                     @endif
 
-                    <!-- Actions Section -->
-                    @hasSection('actions')
+                    <!-- Help & Contact Footer -->
                     <tr>
-                        <td class="actions-section" style="padding: 0 24px 32px; text-align: center;">
-                            <div style="margin-bottom: 16px;">
-                                <span style="font-size: 13px; font-weight: 600; color: #5f6368; text-transform: uppercase; letter-spacing: 0.5px;">Acciones rápidas</span>
+                        <td style="padding: 32px 24px; background-color: #ffffff; border-top: 1px solid #e8eaed; text-align: center;">
+                            <p style="margin: 0 0 16px; font-size: 14px; font-weight: 500; color: #202124;">
+                                ¿Necesitas ayuda o más información? Contáctanos:
+                            </p>
+                            <div style="text-align: center;">
+                                <!-- Phone -->
+                                @if(!empty($settings['business_phone']))
+                                <a href="tel:{{ preg_replace('/[^0-9\+]/', '', $settings['business_phone']) }}" style="display: inline-block; margin: 4px; padding: 8px 16px; border: 1px solid #dadce0; border-radius: 4px; text-decoration: none; color: #1a73e8; font-size: 13px; font-weight: 500;">
+                                    <img src="https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/call/default/24px.svg" width="16" height="16" style="vertical-align: middle; margin-right: 8px; filter: invert(34%) sepia(91%) saturate(2326%) hue-rotate(204deg) brightness(97%) contrast(93%);" alt="">
+                                    {{ $settings['business_phone'] }}
+                                </a>
+                                @endif
+
+                                <!-- Email -->
+                                @if(!empty($settings['business_email']))
+                                <a href="mailto:{{ $settings['business_email'] }}" style="display: inline-block; margin: 4px; padding: 8px 16px; border: 1px solid #dadce0; border-radius: 4px; text-decoration: none; color: #1a73e8; font-size: 13px; font-weight: 500;">
+                                    <img src="https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/mail/default/24px.svg" width="16" height="16" style="vertical-align: middle; margin-right: 8px; filter: invert(34%) sepia(91%) saturate(2326%) hue-rotate(204deg) brightness(97%) contrast(93%);" alt="">
+                                    {{ $settings['business_email'] }}
+                                </a>
+                                @endif
+
+                                <!-- WhatsApp -->
+                                @if(!empty($settings['whatsapp_phone']))
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $settings['whatsapp_phone']) }}" style="display: inline-block; margin: 4px; padding: 8px 16px; border: 1px solid #dadce0; border-radius: 4px; text-decoration: none; color: #1a73e8; font-size: 13px; font-weight: 500;">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" style="vertical-align: middle; margin-right: 8px;" alt="">
+                                    WhatsApp
+                                </a>
+                                @endif
+
+                                <!-- Instagram -->
+                                @if(!empty($settings['instagram_username']))
+                                <a href="https://instagram.com/{{ $settings['instagram_username'] }}" style="display: inline-block; margin: 4px; padding: 8px 16px; border: 1px solid #dadce0; border-radius: 4px; text-decoration: none; color: #1a73e8; font-size: 13px; font-weight: 500;">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" width="16" height="16" style="vertical-align: middle; margin-right: 8px;" alt="">
+                                    Instagram
+                                </a>
+                                @endif
                             </div>
-                            @yield('actions')
                         </td>
                     </tr>
-                    @endif
                 </table>
                 
                 <table width="100%" cellpadding="0" cellspacing="0" role="presentation">

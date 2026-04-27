@@ -67,13 +67,14 @@ class SettingsController extends Controller
             'whatsapp_phone' => $setting->whatsapp_phone,
             'instagram_username' => $setting->instagram_username,
             'business_phone' => $setting->business_phone,
-            'admin_phone' => $setting->admin_phone,
             'review_link' => $setting->review_link,
             'google_maps_link' => $setting->google_maps_link,
             'menu_pdf_url' => $menuPdfUrl,
             'reservation_link' => $setting->reservation_link,
             'logo_url' => $logoUrl,
             'business_name' => $setting->business_name,
+            'address' => $setting->address,
+            'business_email' => $setting->business_email,
             'notification_settings' => $setting->notification_settings ?: [
                 'email' => [
                     'received' => true,
@@ -103,10 +104,11 @@ class SettingsController extends Controller
             'whatsapp_phone'      => 'nullable|string|max:20',
             'instagram_username'  => 'nullable|string|max:100',
             'business_phone'      => 'nullable|string|max:20',
-            'admin_phone'         => 'nullable|string|max:20',
             'review_link'         => 'nullable|string|max:500',
             'google_maps_link'    => 'nullable|string|max:500',
             'reservation_link'    => 'nullable|string|max:500',
+            'address'             => 'nullable|string|max:500',
+            'business_email'      => 'nullable|email|max:255',
             'menu_pdf'            => 'nullable|file|mimes:pdf|max:51200',
             'logo'                => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
@@ -121,10 +123,11 @@ class SettingsController extends Controller
         if ($request->has('global_closing_time')) $setting->global_closing_time = $request->global_closing_time . ':00';
         if ($request->has('default_interval')) $setting->default_interval = $request->default_interval;
         if ($request->has('business_name')) $setting->business_name = $request->business_name;
+        if ($request->has('address')) $setting->address = $request->address;
+        if ($request->has('business_email')) $setting->business_email = $request->business_email;
         if ($request->has('whatsapp_phone')) $setting->whatsapp_phone = $request->whatsapp_phone;
         if ($request->has('instagram_username')) $setting->instagram_username = $request->instagram_username;
         if ($request->has('business_phone')) $setting->business_phone = $request->business_phone;
-        if ($request->has('admin_phone')) $setting->admin_phone = $request->admin_phone;
         if ($request->has('review_link')) $setting->review_link = $request->review_link;
         if ($request->has('google_maps_link')) $setting->google_maps_link = $request->google_maps_link;
         if ($request->has('reservation_link')) $setting->reservation_link = $request->reservation_link;
@@ -150,7 +153,7 @@ class SettingsController extends Controller
 
         // Handle additional config fields stored in config.json
         $configKeys = ['global_opening_time', 'global_closing_time', 'default_interval', 'menu_pdf', 'logo',
-            'business_name', 'whatsapp_phone', 'instagram_username', 'business_phone', 'admin_phone',
+            'business_name', 'address', 'business_email', 'whatsapp_phone', 'instagram_username', 'business_phone',
             'review_link', 'google_maps_link', 'reservation_link'];
         
         $currentConfig = Storage::exists('config.json') ? json_decode(Storage::get('config.json'), true) : [];

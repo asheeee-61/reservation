@@ -8,6 +8,8 @@ class Setting extends Model
 {
     protected $fillable = [
         'business_name',
+        'address',
+        'business_email',
         'global_opening_time',
         'global_closing_time',
         'default_interval',
