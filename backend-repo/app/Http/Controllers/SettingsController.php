@@ -255,7 +255,11 @@ class SettingsController extends Controller
 
     public function notificationLogs(Request $request)
     {
-        $query = \App\Models\NotificationLog::with('reservation.customer')->latest();
+        $date = $request->input('date', now()->toDateString());
+
+        $query = \App\Models\NotificationLog::with('reservation.customer')
+            ->whereDate('created_at', $date)
+            ->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -265,19 +269,40 @@ class SettingsController extends Controller
             $query->where('channel', $request->channel);
         }
 
-        $limit = min((int) $request->input('limit', 15), 500);
+        $limit = min((int) $request->input('limit', 500), 500);
         $logs = $query->take($limit)->get();
 
+        $base = \App\Models\NotificationLog::whereDate('created_at', $date);
+
         $stats = [
-            'sent'      => \App\Models\NotificationLog::where('status', 'sent')->count(),
-            'failed'    => \App\Models\NotificationLog::where('status', 'failed')->count(),
-            'invalid'   => \App\Models\NotificationLog::where('status', 'invalid')->count(),
-            'lastCheck' => now()->format('H:i:s d/m/Y')
+            'sent'      => (clone $base)->where('status', 'sent')->count(),
+            'failed'    => (clone $base)->where('status', 'failed')->count(),
+            'invalid'   => (clone $base)->where('status', 'invalid')->count(),
+            'lastCheck' => now()->format('H:i:s d/m/Y'),
+            'date'      => $date,
         ];
 
         return response()->json([
             'logs'  => $logs,
             'stats' => $stats
         ]);
+    }
+
+    public function retryNotification(Request $request, $id)
+    {
+        $log = \App\Models\NotificationLog::with('reservation.customer.zone', 'reservation.event')->findOrFail($id);
+
+        if (!$log->reservation) {
+            return response()->json(['error' => 'Reserva no encontrada'], 404);
+        }
+
+        $service = app(\App\Services\NotificationService::class);
+
+        try {
+            $service->retryChannel($log->channel, $log->template, $log->reservation);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

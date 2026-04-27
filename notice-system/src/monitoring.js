@@ -13,7 +13,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" id="meta-description" content="Panel de monitoreo de notificaciones — Notice System">
     <title id="page-title">Notice System — Monitoreo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         :root {
@@ -39,7 +39,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         }
 
         body {
-            font-family: 'Inter', 'Roboto', sans-serif;
+            font-family: 'Roboto', sans-serif;
             background-color: var(--background);
             color: var(--text-primary);
             margin: 0;
@@ -82,27 +82,28 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             padding: 24px;
             margin-bottom: 24px;
             box-shadow: var(--shadow-elevation-2);
-            border: 1px solid var(--border);
             position: relative;
         }
 
-        h3 {
-            margin: 0 0 24px 0;
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
+        .card h3 {
+            margin: 0 0 16px 0;
+            font-size: 10px;
+            font-weight: 500;
+            color: #5f6368;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
-        h3 .material-icons { color: var(--text-secondary); font-size: 22px; }
+        .card h3 .material-icons { color: #9e9e9e; font-size: 16px; }
 
         /* Stat Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
+            gap: 24px;
             margin-bottom: 8px;
         }
 
@@ -113,7 +114,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             display: flex;
             align-items: center;
             gap: 20px;
-            border: 1px solid var(--border);
+            box-shadow: var(--shadow-elevation-2);
             transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
         }
@@ -134,15 +135,15 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         .stat-content { display: flex; flex-direction: column; }
 
         .stat-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            color: #5f6368;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.5px;
             margin-bottom: 4px;
         }
 
-        .stat-value { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        .stat-value { font-size: 36px; font-weight: 300; color: var(--text-primary); }
 
         /* Loading Overlay */
         .loading-overlay {
@@ -187,19 +188,19 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         }
 
         /* Template Cards */
-        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
 
         .template-card {
             background: var(--surface);
-            border: 1px solid var(--border);
             border-radius: 8px;
             padding: 20px;
             display: flex;
             flex-direction: column;
+            box-shadow: var(--shadow-elevation-2);
             transition: all 0.2s;
         }
 
-        .template-card:hover { box-shadow: var(--shadow-elevation-4); border-color: var(--primary-light); }
+        .template-card:hover { box-shadow: var(--shadow-elevation-4); }
         .template-title { font-weight: 600; font-size: 16px; color: var(--text-primary); margin: 0 0 8px 0; }
         .template-desc { font-size: 14px; color: var(--text-secondary); margin: 0; flex-grow: 1; }
 
@@ -223,8 +224,8 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
 
         .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
         .btn-primary:hover { background-color: var(--primary-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
-        .btn-outline:hover { background: rgba(0,0,0,0.04); border-color: var(--text-primary); color: var(--text-primary); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: rgba(26,115,232,0.06); }
         .btn-danger { background-color: #D32F2F; color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
         .btn-danger:hover { background-color: #B71C1C; }
 
@@ -243,11 +244,12 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         .status-disconnected { background: #FFEBEE; color: #C62828; }
 
         .badge-table {
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 12px;
+            border-radius: 16px;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 500;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .badge-sent { background: #E8F5E9; color: #2E7D32; }
@@ -291,19 +293,51 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         }
         .timing-input:focus { border-color: var(--primary); }
 
+        .date-input {
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+        .date-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.12); }
+
+        .btn-retry {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary);
+            padding: 4px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+            margin-left: 6px;
+            opacity: 0.8;
+            transition: opacity 0.15s, background 0.15s;
+        }
+        .btn-retry:hover { opacity: 1; background: rgba(26,115,232,0.08); }
+        .btn-retry:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-retry .material-icons { font-size: 16px; }
+
         /* Table */
         table { width: 100%; border-collapse: collapse; }
         th {
             text-align: left;
             padding: 16px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: var(--text-secondary);
-            border-bottom: 2px solid var(--border);
+            color: rgba(0,0,0,0.54);
+            border-bottom: 1px solid #E0E0E0;
         }
-        td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        td { padding: 14px 16px; border-bottom: 1px solid #E0E0E0; font-size: 14px; }
         tr:hover td { background-color: rgba(0,0,0,0.02); }
 
         /* Save Bar */
@@ -357,9 +391,9 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #F5F5F5;
+            background: #FFFFFF;
         }
-        .modal-body { flex-grow: 1; overflow-y: auto; background: #F5F5F5; display: flex; flex-direction: column; }
+        .modal-body { flex-grow: 1; overflow-y: auto; background: #FAFAFA; display: flex; flex-direction: column; }
 
         #preview-content { flex-grow: 1; display: flex; flex-direction: column; }
         .preview-frame { width: 100%; flex-grow: 1; min-height: 600px; border: none; background: white; display: block; }
@@ -444,11 +478,17 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
     <div class="container">
         <!-- Panel de Control -->
         <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; flex-wrap:wrap; gap:12px;">
                 <h3><span class="material-icons">dashboard</span> Panel de Control</h3>
-                <span style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">
-                    Última sincronización: <strong style="color: var(--text-primary);" id="stat-last">—</strong>
-                </span>
+                <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="material-icons" style="font-size:16px; color:var(--text-secondary);">calendar_today</span>
+                        <input type="date" id="date-filter" class="date-input" onchange="onDateChange(this.value)">
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 13px; font-weight: 400;">
+                        Sync: <strong style="color: var(--text-primary); font-weight:500;" id="stat-last">—</strong>
+                    </span>
+                </div>
             </div>
 
             <div class="stats-grid">
@@ -518,7 +558,10 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
 
         <!-- Historial Reciente -->
         <div class="card">
-            <h3><span class="material-icons">history</span> Historial Reciente</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="margin:0;"><span class="material-icons">history</span> Historial Reciente</h3>
+                <span id="history-date-label" style="font-size:12px; color:var(--text-secondary); font-weight:500;"></span>
+            </div>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
@@ -682,7 +725,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="margin-top:auto; padding-top:16px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
                             <span style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; font-weight:500;">
                                 <span class="material-icons" style="font-size:16px; color:#25D366;">message</span> WhatsApp
                             </span>
@@ -718,7 +761,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                        <div style="margin-top:auto; padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; font-weight:500;">
                                 <span class="material-icons" style="font-size:16px; color:#EA4335;">mail</span> Email
                             </span>
@@ -795,14 +838,50 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
 
         // ── History & Stats ───────────────────────────────────────────────────
 
+        function getActiveDate() {
+            const el = document.getElementById('date-filter');
+            return el ? el.value : new Date().toISOString().split('T')[0];
+        }
+
+        function formatDateLabel(dateStr) {
+            const today = new Date().toISOString().split('T')[0];
+            if (dateStr === today) return 'Hoy';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+        }
+
+        function renderLogRow(log, showError = false) {
+            const isWa = log.channel === 'whatsapp';
+            const channelBadge = isWa
+                ? '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#25D366;"><span class="material-icons" style="font-size:16px;">message</span> WA</span>'
+                : '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#EA4335;"><span class="material-icons" style="font-size:16px;">mail</span> Email</span>';
+            const name  = (log.reservation && log.reservation.customer) ? log.reservation.customer.name : '—';
+            const ts    = new Date(log.created_at).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+            const sCls  = log.status === 'sent' ? 'badge-sent' : log.status === 'failed' ? 'badge-failed' : 'badge-invalid';
+            const sLabel = log.status === 'sent' ? 'Enviado' : log.status === 'failed' ? 'Fallido' : 'No reg.';
+            const retryBtn = log.status === 'failed'
+                ? '<button class="btn-retry" title="Reintentar" id="retry-' + log.id + '" onclick="retryNotification(' + log.id + ')"><span class="material-icons">replay</span></button>'
+                : '';
+            const errTxt = showError && log.error_message
+                ? '<div style="color:var(--error); font-size:11px; margin-top:2px;">' + log.error_message.substring(0, 80) + (log.error_message.length > 80 ? '…' : '') + '</div>'
+                : '';
+            return '<tr>' +
+                '<td>' + channelBadge + '</td>' +
+                '<td>' + (TEMPLATE_NAMES[log.template] || log.template) + '</td>' +
+                '<td><div style="font-weight:500;">' + name + '</div><div style="font-size:12px; color:var(--text-secondary);">' + (log.recipient || '') + '</div></td>' +
+                '<td style="white-space:nowrap; color:var(--text-secondary);">' + ts + '</td>' +
+                '<td><span class="badge-table ' + sCls + '">' + sLabel + '</span>' + retryBtn + errTxt + '</td>' +
+                '</tr>';
+        }
+
         async function fetchHistory() {
             const tbody = document.getElementById('history-table-body');
+            const date = getActiveDate();
             try {
-                const res = await fetch(\`\${BACKEND_URL}/api/notification-logs?limit=15\`);
+                const res = await fetch(\`\${BACKEND_URL}/api/notification-logs?date=\${date}&limit=500\`);
                 const data = await res.json();
                 const logs = data.logs || [];
 
-                // Update stats
                 if (data.stats) {
                     document.getElementById('stat-sent').textContent    = data.stats.sent;
                     document.getElementById('stat-failed').textContent  = data.stats.failed;
@@ -812,37 +891,57 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                     document.getElementById('stat-total').textContent   = total;
                 }
 
+                const dateLabel = document.getElementById('history-date-label');
+                if (dateLabel) dateLabel.textContent = formatDateLabel(date);
+
                 if (logs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--text-disabled);">No hay registros aún.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--text-disabled);">Sin registros para este día.</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = logs.map(log => {
-                    const isWa = log.channel === 'whatsapp';
-                    const channelBadge = isWa
-                        ? '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#25D366;"><span class="material-icons" style="font-size:16px;">message</span> WA</span>'
-                        : '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#EA4335;"><span class="material-icons" style="font-size:16px;">mail</span> Email</span>';
-                    const name    = (log.reservation && log.reservation.customer) ? log.reservation.customer.name : '—';
-                    const ts      = new Date(log.created_at).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-                    const sCls    = log.status === 'sent' ? 'badge-sent' : log.status === 'failed' ? 'badge-failed' : 'badge-invalid';
-                    const sLabel  = log.status === 'sent' ? 'Enviado' : log.status === 'failed' ? 'Fallido' : 'No reg.';
-                    return '<tr>' +
-                        '<td>' + channelBadge + '</td>' +
-                        '<td>' + (TEMPLATE_NAMES[log.template] || log.template) + '</td>' +
-                        '<td><div style="font-weight:500;">' + name + '</div><div style="font-size:12px; color:var(--text-secondary);">' + (log.recipient || '') + '</div></td>' +
-                        '<td style="white-space:nowrap; color:var(--text-secondary);">' + ts + '</td>' +
-                        '<td><span class="badge-table ' + sCls + '">' + sLabel + '</span></td>' +
-                        '</tr>';
-                }).join('');
+                tbody.innerHTML = logs.map(log => renderLogRow(log, false)).join('');
             } catch (err) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--error);">Error al cargar historial.</td></tr>';
+            }
+        }
+
+        function onDateChange(date) {
+            fetchHistory();
+        }
+
+        async function retryNotification(id) {
+            const btn = document.getElementById('retry-' + id);
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons rotating" style="font-size:16px;">autorenew</span>'; }
+            try {
+                const res = await fetch(\`\${BACKEND_URL}/api/admin/notification-logs/\${id}/retry\`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (res.ok) {
+                    if (btn) btn.innerHTML = '<span class="material-icons" style="font-size:16px; color:var(--success);">check</span>';
+                    setTimeout(() => fetchHistory(), 1500);
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">replay</span>'; }
+                    alert('Error al reintentar: ' + (data.error || 'Error desconocido'));
+                }
+            } catch (err) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons">replay</span>'; }
+                alert('Error de conexión');
             }
         }
 
         // ── Logs Modal ────────────────────────────────────────────────────────
 
         async function openLogsModal(filterStatus) {
-            const TITLES = { sent: 'Registros — Enviados', failed: 'Registros — Fallidos', invalid: 'Registros — No Registrados', all: 'Todos los registros' };
+            const date = getActiveDate();
+            const dateLabel = formatDateLabel(date);
+            const TITLES = {
+                sent: 'Enviados — ' + dateLabel,
+                failed: 'Fallidos — ' + dateLabel,
+                invalid: 'No Registrados — ' + dateLabel,
+                all: 'Todos los registros — ' + dateLabel
+            };
             document.getElementById('logs-modal-title').textContent = TITLES[filterStatus] || 'Registros';
 
             const modal = document.getElementById('logs-modal');
@@ -854,36 +953,18 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px;"><span class="material-icons rotating" style="font-size:28px; color:var(--primary);">autorenew</span></td></tr>';
 
             try {
-                const qs = filterStatus === 'all' ? 'limit=200' : 'status=' + filterStatus + '&limit=200';
-                const res = await fetch(\`\${BACKEND_URL}/api/notification-logs?\${qs}\`);
+                const params = new URLSearchParams({ date, limit: 500 });
+                if (filterStatus !== 'all') params.set('status', filterStatus);
+                const res = await fetch(\`\${BACKEND_URL}/api/notification-logs?\${params}\`);
                 const data = await res.json();
                 const logs = data.logs || [];
 
                 if (logs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-disabled);">No hay registros.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-disabled);">Sin registros para este día.</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = logs.map(log => {
-                    const isWa = log.channel === 'whatsapp';
-                    const channelBadge = isWa
-                        ? '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#25D366;"><span class="material-icons" style="font-size:15px;">message</span> WA</span>'
-                        : '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#EA4335;"><span class="material-icons" style="font-size:15px;">mail</span> Email</span>';
-                    const name    = (log.reservation && log.reservation.customer) ? log.reservation.customer.name : '—';
-                    const ts      = new Date(log.created_at).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-                    const sCls    = log.status === 'sent' ? 'badge-sent' : log.status === 'failed' ? 'badge-failed' : 'badge-invalid';
-                    const sLabel  = log.status === 'sent' ? 'Enviado' : log.status === 'failed' ? 'Fallido' : 'No registrado';
-                    const errTxt  = log.error_message
-                        ? '<div style="color:var(--error); font-size:11px; margin-top:2px;">' + log.error_message.substring(0, 80) + (log.error_message.length > 80 ? '…' : '') + '</div>'
-                        : '';
-                    return '<tr>' +
-                        '<td>' + channelBadge + '</td>' +
-                        '<td>' + (TEMPLATE_NAMES[log.template] || log.template) + '</td>' +
-                        '<td><div style="font-weight:500;">' + name + '</div><div style="font-size:12px; color:var(--text-secondary);">' + (log.recipient || '') + '</div></td>' +
-                        '<td style="white-space:nowrap; color:var(--text-secondary);">' + ts + '</td>' +
-                        '<td><span class="badge-table ' + sCls + '">' + sLabel + '</span>' + errTxt + '</td>' +
-                        '</tr>';
-                }).join('');
+                tbody.innerHTML = logs.map(log => renderLogRow(log, true)).join('');
             } catch (err) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--error);">Error al cargar registros.</td></tr>';
             }
@@ -993,6 +1074,8 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         }
 
         // ── Init ──────────────────────────────────────────────────────────────
+
+        document.getElementById('date-filter').value = new Date().toISOString().split('T')[0];
 
         fetchSettings();
         fetchHistory();

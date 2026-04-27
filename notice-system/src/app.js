@@ -43,13 +43,13 @@ const tokenAuth = (req, res, next) => {
             <html>
                 <head>
                     <title>Acceso Denegado - Notice System</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
                     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
                 </head>
-                <body style="font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #F5F5F5; margin: 0;">
+                <body style="font-family: 'Roboto', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #F5F5F5; margin: 0;">
                     <div style="text-align: center; background: white; padding: 3rem; border-radius: 12px; box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12); max-width: 400px; width: 90%;">
                         <span class="material-icons" style="font-size: 64px; color: #D32F2F; margin-bottom: 1rem;">block</span>
-                        <h1 style="font-size: 24px; font-weight: 600; color: #202124; margin: 0 0 1rem 0;">Acceso denegado</h1>
+                        <h1 style="font-size: 24px; font-weight: 500; color: #202124; margin: 0 0 1rem 0;">Acceso denegado</h1>
                         <p style="color: #5F6368; line-height: 1.5; margin-bottom: 0;">No tiene permisos para ver esta página o el token es inválido.</p>
                     </div>
                 </body>
@@ -77,13 +77,13 @@ app.get('/qr', tokenAuth, async (req, res) => {
             <html>
                 <head>
                     <title>WhatsApp Conectado - Notice System</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
                     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
                 </head>
-                <body style="font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #F5F5F5; margin: 0;">
+                <body style="font-family: 'Roboto', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #F5F5F5; margin: 0;">
                     <div style="text-align: center; background: white; padding: 3rem; border-radius: 12px; box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12); max-width: 400px; width: 90%;">
                         <span class="material-icons" style="font-size: 64px; color: #388E3C; margin-bottom: 1rem;">check_circle</span>
-                        <h1 style="font-size: 24px; font-weight: 600; color: #202124; margin: 0 0 1rem 0;">WhatsApp Conectado</h1>
+                        <h1 style="font-size: 24px; font-weight: 500; color: #202124; margin: 0 0 1rem 0;">WhatsApp Conectado</h1>
                         <p style="color: #5F6368; line-height: 1.5; margin-bottom: 2rem;">El cliente ya está vinculado y funcionando correctamente.</p>
                         <a href="/monitoring?token=${req.query.token}" style="display: inline-flex; align-items: center; gap: 8px; background: #1a73e8; color: white; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.75px; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.12);">
                             <span class="material-icons" style="font-size: 18px;">dashboard</span>
@@ -103,15 +103,15 @@ app.get('/qr', tokenAuth, async (req, res) => {
             <html>
                 <head>
                     <title>Esperando QR - Notice System</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
                     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
                 </head>
-                <body style="font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #F5F5F5; margin: 0;">
+                <body style="font-family: 'Roboto', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #F5F5F5; margin: 0;">
                     <div style="text-align: center; max-width: 400px; width: 90%;">
                         <div style="background: white; padding: 3rem; border-radius: 12px; box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);">
                             <span class="material-icons" style="font-size: 64px; color: #1a73e8; margin-bottom: 1rem; animation: pulse 2s infinite;">hourglass_empty</span>
 
-                            <h1 style="font-size: 24px; font-weight: 600; color: #202124; margin: 0 0 1rem 0;">Generando código QR...</h1>
+                            <h1 style="font-size: 24px; font-weight: 500; color: #202124; margin: 0 0 1rem 0;">Generando código QR...</h1>
                             <p style="color: #5F6368; line-height: 1.5; margin-bottom: 0;">Por favor, espera unos segundos mientras preparamos la conexión.</p>
                         </div>
                     </div>
@@ -130,12 +130,12 @@ app.get('/qr', tokenAuth, async (req, res) => {
                 <head>
                     <title>Vincular WhatsApp - Notice System</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
                     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
                     <style>
                         body {
                             margin: 0;
-                            font-family: 'Inter', sans-serif;
+                            font-family: 'Roboto', sans-serif;
                             background-color: #F5F5F5;
                             display: flex;
                             flex-direction: column;
@@ -153,8 +153,8 @@ app.get('/qr', tokenAuth, async (req, res) => {
                         }
                         .header h1 {
                             margin: 0;
-                            font-size: 18px;
-                            font-weight: 600;
+                            font-size: 20px;
+                            font-weight: 500;
                             display: flex;
                             align-items: center;
                             gap: 12px;
@@ -197,16 +197,13 @@ app.get('/qr', tokenAuth, async (req, res) => {
                         }
                         .status {
                             color: #1a73e8;
-
-                            font-weight: 600;
+                            font-weight: 500;
                             font-size: 14px;
                             display: flex;
                             align-items: center;
                             justify-content: center;
                             gap: 8px;
-                            margin-top: 16px;
-                            padding-top: 24px;
-                            border-top: 1px solid #EEEEEE;
+                            margin-top: 24px;
                         }
                     </style>
                 </head>
@@ -220,7 +217,7 @@ app.get('/qr', tokenAuth, async (req, res) => {
                     </div>
                     <div class="main">
                         <div class="qr-card">
-                            <h2 style="margin: 0; font-size: 22px; font-weight: 600;">Vincular Dispositivo</h2>
+                            <h2 style="margin: 0; font-size: 22px; font-weight: 500;">Vincular Dispositivo</h2>
                             <p class="instruction">Abre WhatsApp en tu teléfono, ve a Dispositivos vinculados y escanea este código.</p>
                             
                             <div class="qr-container">

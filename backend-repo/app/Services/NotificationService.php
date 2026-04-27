@@ -15,6 +15,29 @@ use App\Mail\PostVisitReview;
 
 class NotificationService
 {
+    public function retryChannel(string $channel, string $type, Reservation $reservation): void
+    {
+        $reservation->load(['customer', 'zone', 'event']);
+
+        if (!$reservation->customer) {
+            throw new \Exception("No hay cliente para la reserva {$reservation->reservation_id}");
+        }
+
+        if ($channel === 'whatsapp') {
+            if (!$reservation->customer->phone) {
+                throw new \Exception('El cliente no tiene número de teléfono');
+            }
+            $this->sendWhatsApp($type, $reservation);
+        } elseif ($channel === 'email') {
+            if (!$reservation->customer->email) {
+                throw new \Exception('El cliente no tiene email');
+            }
+            $this->sendEmail($type, $reservation, true);
+        } else {
+            throw new \Exception("Canal desconocido: $channel");
+        }
+    }
+
     /**
      * Notify customer via WhatsApp and Email.
      * Channels are independent; one failure won't block the other.
@@ -106,7 +129,7 @@ class NotificationService
         }
     }
 
-    protected function sendEmail(string $type, Reservation $reservation): void
+    protected function sendEmail(string $type, Reservation $reservation, bool $immediate = false): void
     {
         $target = $reservation->customer->email;
         try {
@@ -129,7 +152,21 @@ class NotificationService
 
             if (!$mailable) return;
 
-            Mail::to($target)->queue($mailable);
+            if (!$immediate && in_array($type, ['reminder_2h', 'review'])) {
+                $minutes = $notificationSettings['whatsapp'][$type]['minutes'] ?? 120;
+                $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
+                $delay = $type === 'reminder_2h'
+                    ? $resDateTime->subMinutes($minutes)
+                    : $resDateTime->addMinutes($minutes);
+
+                if ($delay->isFuture()) {
+                    Mail::to($target)->later($delay, $mailable);
+                } else {
+                    Mail::to($target)->queue($mailable);
+                }
+            } else {
+                Mail::to($target)->queue($mailable);
+            }
 
             \App\Models\NotificationLog::create([
                 'reservation_id' => $reservation->id,

@@ -51,6 +51,10 @@ Route::prefix('admin/templates/preview')->group(function () {
     Route::get('/whatsapp/{type}', [SettingsController::class, 'previewWhatsAppTemplate']);
 });
 
+// Notice-system routes — no Sanctum token (notice-system has its own auth layer)
+Route::post('/admin/config', [SettingsController::class, 'updateConfig']);
+Route::post('/admin/notification-logs/{id}/retry', [SettingsController::class, 'retryNotification']);
+
 // Protected Admin Endpoints
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/reservations', [ReservationController::class, 'index']);
@@ -79,7 +83,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::delete('/events/{event}', [EventController::class, 'destroy']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/config', [SettingsController::class, 'updateConfig']);
     Route::get('/blocked-dates', [DayStatusController::class, 'index']);
     Route::get('/search', [SearchController::class, 'index']);
     Route::get('/day-status', [DayStatusController::class, 'show']);
