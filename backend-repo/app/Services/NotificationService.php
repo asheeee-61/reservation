@@ -153,7 +153,7 @@ class NotificationService
             if (!$mailable) return;
 
             if (!$immediate && in_array($type, ['reminder_2h', 'review'])) {
-                $minutes = $notificationSettings['whatsapp'][$type]['minutes'] ?? 120;
+                $minutes = $notificationSettings['email'][$type]['minutes'] ?? 120;
                 $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
                 $delay = $type === 'reminder_2h'
                     ? $resDateTime->subMinutes($minutes)

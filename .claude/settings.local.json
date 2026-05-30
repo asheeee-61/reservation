@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(xargs grep *)",
-      "Bash(grep -E \"\\\\.\\(vue|ts|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(vue|ts|js\\)$\")",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\lahbo\\\\reservation\\\\main\\\\public\")",
+      "Bash(Out-Null)",
+      "Bash(Move-Item \"C:\\\\Users\\\\lahbo\\\\reservation\\\\main\\\\assets\" \"C:\\\\Users\\\\lahbo\\\\reservation\\\\main\\\\public\\\\assets\" -ErrorAction SilentlyContinue)",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\lahbo\\\\reservation\\\\main\\\\src\")",
+      "Bash(Write-Output \"done\")",
+      "PowerShell(New-Item *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lahbo\\\\reservation\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

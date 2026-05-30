@@ -299,6 +299,13 @@ class ReservationController extends Controller
             ]);
 
             $oldStatus = $reservation->status;
+
+            if ($oldStatus !== $validated['status'] && !$this->canTransition($oldStatus, $validated['status'])) {
+                return response()->json([
+                    'error' => "Transición de estado inválida de $oldStatus a {$validated['status']}"
+                ], 422);
+            }
+
             $reservation->update([
                 'status' => $validated['status'],
                 'cancellation_reason' => $request->input('cancellation_reason')
@@ -405,9 +412,15 @@ class ReservationController extends Controller
         $reservation = Reservation::findOrFail($id);
         
         $oldStatus = $reservation->status;
-        
+
         if ($oldStatus === $request->status) {
             return response()->json(['success' => true, 'data' => $reservation]);
+        }
+
+        if (!$this->canTransition($oldStatus, $request->status)) {
+            return response()->json([
+                'error' => "Transición de estado inválida de $oldStatus a {$request->status}"
+            ], 422);
         }
 
         $reservation->status = $request->status;
@@ -497,9 +510,17 @@ class ReservationController extends Controller
         ]);
     }
 
-    private function canTransition($from, $to)
+    private function canTransition(string $from, string $to): bool
     {
-        return true; // No restrictions
+        $allowed = [
+            Reservation::STATUS_PENDIENTE  => [Reservation::STATUS_CONFIRMADA, Reservation::STATUS_CANCELADA],
+            Reservation::STATUS_CONFIRMADA => [Reservation::STATUS_ASISTIO, Reservation::STATUS_NO_ASISTIO, Reservation::STATUS_CANCELADA],
+            Reservation::STATUS_ASISTIO    => [],
+            Reservation::STATUS_NO_ASISTIO => [],
+            Reservation::STATUS_CANCELADA  => [],
+        ];
+
+        return in_array($to, $allowed[$from] ?? [], true);
     }
 
     private function isSlotAvailable($date, $time, $guests)
@@ -553,12 +574,12 @@ class ReservationController extends Controller
         $minutes = $notificationSettings['whatsapp']['reminder_2h']['minutes'] ?? 120;
         
         $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
-        $delay = $resDateTime->subMinutes($minutes);
+        $delay = $resDateTime->copy()->subMinutes($minutes);
 
         if ($delay->isFuture()) {
             \App\Jobs\SendReminderJob::dispatch($reservation)->delay($delay);
         } elseif ($resDateTime->isFuture()) {
-            // If it's already within the window but hasn't happened yet, send now
+            // Within the reminder window but reservation hasn't happened yet: send immediately
             \App\Jobs\SendReminderJob::dispatch($reservation);
         }
     }
@@ -573,7 +594,7 @@ class ReservationController extends Controller
         
         // Review is sent AFTER the reservation
         $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
-        $delay = $resDateTime->addMinutes($minutes);
+        $delay = $resDateTime->copy()->addMinutes($minutes);
 
         if ($delay->isFuture()) {
             \App\Jobs\SendReviewJob::dispatch($reservation)->delay($delay);
