@@ -26,7 +26,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: ./main
-        run: npm ci
+        run: npm install
 
       - name: Build Project
         working-directory: ./main
