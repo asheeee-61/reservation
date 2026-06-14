@@ -39,4 +39,4 @@ jobs:
           username: "admin_main"
           password: "ktzcC5^8!6qedb8J"
           local-dir: ./main/dist/
-          dangerous-clean-slate: true
+    
