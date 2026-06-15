@@ -365,23 +365,6 @@ body {
 }
 .menu-item--inactive:hover::before { left: -100% !important; }
 
-/* Arrow indicator for parent buttons — hidden until hover */
-.item-arrow {
-  position: absolute;
-  right: 22px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
-  color: var(--gold);
-  opacity: 0;
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  line-height: 1;
-}
-.menu-item--parent:hover .item-arrow {
-  opacity: 1;
-  transform: translateY(-50%) translateX(3px);
-}
 
 /* Back button */
 .back-btn {

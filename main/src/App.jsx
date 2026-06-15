@@ -185,9 +185,6 @@ export default function App() {
                 onKeyDown={e => handleKeyDown(e, item)}
               >
                 <span>{item.label}</span>
-                {item.children?.length > 0 && (
-                  <span className="item-arrow" aria-hidden="true">›</span>
-                )}
               </div>
             ))}
           </nav>
