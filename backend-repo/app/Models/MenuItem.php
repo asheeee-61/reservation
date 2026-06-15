@@ -49,6 +49,6 @@ class MenuItem extends Model
     public function getResourceUrlAttribute(): ?string
     {
         if (!$this->resource_path) return null;
-        return url('storage/' . $this->resource_path);
+        return url('api/media/' . $this->resource_path);
     }
 }

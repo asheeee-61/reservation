@@ -10,9 +10,21 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MenuItemController;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 // Public: dynamic menu tree for client-front
 Route::get('/menu', [MenuItemController::class, 'index']);
+
+// Public: serve menu resource files through the API so CORS headers are applied
+Route::get('/media/{path}', function (string $path) {
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    return response()->file(
+        Storage::disk('public')->path($path),
+        ['Cache-Control' => 'public, max-age=86400']
+    );
+})->where('path', '.*');
 
 // Public Endpoints (Customer Frontend)
 Route::get('/health', function () {

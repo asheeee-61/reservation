@@ -495,7 +495,7 @@ export default function MenuManager() {
                           {uploading ? 'Subiendo…' : form.resource_url ? 'Reemplazar' : 'Subir archivo'}
                         </Button>
                         <Typography sx={{ fontSize: '11px', color: '#9AA0A6' }}>
-                          PDF, imagen o vídeo — máx. 50 MB
+                          PDF, imagen o vídeo
                         </Typography>
                       </Box>
                     </>
