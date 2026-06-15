@@ -105,7 +105,7 @@ class MenuItemController extends Controller
     public function upload(Request $request, MenuItem $menuItem)
     {
         $request->validate([
-            'file' => 'required|file|max:51200|mimes:pdf,jpeg,jpg,png,gif,webp,mp4,mov,avi,webm',
+            'file' => 'required|file|mimes:pdf,jpeg,jpg,png,gif,webp,mp4,mov,avi,webm',
         ]);
 
         if (MenuItem::where('parent_id', $menuItem->id)->exists()) {

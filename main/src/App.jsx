@@ -1,6 +1,57 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import { API_BASE_URL } from './config';
 import './App.css';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+
+function PdfViewer({ url, onClose }) {
+  const [numPages, setNumPages]   = useState(null);
+  const [page,     setPage]       = useState(1);
+  const [loading,  setPdfLoading] = useState(true);
+
+  return (
+    <div className="resource-overlay" role="dialog" aria-modal="true" aria-label="Visor de PDF">
+      <button className="resource-close" onClick={onClose} aria-label="Cerrar">✕</button>
+
+      <div className="pdf-wrapper">
+        <Document
+          file={url}
+          onLoadSuccess={({ numPages }) => { setNumPages(numPages); setPdfLoading(false); }}
+          loading={<div className="pdf-loading"><div className="spinner" /></div>}
+          error={<div className="pdf-error">No se pudo cargar el PDF.</div>}
+        >
+          <Page
+            pageNumber={page}
+            renderTextLayer={true}
+            renderAnnotationLayer={true}
+            width={Math.min(window.innerWidth * 0.88, 900)}
+          />
+        </Document>
+      </div>
+
+      {!loading && numPages > 1 && (
+        <div className="pdf-controls">
+          <button
+            className="pdf-btn"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            aria-label="Página anterior"
+          >←</button>
+          <span className="pdf-page">{page} / {numPages}</span>
+          <button
+            className="pdf-btn"
+            onClick={() => setPage(p => Math.min(numPages, p + 1))}
+            disabled={page >= numPages}
+            aria-label="Página siguiente"
+          >→</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function App() {
   const glowRef   = useRef(null);
@@ -146,18 +197,19 @@ export default function App() {
       <footer className="footer-text">ESENCIA PREMIUM</footer>
 
       {/* Resource overlay */}
-      {resource && (
+      {resource && resource.type === 'pdf' && (
+        <PdfViewer url={resource.url} onClose={() => setResource(null)} />
+      )}
+      {resource && resource.type === 'image' && (
         <div className="resource-overlay" role="dialog" aria-modal="true" aria-label={resource.label}>
           <button className="resource-close" onClick={() => setResource(null)} aria-label="Cerrar">✕</button>
-          {resource.type === 'pdf' && (
-            <embed src={resource.url} type="application/pdf" className="resource-embed" />
-          )}
-          {resource.type === 'image' && (
-            <img src={resource.url} alt={resource.label} className="resource-img" />
-          )}
-          {resource.type === 'video' && (
-            <video src={resource.url} controls autoPlay className="resource-video" />
-          )}
+          <img src={resource.url} alt={resource.label} className="resource-img" />
+        </div>
+      )}
+      {resource && resource.type === 'video' && (
+        <div className="resource-overlay" role="dialog" aria-modal="true" aria-label={resource.label}>
+          <button className="resource-close" onClick={() => setResource(null)} aria-label="Cerrar">✕</button>
+          <video src={resource.url} controls autoPlay className="resource-video" />
         </div>
       )}
     </main>
