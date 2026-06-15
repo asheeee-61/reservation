@@ -57,7 +57,7 @@ class MenuItemController extends Controller
             'is_enabled'   => 'boolean',
             'active_from'  => 'nullable|date_format:H:i',
             'active_until' => 'nullable|date_format:H:i|required_with:active_from',
-            'resource_type'=> 'nullable|in:pdf,image,video',
+            'resource_type'=> 'nullable|in:pdf,image',
             'order'        => 'integer',
         ]);
 
@@ -78,7 +78,7 @@ class MenuItemController extends Controller
             'is_enabled'   => 'boolean',
             'active_from'  => 'nullable|date_format:H:i',
             'active_until' => 'nullable|date_format:H:i|required_with:active_from',
-            'resource_type'=> 'nullable|in:pdf,image,video',
+            'resource_type'=> 'nullable|in:pdf,image',
             'order'        => 'integer',
         ]);
 
@@ -105,7 +105,7 @@ class MenuItemController extends Controller
     public function upload(Request $request, MenuItem $menuItem)
     {
         $request->validate([
-            'file' => 'required|file|mimes:pdf,jpeg,jpg,png,gif,webp,mp4,mov,avi,webm',
+            'file' => 'required|file|mimes:pdf,jpeg,jpg,png,gif,webp',
         ]);
 
         if (MenuItem::where('parent_id', $menuItem->id)->exists()) {
@@ -122,11 +122,7 @@ class MenuItemController extends Controller
         $path = $file->store('menu-resources', 'public');
 
         $mime = $file->getMimeType();
-        $resourceType = match (true) {
-            str_starts_with($mime, 'image/') => 'image',
-            $mime === 'application/pdf'       => 'pdf',
-            default                           => 'video',
-        };
+        $resourceType = str_starts_with($mime, 'image/') ? 'image' : 'pdf';
 
         $menuItem->update([
             'resource_path' => $path,

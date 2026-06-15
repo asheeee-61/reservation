@@ -206,12 +206,6 @@ export default function App() {
           <img src={resource.url} alt={resource.label} className="resource-img" />
         </div>
       )}
-      {resource && resource.type === 'video' && (
-        <div className="resource-overlay" role="dialog" aria-modal="true" aria-label={resource.label}>
-          <button className="resource-close" onClick={() => setResource(null)} aria-label="Cerrar">✕</button>
-          <video src={resource.url} controls autoPlay className="resource-video" />
-        </div>
-      )}
     </main>
   );
 }

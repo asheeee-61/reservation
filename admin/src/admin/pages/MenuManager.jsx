@@ -275,7 +275,6 @@ export default function MenuManager() {
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !form?.id) return;
-    if (file.size > 50 * 1024 * 1024) { toast.error('El archivo no puede superar 50 MB'); return; }
     setUploading(true);
     try {
       const updated = await menuService.upload(form.id, file);
@@ -462,7 +461,7 @@ export default function MenuManager() {
                   {form.resource_url && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', bgcolor: '#F1F3F4', borderRadius: '4px', p: '10px' }}>
                       <span className="material-icons" style={{ fontSize: 20, color: '#70757A' }}>
-                        {form.resource_type === 'pdf' ? 'picture_as_pdf' : form.resource_type === 'image' ? 'image' : 'videocam'}
+                        {form.resource_type === 'pdf' ? 'picture_as_pdf' : 'image'}
                       </span>
                       <Typography sx={{ fontSize: '13px', color: '#202124', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {form.resource_type?.toUpperCase()} — {decodeURIComponent(form.resource_url.split('/').pop())}
@@ -481,7 +480,7 @@ export default function MenuManager() {
                   ) : (
                     <>
                       <input type="file" ref={fileRef} onChange={handleFileUpload}
-                        accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.webm"
+                        accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
                         style={{ display: 'none' }} />
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Button variant="outlined" size="small" onClick={() => fileRef.current?.click()}
@@ -495,7 +494,7 @@ export default function MenuManager() {
                           {uploading ? 'Subiendo…' : form.resource_url ? 'Reemplazar' : 'Subir archivo'}
                         </Button>
                         <Typography sx={{ fontSize: '11px', color: '#9AA0A6' }}>
-                          PDF, imagen o vídeo
+                          PDF o imagen
                         </Typography>
                       </Box>
                     </>
