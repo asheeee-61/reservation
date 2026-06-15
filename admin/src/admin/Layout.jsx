@@ -40,7 +40,8 @@ export default function Layout() {
     { text: 'Panel principal',icon: 'dashboard',       path: '/admin' },
     { text: 'Clientes',     icon: 'people',            path: '/admin/customers' },
     { text: 'Zonas',         icon: 'map',               path: '/admin/zones' },
-    { text: 'Eventos',       icon: 'celebration',  path: '/admin/events' },
+    { text: 'Eventos',       icon: 'celebration',       path: '/admin/events' },
+    { text: 'Menú digital', icon: 'restaurant_menu',   path: '/admin/menu-manager' },
     { text: 'Horarios',     icon: 'schedule',          path: '/admin/schedule' },
     { text: 'Ajustes',      icon: 'settings',          path: '/admin/settings' },
     { text: 'Mi perfil',    icon: 'account_circle',    path: '/admin/profile' }
@@ -59,6 +60,7 @@ export default function Layout() {
     if (path.startsWith('/admin/events')) return 'Eventos';
     if (path.startsWith('/admin/calendar')) return 'Calendario';
     if (path.startsWith('/admin/schedule')) return 'Control de horarios';
+    if (path.startsWith('/admin/menu-manager')) return 'Menú digital';
     if (path.startsWith('/admin/settings')) return 'Ajustes';
     if (path.startsWith('/admin/profile')) return 'Mi perfil';
     return 'Panel de administración';

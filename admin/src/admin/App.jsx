@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import CalendarPanel from './pages/CalendarPanel';
 import SchedulePanel from './pages/SchedulePanel';
+import MenuManager from './pages/MenuManager';
 import Login from './pages/Login';
 import { useAuthStore } from './store/useAuthStore';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -138,6 +139,7 @@ function App() {
           <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
           <Route path="calendar" element={<ErrorBoundary><CalendarPanel /></ErrorBoundary>} />
           <Route path="schedule" element={<ErrorBoundary><SchedulePanel /></ErrorBoundary>} />
+          <Route path="menu-manager" element={<ErrorBoundary><MenuManager /></ErrorBoundary>} />
         </Route>
         {/* Redirect any other /admin/* to /admin/ */}
         <Route path="*" element={<Navigate to="/admin" replace />} />

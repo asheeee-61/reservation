@@ -8,7 +8,11 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\DayStatusController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MenuItemController;
 use Illuminate\Support\Facades\Storage;
+
+// Public: dynamic menu tree for client-front
+Route::get('/menu', [MenuItemController::class, 'index']);
 
 // Public Endpoints (Customer Frontend)
 Route::get('/health', function () {
@@ -81,6 +85,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/events', [EventController::class, 'store']);
     Route::put('/events/{event}', [EventController::class, 'update']);
     Route::delete('/events/{event}', [EventController::class, 'destroy']);
+
+    Route::get('/menu-items', [MenuItemController::class, 'adminIndex']);
+    Route::post('/menu-items', [MenuItemController::class, 'store']);
+    Route::post('/menu-items/reorder', [MenuItemController::class, 'reorder']); // before {id} to avoid conflict
+    Route::get('/menu-items/{menuItem}', [MenuItemController::class, 'show']);
+    Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update']);
+    Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy']);
+    Route::post('/menu-items/{menuItem}/upload', [MenuItemController::class, 'upload']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/blocked-dates', [DayStatusController::class, 'index']);

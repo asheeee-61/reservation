@@ -10,7 +10,8 @@
       "Bash(Write-Output \"done\")",
       "PowerShell(New-Item *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lahbo\\\\reservation\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(grep -E \"\\\\.jsx$\")"
     ]
   }
 }
