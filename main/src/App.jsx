@@ -27,7 +27,7 @@ function PdfViewer({ url, onClose }) {
             pageNumber={page}
             renderTextLayer={true}
             renderAnnotationLayer={true}
-            width={Math.min(window.innerWidth * 0.88, 900)}
+            width={Math.min(window.innerWidth * 0.96, 960)}
           />
         </Document>
       </div>
