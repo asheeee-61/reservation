@@ -23,6 +23,7 @@ export default function Layout() {
   const [logoutModal, setLogoutModal] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [dayStatus, setDayStatus] = useState('ABIERTO');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const userMenuRef = useRef(null);
 
   // Initial data fetch
@@ -66,6 +67,11 @@ export default function Layout() {
     if (path.startsWith('/admin/profile')) return 'Mi perfil';
     return 'Panel de administración';
   };
+
+  // Close search overlay on navigation
+  useEffect(() => {
+    setMobileSearchOpen(false);
+  }, [location]);
 
   // Close user menu on outside click
   useEffect(() => {
@@ -182,16 +188,17 @@ export default function Layout() {
 
           {/* Desktop: Global Search */}
           <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500, ml: { lg: '24px' } }}>
-            <GlobalSearch />
+            <GlobalSearch enableShortcut />
           </Box>
 
-          {/* Server Clock — desktop only */}
-          <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
+          {/* Server Clock — tablet + desktop */}
+          <Box sx={{ display: 'none', [TABLET]: { display: 'flex' }, [DESKTOP]: { display: 'flex' } }}>
             <ServerClock />
           </Box>
 
           {/* Right side: Quick Actions + User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, ml: 'auto' }}>
+
             {/* Quick action buttons — desktop only */}
             <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
               <QuickActions />
@@ -280,11 +287,11 @@ export default function Layout() {
         </Box>
 
         {/* Page content */}
-        <Box className="page-content" sx={{ 
+        <Box className="page-content" sx={{
           flex: 1, overflowY: 'auto', bgcolor: '#F1F3F4',
           [DESKTOP]: { p: '24px' },
-          [TABLET]: { p: '16px' },
-          [MOBILE]: { p: '12px' }
+          [TABLET]: { p: '16px', pb: '96px' },
+          [MOBILE]: { p: '12px', pb: '96px' }
         }}>
           <Outlet />
         </Box>
@@ -299,6 +306,94 @@ export default function Layout() {
         onCancel={() => setLogoutModal(false)}
         onConfirm={handleLogout}
       />
+
+      {/* Floating action buttons — tablet + mobile */}
+      <Box sx={{
+        display: 'none',
+        [TABLET]: { display: 'flex' },
+        [MOBILE]: { display: 'flex' },
+        position: 'fixed', bottom: '24px', right: '20px',
+        flexDirection: 'column', alignItems: 'center', gap: '12px',
+        zIndex: 1200,
+      }}>
+        {/* Search FAB */}
+        <Box
+          onClick={() => setMobileSearchOpen(true)}
+          sx={{
+            width: 48, height: 48, borderRadius: '50%',
+            bgcolor: '#FFFFFF', color: '#5F6368',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            border: '1px solid #E8EAED',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12)',
+            transition: 'box-shadow 200ms ease, background 200ms ease',
+            '&:hover': { bgcolor: '#F1F3F4', boxShadow: '0 4px 14px rgba(0,0,0,0.22)' },
+            '&:active': { transform: 'scale(0.95)' },
+          }}
+        >
+          <span className="material-icons" style={{ fontSize: 22 }}>search</span>
+        </Box>
+
+        {/* New reservation FAB */}
+        <Box
+          onClick={() => navigate('/admin/reservations/new')}
+          sx={{
+            width: 56, height: 56, borderRadius: '50%',
+            bgcolor: '#1A73E8', color: '#FFFFFF',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(26,115,232,0.5), 0 2px 4px rgba(0,0,0,0.18)',
+            transition: 'box-shadow 200ms ease, background 200ms ease',
+            '&:hover': { bgcolor: '#1557B0', boxShadow: '0 6px 18px rgba(26,115,232,0.55)' },
+            '&:active': { transform: 'scale(0.95)' },
+          }}
+        >
+          <span className="material-icons" style={{ fontSize: 28 }}>add</span>
+        </Box>
+      </Box>
+
+      {/* Mobile search overlay */}
+      {mobileSearchOpen && (
+        <Box
+          onClick={(e) => { if (e.target === e.currentTarget) setMobileSearchOpen(false); }}
+          sx={{
+            position: 'fixed', inset: 0, zIndex: 1400,
+            bgcolor: 'rgba(32,33,36,0.55)',
+            backdropFilter: 'blur(3px)',
+            animation: 'search-backdrop 180ms ease forwards',
+          }}
+        >
+          <Box sx={{
+            bgcolor: '#FFFFFF',
+            display: 'flex', alignItems: 'center', gap: '4px',
+            px: '8px', height: 56,
+            borderBottom: '1px solid #E0E0E0',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+            animation: 'search-slide 180ms ease forwards',
+          }}>
+            <IconButton
+              onClick={() => setMobileSearchOpen(false)}
+              sx={{ color: '#70757A', width: 40, height: 40, flexShrink: 0 }}
+            >
+              <span className="material-icons" style={{ fontSize: 22 }}>arrow_back</span>
+            </IconButton>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <GlobalSearch autoFocus />
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      <style>{`
+        @keyframes search-backdrop {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes search-slide {
+          from { transform: translateY(-100%); opacity: 0; }
+          to   { transform: translateY(0);     opacity: 1; }
+        }
+      `}</style>
     </Box>
   );
 }

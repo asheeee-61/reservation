@@ -4,17 +4,39 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../shared/api';
 import CustomerAvatar from './CustomerAvatar';
 
-export default function GlobalSearch() {
+export default function GlobalSearch({ autoFocus = false, enableShortcut = false }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState(null); // null = closed, {} = open
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const debounceRef = useRef(null);
   const abortRef = useRef(null);
+
+  // Auto-focus when shown in mobile overlay
+  useEffect(() => {
+    if (autoFocus) {
+      const t = setTimeout(() => inputRef.current?.focus(), 80);
+      return () => clearTimeout(t);
+    }
+  }, [autoFocus]);
+
+  // ⌘K / Ctrl+K shortcut (desktop only)
+  useEffect(() => {
+    if (!enableShortcut) return;
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [enableShortcut]);
 
   // Close on outside click
   useEffect(() => {
@@ -137,7 +159,8 @@ export default function GlobalSearch() {
           value={query}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => { if (results && totalResults > 0) setOpen(true); }}
+          onFocus={() => { setIsFocused(true); if (results && totalResults > 0) setOpen(true); }}
+          onBlur={() => setIsFocused(false)}
           placeholder="Buscar reservas, clientes, teléfono..."
           style={{
             border: 'none',
@@ -171,6 +194,18 @@ export default function GlobalSearch() {
           >
             close
           </span>
+        )}
+        {enableShortcut && !query && !isFocused && (
+          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <Box component="kbd" sx={{
+              fontSize: 11, color: '#9AA0A6',
+              border: '1px solid #DADCE0', borderRadius: '4px',
+              px: '5px', py: '1px', lineHeight: 1.6,
+              fontFamily: 'monospace', letterSpacing: 0,
+            }}>
+              ⌘K
+            </Box>
+          </Box>
         )}
       </Box>
 
