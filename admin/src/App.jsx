@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import UnderConstruction from './shared/UnderConstruction';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ClientApp from './client/App';
 import AdminApp from './admin/App';
 import { ToastProvider } from './admin/components/Toast/ToastContext';
@@ -12,7 +11,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Landing Page */}
-          <Route path="/" element={<UnderConstruction />} />
+          <Route path="/" element={<Navigate to="/reservacion" replace />} />
 
           {/* Admin Routes handled by AdminApp */}
           <Route path="/admin/*" element={<AdminApp />} />
