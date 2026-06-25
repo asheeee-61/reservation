@@ -17,7 +17,7 @@
 <body style="margin: 0; padding: 0; background-color: #f7f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #202124;">
     @php
         $bName = $settings['business_name'] ?? 'Reserva';
-        $resDate = \Carbon\Carbon::parse($reservation->reserved_at);
+        $resDate = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
         $resDate->locale('es');
     @endphp
     <table class="wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #f7f9fa; padding: 32px 16px; box-sizing: border-box;">
@@ -25,10 +25,11 @@
             <td align="center">
                 <table class="container" cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; max-width: 500px; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);">
                     <!-- Header Logo -->
-                    @if(!empty($settings['logo_url']))
+                    @php $logoUrl = !empty($settings['logo']) ? asset('storage/' . $settings['logo']) : null; @endphp
+                    @if($logoUrl)
                     <tr>
                         <td class="header-logo" style="text-align: center; padding: 24px 24px 0 24px;">
-                            <img src="{{ $settings['logo_url'] }}" alt="{{ $bName }}" style="max-height: 48px; max-width: 100%;" />
+                            <img src="{{ $logoUrl }}" alt="{{ $bName }}" style="max-height: 48px; max-width: 100%;" />
                         </td>
                     </tr>
                     @endif
@@ -111,13 +112,13 @@
                                     </td>
                                 </tr>
                                 @endif
-                                @if(!empty($settings['phone']))
+                                @if(!empty($settings['business_phone']))
                                 <tr>
                                     <td class="detail-icon-td" style="width: 32px; vertical-align: top; padding-bottom: 12px;">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #5f6368;"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
                                     </td>
                                     <td class="detail-text-td" style="vertical-align: top; padding-top: 2px; font-size: 14px; color: #5f6368; padding-bottom: 12px;">
-                                        <a href="tel:{{ preg_replace('/[^0-9\+]/', '', $settings['phone']) }}" style="color:#5f6368; text-decoration: none;">{{ $settings['phone'] }}</a>
+                                        <a href="tel:{{ preg_replace('/[^0-9\+]/', '', $settings['business_phone']) }}" style="color:#5f6368; text-decoration: none;">{{ $settings['business_phone'] }}</a>
                                     </td>
                                 </tr>
                                 @endif
@@ -201,7 +202,7 @@
                 <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                     <tr>
                         <td class="footer" style="padding: 24px; text-align: center; font-size: 12px; color: #9aa0a6; line-height: 1.5;">
-                            Este correo fue enviado a {{ $reservation->customer_email }} referente a tu reservación #{{ $reservation->id }}<br>
+                            Este correo fue enviado a {{ $reservation->customer->email ?? '' }} referente a tu reservación #{{ $reservation->reservation_id }}<br>
                             @if(!empty($settings['show_powered_by']))
                             Desarrollado por el Centro de Reservaciones
                             @endif

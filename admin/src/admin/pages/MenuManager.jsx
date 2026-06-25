@@ -291,6 +291,13 @@ export default function MenuManager() {
 
   const selectedHasChildren = form?.id && items.some(i => i.parent_id === form.id);
 
+  const handleTimeInput = (field) => (e) => {
+    let v = e.target.value.replace(/[^\d:]/g, '');
+    if (v.length === 2 && !v.includes(':') && e.nativeEvent.inputType !== 'deleteContentBackward') v += ':';
+    if (v.length > 5) return;
+    setForm(f => ({ ...f, [field]: v }));
+  };
+
   return (
     <Box sx={{ display: 'flex', gap: '16px', height: 'calc(100vh - 56px - 48px)', minHeight: 0 }}>
 
@@ -403,14 +410,16 @@ export default function MenuManager() {
                   Activa el botón solo en este intervalo. Soporta rangos que cruzan la medianoche (ej. 22:00–02:00).
                 </Typography>
                 <Box sx={{ display: 'flex', gap: '12px' }}>
-                  <TextField label="Desde" type="time" InputLabelProps={{ shrink: true }}
+                  <TextField label="Desde" InputLabelProps={{ shrink: true }}
                     value={form.active_from}
-                    onChange={e => setForm(f => ({ ...f, active_from: e.target.value }))}
+                    onChange={handleTimeInput('active_from')}
+                    inputProps={{ maxLength: 5, placeholder: 'HH:MM' }}
                     sx={{ flex: 1, '& .MuiOutlinedInput-root': { height: 48, borderRadius: '4px' } }}
                   />
-                  <TextField label="Hasta" type="time" InputLabelProps={{ shrink: true }}
+                  <TextField label="Hasta" InputLabelProps={{ shrink: true }}
                     value={form.active_until}
-                    onChange={e => setForm(f => ({ ...f, active_until: e.target.value }))}
+                    onChange={handleTimeInput('active_until')}
+                    inputProps={{ maxLength: 5, placeholder: 'HH:MM' }}
                     sx={{ flex: 1, '& .MuiOutlinedInput-root': { height: 48, borderRadius: '4px' } }}
                   />
                 </Box>

@@ -15,6 +15,9 @@ class SendReminderJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+    public array $backoff = [60, 300];
+
     public $reservation;
 
     /**

@@ -246,7 +246,7 @@ class NotificationService
                 ],
             ]),
             'review' => array_merge($base, $payload, [
-                'reviewLink'     => $reviewLink,
+                'reviewLink'     => $reviewLink ?: $settings->google_maps_link,
                 'googleMapsLink' => $settings->google_maps_link,
             ]),
             default => array_merge($base, $payload)

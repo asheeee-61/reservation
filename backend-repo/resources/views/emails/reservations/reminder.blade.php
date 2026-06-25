@@ -1,7 +1,7 @@
 @extends('emails.reservations.layout')
 
 @php
-    $isToday = \Carbon\Carbon::parse($reservation->reserved_at)->isToday();
+    $isToday = \Carbon\Carbon::parse($reservation->date)->isToday();
 @endphp
 
 @section('title', $isToday ? 'Tu mesa es hoy' : 'Tu mesa es mañana')

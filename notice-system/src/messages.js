@@ -25,10 +25,11 @@ Le confirmaremos en breve. Muchas gracias.`;
 };
 
 const formatClientConfirmation = (data) => {
-    const { id, customerName, businessName = DEFAULT_BUSINESS, address } = data;
+    const { id, customerName, businessName = DEFAULT_BUSINESS, address, date, time, guests } = data;
     const ref = id ? ` #${id}` : '';
-    const addressText = address ? ` en ${address}` : '';
-    return `Estimado/a ${customerName}, le informamos que su reserva${ref} en ${businessName}${addressText} ha sido CONFIRMADA. Le esperamos.`;
+    const addressText = address ? `\nDirección: ${address}` : '';
+    const details = (date && time) ? `\n\nDetalles:\n- Fecha: ${date}\n- Hora: ${time}${guests ? `\n- Personas: ${guests}` : ''}${addressText}` : '';
+    return `Estimado/a ${customerName}, le informamos que su reserva${ref} en ${businessName} ha sido CONFIRMADA.${details}\n\nLe esperamos.`;
 };
 
 const formatCancellation = (data) => {

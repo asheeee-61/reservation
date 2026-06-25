@@ -29,7 +29,7 @@ class ReservationReminder extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         $bName = $this->settings['business_name'] ?? config('app.name', 'Business');
-        $isToday = Carbon::parse($this->reservation->reserved_at)->isToday();
+        $isToday = Carbon::parse($this->reservation->date)->isToday();
         $title = $isToday ? 'Tu mesa es hoy' : 'Tu mesa es mañana';
         
         return new Envelope(
