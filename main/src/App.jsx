@@ -1,34 +1,110 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSwipeable } from 'react-swipeable';
 import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
+import './pdf-annotation-layer.css';
+import './pdf-text-layer.css';
 import { API_BASE_URL } from './config';
 import './App.css';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
+const flipVariants = {
+  enter: (dir) => ({
+    x: dir > 0 ? '70%' : '-70%',
+    rotateY: dir > 0 ? 40 : -40,
+    opacity: 0,
+    scale: 0.88,
+  }),
+  center: {
+    x: 0,
+    rotateY: 0,
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+  exit: (dir) => ({
+    x: dir > 0 ? '-70%' : '70%',
+    rotateY: dir > 0 ? -40 : 40,
+    opacity: 0,
+    scale: 0.88,
+    transition: { duration: 0.22, ease: [0.55, 0.06, 0.68, 0.19] },
+  }),
+};
+
 function PdfViewer({ url, onClose }) {
-  const [numPages, setNumPages]   = useState(null);
-  const [page,     setPage]       = useState(1);
-  const [loading,  setPdfLoading] = useState(true);
+  const [[page, direction], setPageState] = useState([1, 0]);
+  const [numPages, setNumPages]           = useState(null);
+  const [loading,  setPdfLoading]         = useState(true);
+  const wrapperRef                        = useRef(null);
+  const [pdfWidth, setPdfWidth]           = useState(() => Math.min(Math.floor(window.innerWidth * 0.92), 920));
+
+  const paginate = useCallback((delta) => {
+    setPageState(([p]) => {
+      const next = p + delta;
+      if (next < 1 || (numPages && next > numPages)) return [p, 0];
+      return [next, delta];
+    });
+  }, [numPages]);
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft:  () => paginate(1),
+    onSwipedRight: () => paginate(-1),
+    preventScrollOnSwipe: true,
+    trackMouse: true,
+    delta: 40,
+    swipeDuration: 500,
+  });
+
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setPdfWidth(Math.floor(entry.contentRect.width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') paginate(1);
+      if (e.key === 'ArrowLeft')  paginate(-1);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose, paginate]);
 
   return (
-    <div className="resource-overlay" role="dialog" aria-modal="true" aria-label="Visor de PDF">
+    <div className="resource-overlay resource-overlay--pdf" role="dialog" aria-modal="true" aria-label="Visor de PDF">
       <button className="resource-close" onClick={onClose} aria-label="Cerrar">✕</button>
 
-      <div className="pdf-wrapper">
+      <div className="pdf-wrapper" ref={wrapperRef} {...swipeHandlers}>
         <Document
           file={url}
           onLoadSuccess={({ numPages }) => { setNumPages(numPages); setPdfLoading(false); }}
           loading={<div className="pdf-loading"><div className="spinner" /></div>}
           error={<div className="pdf-error">No se pudo cargar el PDF.</div>}
         >
-          <Page
-            pageNumber={page}
-            renderTextLayer={true}
-            renderAnnotationLayer={true}
-            width={Math.min(window.innerWidth * 0.96, 960)}
-          />
+          <div className="pdf-page-container">
+            <AnimatePresence initial={false} custom={direction}>
+              <motion.div
+                key={page}
+                custom={direction}
+                variants={flipVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="pdf-page-motion"
+              >
+                <Page
+                  pageNumber={page}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                  width={pdfWidth}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </Document>
       </div>
 
@@ -36,14 +112,14 @@ function PdfViewer({ url, onClose }) {
         <div className="pdf-controls">
           <button
             className="pdf-btn"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => paginate(-1)}
             disabled={page <= 1}
             aria-label="Página anterior"
           >←</button>
           <span className="pdf-page">{page} / {numPages}</span>
           <button
             className="pdf-btn"
-            onClick={() => setPage(p => Math.min(numPages, p + 1))}
+            onClick={() => paginate(1)}
             disabled={page >= numPages}
             aria-label="Página siguiente"
           >→</button>
@@ -57,10 +133,10 @@ export default function App() {
   const glowRef   = useRef(null);
   const activeRef = useRef(false);
 
-  const [navStack, setNavStack]         = useState(null);   // null = loading/error
+  const [navStack, setNavStack]         = useState(null);
   const [loading,  setLoading]          = useState(true);
   const [error,    setError]            = useState(null);
-  const [resource, setResource]         = useState(null);   // { type, url, label }
+  const [resource, setResource]         = useState(null);
 
   // ── Mouse glow ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -74,6 +150,14 @@ export default function App() {
     document.addEventListener('mouseleave', onLeave);
     return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseleave', onLeave); };
   }, []);
+
+  // ── Escape to close image overlay ────────────────────────────────────────
+  useEffect(() => {
+    if (!resource || resource.type !== 'image') return;
+    const onKey = (e) => { if (e.key === 'Escape') setResource(null); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [resource]);
 
   // ── Fetch menu ────────────────────────────────────────────────────────────
   const fetchMenu = useCallback(async () => {
