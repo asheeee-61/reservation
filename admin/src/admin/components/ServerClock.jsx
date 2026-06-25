@@ -24,7 +24,7 @@ export default function ServerClock() {
 
   return (
     <Tooltip
-      title="Hora del servidor (España)"
+      title="La hora local"
       placement="bottom"
       componentsProps={{
         tooltip: {
