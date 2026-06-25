@@ -347,30 +347,6 @@ body {
   filter: blur(20px);
 }
 
-/* ── Inactive items ───────────────────────────────────────────────────────── */
-
-@keyframes eleganceRevealInactive {
-  0%   { transform: translateY(40px); opacity: 0; }
-  100% { transform: translateY(0);    opacity: 0.4; }
-}
-
-.menu-item--inactive {
-  animation-name: eleganceRevealInactive;
-  cursor: not-allowed;
-}
-.menu-item--inactive:hover {
-  transform: none !important;
-  background: var(--glass) !important;
-  border-color: var(--glass-border) !important;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 rgba(0,0,0,0.8) !important;
-}
-.menu-item--inactive:hover span {
-  color: var(--text-main) !important;
-  transform: none !important;
-  text-shadow: none !important;
-}
-.menu-item--inactive:hover::before { left: -100% !important; }
-
 
 /* ── Back button ──────────────────────────────────────────────────────────── */
 

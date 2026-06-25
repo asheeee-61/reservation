@@ -253,17 +253,15 @@ export default function App() {
 
         {!loading && !error && (
           <nav className="menu" aria-label="Menú principal">
-            {currentLevel.map((item, i) => (
+            {currentLevel.filter(item => item.is_active).map((item, i) => (
               <div
                 key={item.id}
                 className={[
                   'menu-item',
-                  !item.is_active              ? 'menu-item--inactive' : '',
-                  item.children?.length > 0    ? 'menu-item--parent'  : '',
+                  item.children?.length > 0 ? 'menu-item--parent' : '',
                 ].filter(Boolean).join(' ')}
                 role="button"
-                tabIndex={item.is_active ? 0 : -1}
-                aria-disabled={!item.is_active}
+                tabIndex={0}
                 style={{ '--delay': `${0.6 + i * 0.1}s` }}
                 onClick={e => handleItemClick(e, item)}
                 onKeyDown={e => handleKeyDown(e, item)}
