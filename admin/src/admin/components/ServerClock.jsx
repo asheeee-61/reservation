@@ -5,21 +5,20 @@ const formatter = new Intl.DateTimeFormat('es-ES', {
   timeZone: 'Europe/Madrid',
   hour: '2-digit',
   minute: '2-digit',
-  second: '2-digit',
   hourCycle: 'h23',
 });
 
 function getSpainTime() {
   const parts = formatter.formatToParts(new Date());
   const get = (type) => parts.find(p => p.type === type).value;
-  return `${get('hour')}:${get('minute')}:${get('second')}`;
+  return `${get('hour')}:${get('minute')}`;
 }
 
 export default function ServerClock() {
   const [time, setTime] = useState(getSpainTime);
 
   useEffect(() => {
-    const id = setInterval(() => setTime(getSpainTime()), 1000);
+    const id = setInterval(() => setTime(getSpainTime()), 60_000);
     return () => clearInterval(id);
   }, []);
 
