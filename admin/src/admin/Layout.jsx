@@ -9,6 +9,7 @@ import QuickActions from './components/QuickActions';
 import CopyLinksDropdown from './components/CopyLinksDropdown';
 import WhatsAppStatus from './components/WhatsAppStatus';
 import DayStatusButton from './components/DayStatusButton';
+import ServerClock from './components/ServerClock';
 import RestaurantLogo from '../shared/RestaurantLogo';
 import { ConfirmModal } from './components/ConfirmModal';
 import { apiClient } from '../shared/api';
@@ -182,6 +183,11 @@ export default function Layout() {
           {/* Desktop: Global Search */}
           <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' }, flex: 1, minWidth: 0, maxWidth: 500, ml: { lg: '24px' } }}>
             <GlobalSearch />
+          </Box>
+
+          {/* Server Clock — desktop only */}
+          <Box sx={{ display: 'none', [DESKTOP]: { display: 'flex' } }}>
+            <ServerClock />
           </Box>
 
           {/* Right side: Quick Actions + User Menu */}
