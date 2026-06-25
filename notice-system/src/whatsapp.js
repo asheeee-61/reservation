@@ -4,6 +4,7 @@ require('dotenv').config();
 
 let clientReady = false;
 let lastQR = null;
+let lastQRAt = null;
 let lastCheck = new Date();
 let intentionalDisconnect = false;
 
@@ -58,6 +59,7 @@ const client = new Client({
 
 client.on('qr', (qr) => {
     lastQR = qr;
+    lastQRAt = Date.now();
     qrcode.generate(qr, { small: true });
 });
 
@@ -168,6 +170,7 @@ module.exports = {
     formatAdminMessage,
     isReady: () => clientReady,
     getLastQR: () => lastQR,
+    getLastQRAge: () => lastQRAt ? Math.floor((Date.now() - lastQRAt) / 1000) : null,
     getStats: () => ({ ...stats, lastCheck: lastCheck.toLocaleString('es-ES') }),
     getMessageHistory: () => messageHistory,
     resendMessage,

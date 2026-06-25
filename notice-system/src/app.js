@@ -1,6 +1,6 @@
 const express = require('express');
 const QRCode = require('qrcode');
-const { sendMessage, formatClientMessage, formatAdminMessage, isReady, getLastQR } = require('./whatsapp');
+const { sendMessage, formatClientMessage, formatAdminMessage, isReady, getLastQR, getLastQRAge } = require('./whatsapp');
 require('dotenv').config();
 
 const notifyRoutes = require('./notify');
@@ -98,7 +98,9 @@ app.get('/qr', tokenAuth, async (req, res) => {
     }
 
     const qr = getLastQR();
-    if (!qr) {
+    const qrAge = getLastQRAge();
+    const qrExpired = qrAge !== null && qrAge > 15;
+    if (!qr || qrExpired) {
         return res.send(`
             <html>
                 <head>
