@@ -9,7 +9,6 @@ import QuickActions from './components/QuickActions';
 import CopyLinksDropdown from './components/CopyLinksDropdown';
 import WhatsAppStatus from './components/WhatsAppStatus';
 import DayStatusButton from './components/DayStatusButton';
-import ServerClock from './components/ServerClock';
 import RestaurantLogo from '../shared/RestaurantLogo';
 import { ConfirmModal } from './components/ConfirmModal';
 import { apiClient } from '../shared/api';
@@ -191,12 +190,7 @@ export default function Layout() {
             <GlobalSearch enableShortcut />
           </Box>
 
-          {/* Server Clock — tablet + desktop */}
-          <Box sx={{ display: 'none', [TABLET]: { display: 'flex' }, [DESKTOP]: { display: 'flex' } }}>
-            <ServerClock />
-          </Box>
-
-          {/* Right side: Quick Actions + User Menu */}
+{/* Right side: Quick Actions + User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, ml: 'auto' }}>
 
             {/* Quick action buttons — desktop only */}
