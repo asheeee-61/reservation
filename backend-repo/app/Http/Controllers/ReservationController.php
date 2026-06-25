@@ -246,13 +246,32 @@ class ReservationController extends Controller
         if ($request->filled('customer_id')) {
             $customer = Customer::findOrFail($request->customer_id);
         } else {
-            $customer = Customer::updateOrCreate(
-                ['phone' => $request->user['phone']],
-                [
-                    'name'  => $request->user['name'],
-                    'email' => $request->user['email'] ?? null,
-                ]
-            );
+            $email = $request->user['email'] ?? null;
+            $phone = $request->user['phone'];
+            $name  = $request->user['name'];
+
+            // Match existing customer by email first, then by phone
+            $customer = null;
+            if ($email) {
+                $customer = Customer::where('email', $email)->first();
+            }
+            if (!$customer && $phone) {
+                $customer = Customer::where('phone', $phone)->first();
+            }
+
+            if ($customer) {
+                // Fill in any missing contact info, always update name
+                $customer->name = $name;
+                if ($email && !$customer->email) $customer->email = $email;
+                if ($phone && !$customer->phone) $customer->phone = $phone;
+                $customer->save();
+            } else {
+                $customer = Customer::create([
+                    'name'  => $name,
+                    'email' => $email,
+                    'phone' => $phone,
+                ]);
+            }
         }
 
         $reservation = Reservation::create([
