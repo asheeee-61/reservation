@@ -10,7 +10,6 @@
     @php
         $bName    = $settings['business_name'] ?? 'Hechizo';
         $resDate  = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time)->locale('es');
-        $cName    = $reservation->customer->name ?? '';
         $waPhone  = !empty($settings['whatsapp_phone']) ? preg_replace('/[^0-9]/', '', $settings['whatsapp_phone']) : null;
         $logoUrl  = !empty($settings['logo']) ? asset('storage/' . $settings['logo']) : null;
         $year     = date('Y');

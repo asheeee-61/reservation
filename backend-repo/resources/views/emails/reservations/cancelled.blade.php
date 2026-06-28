@@ -5,7 +5,7 @@
 @section('status-title', 'Reserva cancelada')
 
 @section('sub-text')
-    Hola {{ $cName }}, lamentamos informarte que tu reserva ha sido cancelada.
+    Hola {{ $reservation->customer->name ?? '' }}, lamentamos informarte que tu reserva ha sido cancelada.
 @endsection
 
 @section('extra')

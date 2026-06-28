@@ -5,7 +5,7 @@
 @section('status-title', '¿Cómo estuvo tu visita?')
 
 @section('sub-text')
-    Hola {{ $cName }}, gracias por visitarnos. Tu opinión nos ayuda a seguir mejorando.
+    Hola {{ $reservation->customer->name ?? '' }}, gracias por visitarnos. Tu opinión nos ayuda a seguir mejorando.
 @endsection
 
 @section('extra')

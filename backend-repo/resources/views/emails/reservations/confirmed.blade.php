@@ -5,5 +5,5 @@
 @section('status-title', 'Reserva confirmada')
 
 @section('sub-text')
-    Hola {{ $cName }}, tu reserva ha sido confirmada. Te esperamos.
+    Hola {{ $reservation->customer->name ?? '' }}, tu reserva ha sido confirmada. Te esperamos.
 @endsection
