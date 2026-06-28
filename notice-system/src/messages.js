@@ -12,7 +12,7 @@ const formatClientReceived = (data) => {
     const addressText = address ? `\nDirección: ${address}` : '';
     return `SOLICITUD DE RESERVA RECIBIDA - ${businessName}
 
-Estimado/a ${customerName}, hemos recibido su solicitud.
+Estimado/a ${customerName}, hemos recibido su solicitud de reserva.
 
 Detalles:
 - Fecha: ${date}
@@ -21,7 +21,7 @@ Detalles:
 - Zona: ${tableType || 'Estándar'}
 - Evento: ${specialEvent || 'Ninguno'}${addressText}${ref}
 
-Le confirmaremos en breve. Muchas gracias.`;
+Nos pondremos en contacto con usted para confirmarla. Muchas gracias.`;
 };
 
 const formatClientConfirmation = (data) => {

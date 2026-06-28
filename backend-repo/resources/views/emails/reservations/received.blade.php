@@ -5,7 +5,7 @@
 @section('status-title', 'Reserva recibida')
 
 @section('sub-text')
-    Hola {{ $cName }}, hemos recibido tu solicitud. Te avisamos en cuanto esté confirmada.
+    Hola {{ $cName }}, hemos recibido tu solicitud de reserva. Nos pondremos en contacto contigo para confirmarla.
 @endsection
 
 @if(!empty($settings['confirmation_policy']))
