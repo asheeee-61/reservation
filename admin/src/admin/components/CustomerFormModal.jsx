@@ -59,7 +59,11 @@ export default function CustomerFormModal({ open, onClose, customerData, onSucce
       });
 
       if (response.success) {
-        toast.success(customerData ? 'Cliente actualizado' : 'Cliente creado');
+        if (response.merged) {
+          toast.info('Ya existe un cliente con ese email o teléfono. Reserva vinculada al cliente existente.');
+        } else {
+          toast.success(customerData ? 'Cliente actualizado' : 'Cliente creado');
+        }
         if (onSuccess) onSuccess(response.data);
         onClose();
       }

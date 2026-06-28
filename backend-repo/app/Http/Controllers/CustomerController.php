@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
@@ -61,7 +62,22 @@ class CustomerController extends Controller
             'tags' => 'nullable|array',
             'notes' => 'nullable|string'
         ]);
-        
+
+        $email = $validated['email'] ?? null;
+        $phone = $validated['phone'] ?? null;
+
+        $existing = null;
+        if ($email) {
+            $existing = Customer::where('email', $email)->first();
+        }
+        if (!$existing && $phone) {
+            $existing = Customer::where('phone', $phone)->first();
+        }
+
+        if ($existing) {
+            return response()->json(['success' => true, 'data' => $existing, 'merged' => true], 200);
+        }
+
         $customer = Customer::create($validated);
         return response()->json(['success' => true, 'data' => $customer], 201);
     }
@@ -147,12 +163,12 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('customers')->ignore($customer->id)],
             'phone' => 'nullable|string|max:20',
             'tags' => 'nullable|array',
             'notes' => 'nullable|string'
         ]);
-        
+
         $customer->update($validated);
         return response()->json(['success' => true, 'data' => $customer]);
     }
