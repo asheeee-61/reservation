@@ -99,7 +99,7 @@ app.get('/qr', tokenAuth, async (req, res) => {
 
     const qr = getLastQR();
     const qrAge = getLastQRAge();
-    const qrExpired = qrAge !== null && qrAge > 15;
+    const qrExpired = qrAge !== null && qrAge > 60;
     if (!qr || qrExpired) {
         return res.send(`
             <html>
@@ -109,24 +109,33 @@ app.get('/qr', tokenAuth, async (req, res) => {
                     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
                 </head>
                 <body style="font-family: 'Roboto', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #F5F5F5; margin: 0;">
-                    <div style="text-align: center; max-width: 400px; width: 90%;">
+                    <div style="text-align: center; max-width: 420px; width: 90%;">
                         <div style="background: white; padding: 3rem; border-radius: 12px; box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);">
                             <span class="material-icons" style="font-size: 64px; color: #1a73e8; margin-bottom: 1rem; animation: pulse 2s infinite;">hourglass_empty</span>
-
                             <h1 style="font-size: 24px; font-weight: 500; color: #202124; margin: 0 0 1rem 0;">Generando código QR...</h1>
-                            <p style="color: #5F6368; line-height: 1.5; margin-bottom: 0;">Por favor, espera unos segundos mientras preparamos la conexión.</p>
+                            <p style="color: #5F6368; line-height: 1.5; margin-bottom: 1.5rem;">Por favor, espera unos segundos mientras preparamos la conexión.</p>
+                            <button onclick="forceNewQR()" style="background:#1a73e8;color:white;border:none;padding:10px 20px;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                                <span class="material-icons" style="font-size:16px;">refresh</span> Forzar nuevo QR
+                            </button>
                         </div>
                     </div>
                     <style>@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }</style>
-                    <script>setTimeout(() => window.location.reload(), 3000);</script>
+                    <script>
+                        setTimeout(() => window.location.reload(), 4000);
+                        function forceNewQR() {
+                            fetch('/disconnect?token=${req.query.token}', { method: 'POST' })
+                                .then(() => { setTimeout(() => window.location.reload(), 2500); })
+                                .catch(() => window.location.reload());
+                        }
+                    </script>
                 </body>
             </html>
         `);
-
     }
 
     try {
         const qrImage = await QRCode.toDataURL(qr);
+        const remainingSeconds = qrAge !== null ? Math.max(0, 60 - qrAge) : 60;
         res.send(`
             <html>
                 <head>
@@ -144,7 +153,6 @@ app.get('/qr', tokenAuth, async (req, res) => {
                             min-height: 100vh;
                             color: #202124;
                         }
-
                         .header {
                             height: 56px;
                             background: white;
@@ -174,28 +182,77 @@ app.get('/qr', tokenAuth, async (req, res) => {
                             border-radius: 12px;
                             box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
                             text-align: center;
-                            max-width: 400px;
+                            max-width: 420px;
                             width: 100%;
                         }
                         .instruction {
                             color: #5F6368;
-                            margin: 24px 0;
+                            margin: 16px 0 20px;
                             font-size: 15px;
                             line-height: 1.5;
                         }
                         .qr-container {
+                            position: relative;
                             background: white;
                             padding: 16px;
                             border: 1px solid #E0E0E0;
                             border-radius: 8px;
                             display: inline-block;
-                            margin-bottom: 24px;
+                            margin-bottom: 20px;
+                        }
+                        .qr-container.expired::after {
+                            content: '';
+                            position: absolute;
+                            inset: 0;
+                            background: rgba(255,255,255,0.85);
+                            border-radius: 8px;
                         }
                         .qr-image {
                             width: 100%;
-                            max-width: 280px;
+                            max-width: 260px;
                             height: auto;
                             display: block;
+                        }
+                        .timer-row {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            margin-bottom: 16px;
+                        }
+                        .timer-badge {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 5px;
+                            padding: 5px 12px;
+                            border-radius: 20px;
+                            font-size: 13px;
+                            font-weight: 600;
+                            background: #E8F0FE;
+                            color: #1a73e8;
+                            transition: background 0.3s, color 0.3s;
+                        }
+                        .timer-badge.warning {
+                            background: #FFF3E0;
+                            color: #E65100;
+                        }
+                        .timer-badge.danger {
+                            background: #FDECEA;
+                            color: #C62828;
+                        }
+                        .progress-bar-track {
+                            width: 100%;
+                            height: 4px;
+                            background: #E0E0E0;
+                            border-radius: 4px;
+                            margin-bottom: 20px;
+                            overflow: hidden;
+                        }
+                        .progress-bar-fill {
+                            height: 100%;
+                            border-radius: 4px;
+                            background: #1a73e8;
+                            transition: width 1s linear, background 0.3s;
                         }
                         .status {
                             color: #1a73e8;
@@ -205,36 +262,115 @@ app.get('/qr', tokenAuth, async (req, res) => {
                             align-items: center;
                             justify-content: center;
                             gap: 8px;
-                            margin-top: 24px;
+                            margin-bottom: 20px;
                         }
+                        .force-btn {
+                            background: none;
+                            border: 1px solid #DADCE0;
+                            color: #5F6368;
+                            padding: 8px 16px;
+                            border-radius: 4px;
+                            font-size: 13px;
+                            cursor: pointer;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 5px;
+                            font-family: 'Roboto', sans-serif;
+                        }
+                        .force-btn:hover { background: #F5F5F5; }
+                        @keyframes blink { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
                     </style>
                 </head>
                 <body>
                     <div class="header">
                         <h1>
                             <span class="material-icons" style="color: #1a73e8;">notifications_active</span>
-
                             Notice System
                         </h1>
                     </div>
                     <div class="main">
                         <div class="qr-card">
                             <h2 style="margin: 0; font-size: 22px; font-weight: 500;">Vincular Dispositivo</h2>
-                            <p class="instruction">Abre WhatsApp en tu teléfono, ve a Dispositivos vinculados y escanea este código.</p>
-                            
-                            <div class="qr-container">
-                                <img src="${qrImage}" class="qr-image" />
+                            <p class="instruction">Abre WhatsApp en tu teléfono, ve a <strong>Dispositivos vinculados</strong> y escanea este código.</p>
+
+                            <div class="timer-row">
+                                <span class="timer-badge" id="timerBadge">
+                                    <span class="material-icons" style="font-size:14px;">timer</span>
+                                    <span id="timerText">Expira en <span id="countdown">${remainingSeconds}</span>s</span>
+                                </span>
+                            </div>
+
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill" id="progressBar" style="width: ${Math.round((remainingSeconds / 60) * 100)}%"></div>
+                            </div>
+
+                            <div class="qr-container" id="qrContainer">
+                                <img src="${qrImage}" class="qr-image" id="qrImg" />
                             </div>
 
                             <div class="status">
                                 <span class="material-icons" style="font-size: 18px; animation: blink 1.5s infinite;">sync</span>
                                 Esperando escaneo...
                             </div>
+
+                            <button class="force-btn" onclick="forceNewQR()">
+                                <span class="material-icons" style="font-size:15px;">refresh</span>
+                                Generar nuevo QR
+                            </button>
                         </div>
                     </div>
-                    <style>@keyframes blink { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }</style>
                     <script>
-                        setTimeout(() => window.location.reload(), 5000);
+                        let remaining = ${remainingSeconds};
+                        const countdownEl = document.getElementById('countdown');
+                        const badgeEl = document.getElementById('timerBadge');
+                        const progressEl = document.getElementById('progressBar');
+                        const containerEl = document.getElementById('qrContainer');
+                        const timerTextEl = document.getElementById('timerText');
+
+                        const tick = setInterval(() => {
+                            remaining--;
+                            countdownEl.textContent = remaining;
+                            const pct = Math.max(0, Math.round((remaining / 60) * 100));
+                            progressEl.style.width = pct + '%';
+
+                            if (remaining <= 10) {
+                                badgeEl.className = 'timer-badge danger';
+                                progressEl.style.background = '#C62828';
+                            } else if (remaining <= 20) {
+                                badgeEl.className = 'timer-badge warning';
+                                progressEl.style.background = '#E65100';
+                            }
+
+                            if (remaining <= 0) {
+                                clearInterval(tick);
+                                timerTextEl.textContent = 'Actualizando...';
+                                containerEl.classList.add('expired');
+                                setTimeout(() => window.location.reload(), 800);
+                            }
+                        }, 1000);
+
+                        // Poll every 5s: if connected, redirect; if new QR emitted, reload to show it
+                        const pollStatus = setInterval(async () => {
+                            try {
+                                const r = await fetch('/health');
+                                const data = await r.json();
+                                if (data.whatsapp && data.whatsapp.connected) {
+                                    clearInterval(pollStatus);
+                                    clearInterval(tick);
+                                    window.location.reload();
+                                }
+                            } catch (_) {}
+                        }, 5000);
+
+                        function forceNewQR() {
+                            clearInterval(tick);
+                            clearInterval(pollStatus);
+                            timerTextEl.textContent = 'Generando...';
+                            containerEl.classList.add('expired');
+                            fetch('/disconnect?token=${req.query.token}', { method: 'POST' })
+                                .then(() => setTimeout(() => window.location.reload(), 3000))
+                                .catch(() => window.location.reload());
+                        }
                     </script>
                 </body>
             </html>
