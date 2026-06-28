@@ -14,7 +14,10 @@
       "Bash(grep -E \"\\\\.jsx$\")",
       "Bash(npm run *)",
       "Bash(node -e \"const p = require\\('C:/Users/lahbo/reservation/main/node_modules/react-pdf/package.json'\\); console.log\\(JSON.stringify\\(p.exports, null, 2\\)\\)\")",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }
