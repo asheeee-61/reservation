@@ -246,32 +246,11 @@ class ReservationController extends Controller
         if ($request->filled('customer_id')) {
             $customer = Customer::findOrFail($request->customer_id);
         } else {
-            $email = $request->user['email'] ?? null;
-            $phone = $request->user['phone'];
-            $name  = $request->user['name'];
-
-            // Match existing customer by email first, then by phone
-            $customer = null;
-            if ($email) {
-                $customer = Customer::where('email', $email)->first();
-            }
-            if (!$customer && $phone) {
-                $customer = Customer::where('phone', $phone)->first();
-            }
-
-            if ($customer) {
-                // Fill in any missing contact info, always update name
-                $customer->name = $name;
-                if ($email && !$customer->email) $customer->email = $email;
-                if ($phone && !$customer->phone) $customer->phone = $phone;
-                $customer->save();
-            } else {
-                $customer = Customer::create([
-                    'name'  => $name,
-                    'email' => $email,
-                    'phone' => $phone,
-                ]);
-            }
+            $customer = $this->resolveCustomer(
+                $request->user['email'] ?? null,
+                $request->user['phone'],
+                $request->user['name']
+            );
         }
 
         $reservation = Reservation::create([
@@ -360,30 +339,11 @@ class ReservationController extends Controller
 
         $reservation = Reservation::findOrFail($id);
         
-        $email = $validated['email'] ?? null;
-        $phone = $validated['phone'] ?? null;
-        $name = $validated['name'];
-        $customer = null;
-
-        if ($email) {
-            $customer = Customer::where('email', $email)->first();
-        }
-        if (!$customer && $phone) {
-            $customer = Customer::where('phone', $phone)->first();
-        }
-
-        if ($customer) {
-            $customer->name = $name;
-            if ($email && !$customer->email) $customer->email = $email;
-            if ($phone && !$customer->phone) $customer->phone = $phone;
-            $customer->save();
-        } else {
-            $customer = Customer::create([
-                'name'  => $name,
-                'email' => $email,
-                'phone' => $phone,
-            ]);
-        }
+        $customer = $this->resolveCustomer(
+            $validated['email'] ?? null,
+            $validated['phone'] ?? null,
+            $validated['name']
+        );
 
         // Check if status is changing and enforce transition rules
         if ($reservation->status !== $validated['status']) {
@@ -519,6 +479,35 @@ class ReservationController extends Controller
             'slots' => $slots,
             'shifts' => $shifts
         ]);
+    }
+
+    private function resolveCustomer(?string $email, ?string $phone, string $name): Customer
+    {
+        $customer = null;
+        if ($email) {
+            $customer = Customer::withTrashed()->where('email', $email)->first();
+        }
+        if (!$customer && $phone) {
+            $customer = Customer::withTrashed()->where('phone', $phone)->first();
+        }
+
+        if ($customer) {
+            if ($customer->trashed()) {
+                $customer->restore();
+            }
+            $customer->name = $name;
+            if ($email && !$customer->email) $customer->email = $email;
+            if ($phone && !$customer->phone) $customer->phone = $phone;
+            $customer->save();
+        } else {
+            $customer = Customer::create([
+                'name'  => $name,
+                'email' => $email,
+                'phone' => $phone,
+            ]);
+        }
+
+        return $customer;
     }
 
     private function logActivity($reservation, $description, $type = 'status_change', $metadata = null)

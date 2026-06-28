@@ -68,10 +68,14 @@ class CustomerController extends Controller
 
         $existing = null;
         if ($email) {
-            $existing = Customer::where('email', $email)->first();
+            $existing = Customer::withTrashed()->where('email', $email)->first();
         }
         if (!$existing && $phone) {
-            $existing = Customer::where('phone', $phone)->first();
+            $existing = Customer::withTrashed()->where('phone', $phone)->first();
+        }
+
+        if ($existing && $existing->trashed()) {
+            $existing->restore();
         }
 
         if ($existing) {
