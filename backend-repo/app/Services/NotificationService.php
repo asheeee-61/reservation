@@ -100,11 +100,13 @@ class NotificationService
                 ->post("{$noticeUrl}{$endpoint}", $payload);
 
             if ($response->successful()) {
+                $responseData = $response->json();
                 \App\Models\NotificationLog::create([
                     'reservation_id' => $reservation->id,
                     'channel' => 'whatsapp',
                     'template' => $type,
                     'recipient' => $target,
+                    'body' => $responseData['body'] ?? null,
                     'status' => 'sent'
                 ]);
 
@@ -152,6 +154,9 @@ class NotificationService
 
             if (!$mailable) return;
 
+            $emailBody = null;
+            try { $emailBody = $mailable->render(); } catch (\Throwable $_) {}
+
             if (!$immediate && in_array($type, ['reminder_2h', 'review'])) {
                 $minutes = $notificationSettings['email'][$type]['minutes'] ?? 120;
                 $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
@@ -173,6 +178,7 @@ class NotificationService
                 'channel' => 'email',
                 'template' => $type,
                 'recipient' => $target,
+                'body' => $emailBody,
                 'status' => 'sent'
             ]);
 

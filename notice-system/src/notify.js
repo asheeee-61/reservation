@@ -41,9 +41,9 @@ router.post('/reminder-2h', async (req, res) => {
 
         const target = process.env.TEST_PHONE || customer.phone;
         await sendMessage(target, msg, 'Recordatorio 2h');
-        
+
         console.log(`✅ Reminder 2h sent to ${target}`);
-        res.json({ status: 'sent', type: 'reminder-2h' });
+        res.json({ status: 'sent', type: 'reminder-2h', body: msg });
     } catch (err) {
         console.error('❌ Failed to send reminder:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
@@ -74,7 +74,7 @@ router.post('/review', async (req, res) => {
         await sendMessage(target, msg, 'Solicitud Reseña');
 
         console.log(`✅ Review request sent to ${target}`);
-        res.json({ status: 'sent', type: 'review' });
+        res.json({ status: 'sent', type: 'review', body: msg });
     } catch (err) {
         console.error('❌ Failed to send review request:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
@@ -104,7 +104,7 @@ router.post('/cancellation', async (req, res) => {
         await sendMessage(target, msg, 'Cancelación');
 
         console.log(`✅ Cancellation notice sent to ${target}`);
-        res.json({ status: 'sent', type: 'cancellation' });
+        res.json({ status: 'sent', type: 'cancellation', body: msg });
     } catch (err) {
         console.error('❌ Failed to send cancellation notice:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
@@ -136,9 +136,9 @@ router.post('/confirmed', async (req, res) => {
         const target = process.env.TEST_PHONE || customer.phone;
         
         await sendMessage(target, msg, 'Confirmación');
-        
+
         console.log(`✅ Confirmation sent to ${target} for reservation #${reservation.id}`);
-        res.json({ status: 'sent', type: 'confirmed' });
+        res.json({ status: 'sent', type: 'confirmed', body: msg });
     } catch (err) {
         console.error('❌ Failed to send confirmation:', err.message);
         res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
@@ -181,7 +181,8 @@ router.post('/new-reservation', async (req, res) => {
         res.json({
             status: 'processed',
             reservationId: reservation.id,
-            client: 'sent'
+            client: 'sent',
+            body: clientMsg
         });
     } catch (err) {
         console.error('❌ Failed to send status update:', err.message);

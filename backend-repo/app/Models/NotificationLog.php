@@ -11,6 +11,7 @@ class NotificationLog extends Model
         'channel',
         'template',
         'recipient',
+        'body',
         'status',
         'error_message'
     ];

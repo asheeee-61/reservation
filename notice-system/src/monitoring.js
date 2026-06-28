@@ -454,6 +454,35 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             box-shadow: var(--shadow-elevation-4);
         }
 
+        /* Content Viewer Modal */
+        .content-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 30000;
+            padding: 24px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-sizing: border-box;
+        }
+        .content-modal.visible { opacity: 1; }
+        .content-modal-box {
+            background: var(--surface);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 88vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-elevation-4);
+        }
+        .log-row-clickable { cursor: pointer; }
+        .log-row-clickable:hover td { background: rgba(26,115,232,0.05) !important; }
+
         .rotating { animation: rot 1s infinite linear; }
         @keyframes rot { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
@@ -640,11 +669,29 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         </div>
     </div>
 
+    <!-- Content Viewer Modal -->
+    <div id="content-modal" class="content-modal">
+        <div class="content-modal-box">
+            <div class="modal-header">
+                <div>
+                    <h3 id="content-modal-title" style="margin:0; font-size:18px;"></h3>
+                    <div id="content-modal-meta" style="font-size:12px; color:var(--text-secondary); margin-top:4px;"></div>
+                </div>
+                <button onclick="closeContentModal()" class="btn btn-outline" style="min-width:auto; padding:6px; border:none;">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body" id="content-modal-body" style="flex-grow:1; overflow:hidden; display:flex; flex-direction:column;"></div>
+        </div>
+    </div>
+
     <script>
         const BACKEND_URL = '${backendUrl}';
         const TOKEN = new URLSearchParams(window.location.search).get('token');
         let currentSettings = null;
         let originalSettings = null;
+
+        let logsById = {};
 
         const TEMPLATE_NAMES = {
             'received':    'Nueva Reserva',
@@ -845,6 +892,7 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
         }
 
         function renderLogRow(log, showError = false) {
+            logsById[log.id] = log;
             const isWa = log.channel === 'whatsapp';
             const channelBadge = isWa
                 ? '<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#25D366;"><span class="material-icons" style="font-size:16px;">message</span> WA</span>'
@@ -854,17 +902,20 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
             const sCls  = log.status === 'sent' ? 'badge-sent' : log.status === 'failed' ? 'badge-failed' : 'badge-invalid';
             const sLabel = log.status === 'sent' ? 'Enviado' : log.status === 'failed' ? 'Fallido' : 'No reg.';
             const retryBtn = log.status === 'failed'
-                ? '<button class="btn-retry" title="Reintentar" id="retry-' + log.id + '" onclick="retryNotification(' + log.id + ')"><span class="material-icons">replay</span></button>'
+                ? '<button class="btn-retry" title="Reintentar" id="retry-' + log.id + '" onclick="event.stopPropagation(); retryNotification(' + log.id + ')"><span class="material-icons">replay</span></button>'
                 : '';
             const errTxt = showError && log.error_message
                 ? '<div style="color:var(--error); font-size:11px; margin-top:2px;">' + log.error_message.substring(0, 80) + (log.error_message.length > 80 ? '…' : '') + '</div>'
                 : '';
-            return '<tr>' +
+            const viewIcon = log.body
+                ? '<span class="material-icons" title="Ver contenido" style="font-size:14px; color:var(--primary); vertical-align:middle; margin-left:6px; opacity:0.7;">visibility</span>'
+                : '';
+            return '<tr class="log-row-clickable" onclick="viewLogContent(' + log.id + ')">' +
                 '<td>' + channelBadge + '</td>' +
                 '<td>' + (TEMPLATE_NAMES[log.template] || log.template) + '</td>' +
                 '<td><div style="font-weight:500;">' + name + '</div><div style="font-size:12px; color:var(--text-secondary);">' + (log.recipient || '') + '</div></td>' +
                 '<td style="white-space:nowrap; color:var(--text-secondary);">' + ts + '</td>' +
-                '<td><span class="badge-table ' + sCls + '">' + sLabel + '</span>' + retryBtn + errTxt + '</td>' +
+                '<td><span class="badge-table ' + sCls + '">' + sLabel + '</span>' + retryBtn + viewIcon + errTxt + '</td>' +
                 '</tr>';
         }
 
@@ -1049,6 +1100,55 @@ const renderMonitoring = (backendUrl = 'http://localhost:8000') => {
                 alert('Error de conexión.');
                 if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons" style="font-size:16px;">link_off</span> Desconectar'; }
             }
+        }
+
+        // ── Content Viewer ────────────────────────────────────────────────────
+
+        function viewLogContent(id) {
+            const log = logsById[id];
+            if (!log) return;
+
+            const modal = document.getElementById('content-modal');
+            const titleEl = document.getElementById('content-modal-title');
+            const metaEl = document.getElementById('content-modal-meta');
+            const bodyEl = document.getElementById('content-modal-body');
+
+            const isWa = log.channel === 'whatsapp';
+            const templateName = TEMPLATE_NAMES[log.template] || log.template;
+            const name = (log.reservation && log.reservation.customer) ? log.reservation.customer.name : (log.recipient || '');
+            const ts = new Date(log.created_at).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+            titleEl.innerHTML = (isWa
+                ? '<span style="display:inline-flex; align-items:center; gap:6px; color:#25D366;"><span class="material-icons" style="font-size:20px;">message</span> WhatsApp</span>'
+                : '<span style="display:inline-flex; align-items:center; gap:6px; color:#EA4335;"><span class="material-icons" style="font-size:20px;">mail</span> Email</span>')
+                + ' — ' + templateName;
+            metaEl.textContent = name + ' · ' + (log.recipient || '') + ' · ' + ts;
+
+            if (!log.body) {
+                bodyEl.innerHTML = '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px; color:var(--text-secondary); gap:12px;">' +
+                    '<span class="material-icons" style="font-size:48px; color:#BDBDBD;">history_toggle_off</span>' +
+                    '<p style="margin:0; text-align:center;">Contenido no disponible.<br><span style="font-size:12px;">Solo los mensajes enviados tras la actualización del sistema tienen contenido guardado.</span></p>' +
+                    '</div>';
+            } else if (isWa) {
+                const timeStr = new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const escaped = log.body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g,'<br>');
+                bodyEl.innerHTML = '<div class="whatsapp-preview-container" style="flex:1; overflow-y:auto;">' +
+                    '<div class="wa-bubble">' + escaped + '<span class="wa-time">' + timeStr + '</span></div>' +
+                    '</div>';
+            } else {
+                bodyEl.innerHTML = '<iframe style="flex:1; border:none; width:100%; min-height:500px;" srcdoc="' +
+                    log.body.replace(/"/g, '&quot;') + '"></iframe>';
+            }
+
+            modal.style.display = 'flex';
+            void modal.offsetWidth;
+            modal.classList.add('visible');
+        }
+
+        function closeContentModal() {
+            const modal = document.getElementById('content-modal');
+            modal.classList.remove('visible');
+            setTimeout(() => { modal.style.display = 'none'; }, 220);
         }
 
         // ── Resend (legacy) ───────────────────────────────────────────────────
