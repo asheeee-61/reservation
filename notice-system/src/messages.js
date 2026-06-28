@@ -46,19 +46,8 @@ const formatReminder2h = (data) => {
     return `Estimado/a ${customerName}, le recordamos su reserva${ref} en ${businessName}${addressText} para hoy a las ${time}. Le esperamos.`;
 };
 
-const formatPostVisitReview = (data) => {
-    const { id, customerName, reviewLink, googleMapsLink, businessName = DEFAULT_BUSINESS } = data;
-    const ref = id ? ` #${id}` : '';
-    const mapsLine = googleMapsLink ? `\n\nDéjanos tu opinión aquí: ${googleMapsLink}` : '';
-    
-    return `Estimado/a ${customerName}, gracias por visitarnos en ${businessName}. Esperamos que haya disfrutado su reserva${ref}.
-
-Valoramos mucho su opinión. Si tiene un momento, nos ayudaría mucho que compartiera su experiencia.${mapsLine}`;
-};
-
 module.exports = {
     formatReminder2h,
-    formatPostVisitReview,
     formatCancellation,
     formatClientReceived,
     formatClientConfirmation

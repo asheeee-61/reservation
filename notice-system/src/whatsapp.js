@@ -1,3 +1,4 @@
+const path = require('path');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 require('dotenv').config();
@@ -34,11 +35,11 @@ const logMessage = (to, text, status, type = 'Notificación') => {
 
 const client = new Client({
     authStrategy: new LocalAuth({
-        dataPath: './sessions'
+        dataPath: path.resolve(__dirname, '../sessions')
     }),
     webVersionCache: {
         type: 'local',
-        path: './wwebjs_cache',
+        path: path.resolve(__dirname, '../wwebjs_cache'),
     },
     puppeteer: {
         headless: true,

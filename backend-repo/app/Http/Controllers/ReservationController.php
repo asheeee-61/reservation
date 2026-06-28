@@ -577,7 +577,7 @@ class ReservationController extends Controller
             $notificationService->notify('cancelled', $reservation);
             $this->cancelPendingJobs($reservation);
         } elseif ($reservation->status === Reservation::STATUS_ASISTIO) {
-            $this->dispatchReviewJob($reservation);
+            $this->cancelPendingJobs($reservation);
         } else {
             // For other statuses (like no_show, pendiente), cancel pending jobs
             $this->cancelPendingJobs($reservation);
@@ -600,25 +600,6 @@ class ReservationController extends Controller
         } elseif ($resDateTime->isFuture()) {
             // Within the reminder window but reservation hasn't happened yet: send immediately
             \App\Jobs\SendReminderJob::dispatch($reservation);
-        }
-    }
-
-    private function dispatchReviewJob(Reservation $reservation): void
-    {
-        $this->cancelPendingJobs($reservation, \App\Jobs\SendReviewJob::class);
-        
-        $settings = \App\Models\Setting::first();
-        $notificationSettings = $settings ? $settings->notification_settings : null;
-        $minutes = $notificationSettings['whatsapp']['review']['minutes'] ?? 120;
-        
-        // Review is sent AFTER the reservation
-        $resDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
-        $delay = $resDateTime->copy()->addMinutes($minutes);
-
-        if ($delay->isFuture()) {
-            \App\Jobs\SendReviewJob::dispatch($reservation)->delay($delay);
-        } else {
-            \App\Jobs\SendReviewJob::dispatch($reservation);
         }
     }
 

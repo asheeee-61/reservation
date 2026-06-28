@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { sendMessage, isReady } = require('./whatsapp');
-const { 
-    formatReminder2h, 
-    formatPostVisitReview, 
+const {
+    formatReminder2h,
     formatCancellation,
     formatClientReceived,
     formatClientConfirmation
@@ -50,38 +49,7 @@ router.post('/reminder-2h', async (req, res) => {
     }
 });
 
-// 2. Post visit review
-router.post('/review', async (req, res) => {
-    const { customer, reviewLink, restaurantName, businessName, address, id } = req.body;
-    const link = reviewLink || process.env.REVIEW_LINK;
-    const finalBusinessName = businessName || restaurantName;
-    const finalId = id || (req.body.reservation ? req.body.reservation.id : null);
-
-    if (!customer?.phone || !link) {
-        return res.status(400).json({ error: 'Missing customer phone or review link' });
-    }
-
-    try {
-        const msg = formatPostVisitReview({
-            id: finalId,
-            customerName: customer.name,
-            reviewLink: link,
-            googleMapsLink: req.body.googleMapsLink,
-            businessName: finalBusinessName
-        });
-
-        const target = process.env.TEST_PHONE || customer.phone;
-        await sendMessage(target, msg, 'Solicitud Reseña');
-
-        console.log(`✅ Review request sent to ${target}`);
-        res.json({ status: 'sent', type: 'review', body: msg });
-    } catch (err) {
-        console.error('❌ Failed to send review request:', err.message);
-        res.status(500).json({ error: 'Failed to send WhatsApp message', details: err.message });
-    }
-});
-
-// 3. Cancellation
+// 2. Cancellation
 router.post('/cancellation', async (req, res) => {
     const { customer, reason, restaurantName, businessName, address, id } = req.body;
     const finalBusinessName = businessName || restaurantName;
