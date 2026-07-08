@@ -69,6 +69,17 @@ class NotificationService
             $noticeUrl = config('notice.url');
             if (!$noticeUrl) return;
 
+            try {
+                $health = Http::timeout(2)->get("{$noticeUrl}/health");
+                if (!$health->successful() || !($health->json('whatsapp.connected') ?? false)) {
+                    Log::info("WhatsApp not connected, skipping notification ($type) for reservation {$reservation->reservation_id}");
+                    return;
+                }
+            } catch (\Exception $e) {
+                Log::info("WhatsApp notice-system unreachable, skipping ($type) for reservation {$reservation->reservation_id}");
+                return;
+            }
+
             $settings = Setting::first();
             $notificationSettings = $settings ? $settings->notification_settings : null;
             
