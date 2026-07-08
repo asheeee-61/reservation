@@ -291,7 +291,7 @@ class SettingsController extends Controller
 
     public function retryNotification(Request $request, $id)
     {
-        $log = \App\Models\NotificationLog::with('reservation.customer.zone', 'reservation.event')->findOrFail($id);
+        $log = \App\Models\NotificationLog::with('reservation.customer', 'reservation.zone', 'reservation.event')->findOrFail($id);
 
         if (!$log->reservation) {
             return response()->json(['error' => 'Reserva no encontrada'], 404);
