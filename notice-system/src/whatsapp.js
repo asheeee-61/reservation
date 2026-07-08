@@ -82,7 +82,9 @@ client.on('disconnected', (reason) => {
     clientReady = false;
     lastCheck = new Date();
     if (!intentionalDisconnect) {
-        client.initialize();
+        setTimeout(() => {
+            client.initialize().catch(err => console.error('Failed to reinitialize WhatsApp:', err.message));
+        }, 5000);
     }
 });
 
@@ -130,7 +132,12 @@ const sendMessage = async (to, text, type = 'Notificación') => {
         throw new Error('WhatsApp client is not ready');
     }
     try {
-        const isRegistered = await client.isRegisteredUser(chatId);
+        let isRegistered = true;
+        try {
+            isRegistered = await client.isRegisteredUser(chatId);
+        } catch (checkErr) {
+            console.warn(`⚠️ isRegisteredUser check failed (${checkErr.message}), attempting send anyway`);
+        }
         if (!isRegistered) {
             logMessage(chatId, text, 'invalid', type);
             throw new Error('Number is not registered on WhatsApp');
@@ -161,7 +168,7 @@ const destroySession = async () => {
     setTimeout(() => {
         intentionalDisconnect = false;
         client.initialize().catch(err => console.error('Failed to reinitialize WhatsApp:', err.message));
-    }, 2000);
+    }, 5000);
 };
 
 module.exports = {
