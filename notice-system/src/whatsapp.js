@@ -142,7 +142,20 @@ const sendMessage = async (to, text, type = 'Notificación') => {
             logMessage(chatId, text, 'invalid', type);
             throw new Error('Number is not registered on WhatsApp');
         }
-        const result = await client.sendMessage(chatId, text);
+        let result;
+        try {
+            result = await client.sendMessage(chatId, text);
+        } catch (sendErr) {
+            if (sendErr.message && sendErr.message.includes('No LID for user')) {
+                // Fallback: get contact via phone number lookup then send via chat
+                console.warn(`⚠️ No LID for ${chatId}, trying fallback via getNumberId`);
+                const numberId = await client.getNumberId(chatId);
+                if (!numberId) throw new Error('Number not found on WhatsApp');
+                result = await client.sendMessage(numberId._serialized, text);
+            } else {
+                throw sendErr;
+            }
+        }
         logMessage(chatId, text, 'sent', type);
         return result;
     } catch (err) {
